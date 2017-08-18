@@ -1,0 +1,190 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <title>Report</title>
+        
+        <style type="text/css">
+            .title {
+                text-align: center;
+                color: #00e;
+            }
+            .row {
+                float: left;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            .col-50-percent {
+                float: left;
+                width: 50%;
+            }
+            
+            .data-table {
+                width: 100%;
+                color: #02d;
+                padding: 6px 12px;
+            }
+            .data-table.has-border {
+                border: 1px solid #000;
+                border-collapse: collapse;
+                color: #444;
+            }
+            .data-table td {
+                padding: 4px 2px;
+            }
+            .data-table td.field-name {
+                width: 30%;
+                vertical-align: top;
+            }
+            .data-table td.field-value {
+                font-weight: bold;
+                vertical-align: middle;
+            }
+            .data-table td img {
+                padding: 5px;
+            }
+            .data-table.has-border thead th {
+                padding: 10px 2px;
+                color: #000;
+                font-size: 18px;
+            }
+            .data-table.has-border .location {
+                width: 120px;
+                text-align: center;
+            }
+            .data-table.has-border .status {
+                width: 100px;
+                text-align: center;
+            }
+            .data-table.has-border .item {
+                padding: 4px 8px;
+            }
+            span.notice {
+                padding: 2px 5px;
+                font-weight: bold;
+            }
+            span.notice.notice-yes {
+                color: #e00;
+            }
+            span.notice.notice-no {
+                color: #111;
+            }
+            .text-center {
+                text-align: center;
+            }
+            
+            label.label-large {
+                font-size: 30px;
+                font-weight: bold;
+                padding: 5px 15%;
+            }
+            label.label-danger {
+                background: #d00;
+                color: #fff;
+            }
+            label.label-success {
+                background: #00d;
+                color: #fff;
+            }
+            label.label-warning {
+                background: #E89701;
+                color: #fff;
+            }
+            
+        </style>
+    </head>
+
+    <body>
+        
+        <h1 class="title">Plain Report</h1>
+        <div class="row">
+            <div class="col-50-percent">
+                <table class="data-table">
+                    <tr>
+                        <td class="field-name">Community :</td>
+                        <td class="field-value">Fountain Park</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">LOT # :</td>
+                        <td class="field-value">005</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">Job Number :</td>
+                        <td class="field-value"></td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">Address :</td>
+                        <td class="field-value"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Is This House Ready For Inspection? <span class="notice notice-no">Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align: center;"><img style="max-height: 300px;" src="http://192.168.1.112/Inspection/resource/upload/lath/front/20160125235012_a2912ac7-3930-4d07-873f-a45536e63d86.jpg"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-50-percent">
+                <table class="data-table">
+                    <tr>
+                        <td class="field-name">Date of Inspection :</td>
+                        <td class="field-value"></td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">Inspector Initials :</td>
+                        <td class="field-value"></td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">Field Manager :</td>
+                        <td class="field-value"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">GPS Location : <span class="notice">Lat: , Lon: , Acc: </span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align: center;"><img width="300" src="http://maps.googleapis.com/maps/api/staticmap?center=26.565329+-81.846392&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map of 26.565329 -81.846392"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="row text-center">
+            <label class="label-large label-warning">FAIL</label>
+        </div>
+        
+        <div class="row">
+            <table class="data-table has-border" border="1">
+                <thead>
+                    <tr>
+                        <th class="location">Location</th>
+                        <th class="item">Item</th>
+                        <th class="status">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="location">Front</td>
+                        <td class="item">sdfsa </td>
+                        <td class="status">Pass</td>
+                    </tr>
+                    <tr>
+                        <td class="location">Comments</td>
+                        <td class="item" colspan="2">
+                            Comments: dfkjasfjl fjsalfjsadlfkjsal;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-center">
+                            <img style="max-width: 40%;" src="http://192.168.1.112/Inspection/resource/upload/lath/front/20160125235012_a2912ac7-3930-4d07-873f-a45536e63d86.jpg">
+                            <img style="max-width: 40%;" src="http://192.168.1.112/Inspection/resource/upload/lath/front/20160125235012_a2912ac7-3930-4d07-873f-a45536e63d86.jpg">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>            
+        </div>
+        
+        <div class="row"></div>
+        <div class="row"></div>
+
+    </body>
+</html>

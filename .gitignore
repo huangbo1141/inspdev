@@ -1,0 +1,16 @@
+.DS_Store
+
+application/cache/*
+!application/cache/index.html
+!application/cache/.htaccess
+
+application/logs/*
+!application/logs/index.html
+!application/logs/.htaccess
+resource/
+icon/
+application/third_party/mpdf/qrcode/data/
+application/third_party/mpdf/examples/
+application/third_party/mpdf/patterns/
+application/third_party/mpdf/ttfontdata/
+application/third_party/mpdf/ttfonts/
