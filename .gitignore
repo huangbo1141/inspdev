@@ -7,7 +7,11 @@ application/cache/*
 application/logs/*
 !application/logs/index.html
 !application/logs/.htaccess
-resource/
+resource/assets/images
+resource/assets/layout
+resource/assets/plugins
+resource/buildings
+resource/upload
 icon/
 application/third_party/mpdf/qrcode/data/
 application/third_party/mpdf/examples/

@@ -101,14 +101,15 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row margin-bottom-10">
                         <div class="col-md-12 text-right">
+                            <a href="#" class="btn red" id="btn_check">Check WCI</a>
                             <a href="#" class="btn green" id="btn_view">Search</a>
                             <a href="#" class="btn blue" id="btn_export"><i class="fa fa-file-excel-o"></i> Export</a>
                         </div>
                     </div>
-                    
+
                     <div class="row table-responsive">
                         <table id="table_content" class="display" cellspacing="0" cellpadding="0" width="100%">
                             <thead>

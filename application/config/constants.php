@@ -45,7 +45,7 @@ define('FOPEN_READ_WRITE_CREATE_STRICT',		'x+b');
 
 define("DB_HOST", 'localhost');
 define("DB_USER", 'root'); //development@insp
-define("DB_PASSWORD", ''); //o8vSF396[Fzl
+define("DB_PASSWORD", '111'); //o8vSF396[Fzl
 define("DB_DATABASE", 'inspdev');
 
 define("DB_PREFIX", 'ins_');

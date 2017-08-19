@@ -6,9 +6,9 @@ if (!defined('BASEPATH'))
 class Api extends CI_Controller {
 
     private $hash_key = "inspection_front_user";
-    
+
     const FILESIZE = 26214400; // 10MB
-    
+
     private $status = array(
         array('code' => 0, 'message' => 'Success'), // 0
         array('code' => 1, 'message' => 'Failed'), // 1
@@ -25,14 +25,14 @@ class Api extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        
+
         $this->load->library('uuid');
         $this->load->library('m_pdf');
 
         $this->load->model('user_model');
         $this->load->model('utility_model');
         $this->load->model('datatable_model');
-        
+
         $this->load->library('mailer/phpmailerex');
         $this->load->helper('csv');
     }
@@ -96,7 +96,7 @@ class Api extends CI_Controller {
                         if ($this->utility_model->insert('ins_user', array('email' => $email, 'ip_address' => $ip, 'phone_number'=>$phone_number, 'first_name' => $first_name, 'last_name' => $last_name, 'password' => sha1($password . $this->hash_key), 'created_at' => $t, 'updated_at' => $t))) {
                             $response['status'] = $this->status[0];
                             $result_data = $this->utility_model->get('ins_user', array('email' => $email));
-                            
+
                             $mail_subject = "New Inspector is registered";
                             $mail_body =  " First Name: " . $result_data['first_name'] . "\n"
                                         . " Last Name: " . $result_data['last_name'] . "\n"
@@ -107,7 +107,7 @@ class Api extends CI_Controller {
                                         . " " . base_url() . " \n\n"
                                         . " Regards."
                                         . "\n";
-                            
+
                             $sender = $this->utility_model->get_list('ins_admin', array('kind'=>1, 'allow_email'=>1));
                             $this->send_mail($mail_subject, $mail_body, $sender, false);
                         } else {
@@ -115,7 +115,7 @@ class Api extends CI_Controller {
                         }
                     }
                 }
-            } 
+            }
             else if ($param == 'update') {
                 $first_name = $this->input->get_post('first_name');
                 $last_name = $this->input->get_post('last_name');
@@ -172,7 +172,7 @@ class Api extends CI_Controller {
                         $response['status'] = $this->status[4];
                     }
                 }
-            } 
+            }
             else if ($param == 'sign') {
                 $email = $this->input->get_post('email');
 
@@ -192,7 +192,7 @@ class Api extends CI_Controller {
                         $response['status'] = $this->status[4];
                     }
                 }
-            } 
+            }
             else if ($param == 'field_manager') {
                 $region = $this->input->get_post('region');
 
@@ -207,14 +207,14 @@ class Api extends CI_Controller {
                     } else {
                         $result_data['user'] = array();
                     }
-                    
+
                     $response['status'] = $this->status[0];
                 }
-            } 
+            }
             else {
                 $response['status'] = $this->status[2];
             }
-        } 
+        }
         else if ($method == 'inspection') {
             if ($kind == 'drainage' || $kind == 'lath') {
                 $type = $kind == 'drainage' ? 1 : 2;
@@ -222,7 +222,7 @@ class Api extends CI_Controller {
 
                 if ($user_id === false) {
                     $response['status'] = $this->status[3];
-                } 
+                }
                 else {
                     $user_id = $this->utility_model->decode($user_id);
                     $user = $this->utility_model->get('ins_user', array('id' => $user_id));
@@ -234,12 +234,12 @@ class Api extends CI_Controller {
                             if ($is_building_unit===false || $is_building_unit=="") {
                                 $is_building_unit = "0";
                             }
-                            
+
                             $address = $this->input->get_post('address');
                             if ($address===false)  {
                                 $address = "";
                             }
-                            
+
                             $edit_inspection_id = $this->input->get_post('inspection_id');
                             if ($edit_inspection_id===false || $edit_inspection_id=="0")  {
                                 $edit_inspection_id = "";
@@ -248,7 +248,7 @@ class Api extends CI_Controller {
                             if ($job === false) {
                                 $response['status'] = $this->status[3];
                             } else {
-                                
+
                                 $schedule = $this->utility_model->get__by_sql("select a.*, u.id as manager_id from ins_building a "
                                         . " left join ins_admin u on concat(u.first_name, ' ', u.last_name)=a.field_manager and u.kind=2 "
                                         . " where replace(a.job_number,'-','')=replace('$job','-','') "
@@ -259,13 +259,13 @@ class Api extends CI_Controller {
                                 } else {
                                     $result_data['is_schedule'] = 0;
                                 }
-                                
+
                                 if ($is_building_unit=="1" && $address!="") {
                                     $result_data['is_bu'] = 1;
                                 } else {
                                     $result_data['is_bu'] = 0;
                                 }
-                                
+
                                 $result_data['is_initials'] = 0;
                                 if ($kind=='lath') {
                                     $pass_drainage = $this->utility_model->get_count__by_sql("select a.* from ins_inspection a where replace(a.job_number,'-','')=replace('$job','-','') and ( a.result_code=1 or a.result_code=2 ) and a.type=1");     // drainage inspection with pass or pass with exception
@@ -274,13 +274,13 @@ class Api extends CI_Controller {
                                     } else {
                                         $result_data['is_initials'] = 1;
                                     }
-                                } 
-                                
+                                }
+
                                 $result_data['is_exist'] = 0;
                                 $sql = " select "
                                         . " a.id, a.user_id, a.type, a.job_number, a.community, a.lot, a.address as addr, a.start_date as date, a.end_date as date_l, a.initials as init, a.region, a.field_manager as fm, "
                                         . " a.latitude, a.longitude, a.accuracy, a.house_ready as ready, a.overall_comments as overall, a.image_front_building, a.image_signature, "
-                                        . " a.is_first, a.is_initials, " 
+                                        . " a.is_first, a.is_initials, "
                                         . " a.result_code as result, "
                                         . " a.city, a.area, a.volume, a.qn, a.wall_area as w_area, a.ceiling_area as c_area, a.design_location as des_loc, "
                                         . " a.image_testing_setup as setup, a.image_manometer as mano, "
@@ -288,7 +288,7 @@ class Api extends CI_Controller {
                                         . " a.qn_out, a.ach50, a.result_duct_leakage as duct_leakage, a.result_envelop_leakage as envelop_leakage "
                                         . " from ins_inspection a "
                                         . " where ";
-                                
+
                                 if ($edit_inspection_id!="") {
                                     $sql .= " a.id='$edit_inspection_id' ";
                                 } else {
@@ -301,20 +301,20 @@ class Api extends CI_Controller {
                                     $sql .= " order by a.start_date desc, a.id desc "
                                         . " limit 1 ";
                                 }
-                                
+
                                 $inspection = $this->utility_model->get__by_sql($sql);
-                                
+
                                 if ($inspection) {
                                     $result_data['is_exist'] = 1;
-                                    
+
                                     $inspection['loc'] = array(
                                         'lat'=>$inspection['latitude'],
                                         'lon'=>$inspection['longitude'],
                                         'acc'=>$inspection['accuracy'],
                                     );
-                                    
+
                                     $inspection['is_exist'] = $inspection['is_first']=='1' ? "0" : "1";
-                                    
+
                                     if (isset($inspection['image_front_building']) && $inspection['image_front_building']!="") {
                                         $inspection['front'] = array(
                                             'mode'=>2,
@@ -323,7 +323,7 @@ class Api extends CI_Controller {
                                     } else {
                                         $inspection['front'] = "";
                                     }
-                                    
+
                                     if (isset($inspection['image_signature']) && $inspection['image_signature']!="") {
                                         $inspection['sign'] = array(
                                             'mode'=>2,
@@ -332,12 +332,12 @@ class Api extends CI_Controller {
                                     } else {
                                         $inspection['sign'] = "";
                                     }
-                                    
+
                                     $inspection['ex1'] = "";
                                     $inspection['ex2'] = "";
                                     $inspection['ex3'] = "";
                                     $inspection['ex4'] = "";
-                                    
+
                                     $exception_images = $this->utility_model->get_list('ins_exception_image', array('inspection_id'=>$inspection['id']));
                                     if ($exception_images) {
                                         $i = 1;
@@ -350,11 +350,11 @@ class Api extends CI_Controller {
                                             } else {
 //                                                $inspection['ex' . $i] = "";
                                             }
-                                            
+
                                             $i++;
                                         }
                                     }
-                                    
+
                                     $result_email = array();
                                     $emails = $this->utility_model->get_list('ins_recipient_email', array('inspection_id'=>$inspection['id'], 'status'=>'0'));
                                     if ($emails) {
@@ -369,47 +369,47 @@ class Api extends CI_Controller {
                                         'front'=>$this->get_location($inspection['id'], 'Front', $type),
                                         'back'=>$this->get_location($inspection['id'], 'Back', $type),
                                     );
-                                    
+
                                     $result_data['inspection'] = $inspection;
                                     $result_data['email'] = $result_email;
                                     $result_data['location'] = $location;
-                                    
+
                                     $result_data['comment'] = $this->get_comment($inspection['id']);
                                 }
                                 else {
-                                    // $inspection = $this->utility_model->get__by_sql("select a.id, a.user_id, a.type, a.job_number, a.community, a.lot, b.address as addr, a.start_date as date, a.end_date as date_l, a.initials as init, a.region, a.field_manager as fm, a.latitude, a.longitude, a.accuracy, a.house_ready as ready, a.overall_comments as overall, a.image_front_building, a.image_signature, a.is_first, a.is_initials, a.result_code as result 
-                                    //                                                 from ins_schedule b 
+                                    // $inspection = $this->utility_model->get__by_sql("select a.id, a.user_id, a.type, a.job_number, a.community, a.lot, b.address as addr, a.start_date as date, a.end_date as date_l, a.initials as init, a.region, a.field_manager as fm, a.latitude, a.longitude, a.accuracy, a.house_ready as ready, a.overall_comments as overall, a.image_front_building, a.image_signature, a.is_first, a.is_initials, a.result_code as result
+                                    //                                                 from ins_schedule b
                                     //                                                 left join ins_inspection a
-                                    //                                                 on replace(b.job_number,'-','')=replace(a.job_number,'-','') 
+                                    //                                                 on replace(b.job_number,'-','')=replace(a.job_number,'-','')
                                     //                                                 where replace(b.job_number,'-','')=replace('$job', '-','') order by a.created_at desc limit 1");
                                     // $result_data['inspection'] = $inspection;
                                 }
-                                
+
                                 $response['status'] = $this->status[0];
                             }
-                        } 
+                        }
                         else if ($param == 'submit') {
                             $req = $this->input->get_post('request');
                             $app_version = $this->input->get_post('version');
                             if ($app_version===false || $app_version=="") {
                                 $app_version = "1.0";
                             }
-                            
+
                             if ($req === false) {
                                 $response['status'] = $this->status[3];
                             } else {
 
                                 $ip = $this->get_client_ip();
                                 $t = mdate('%Y%m%d%H%i%s', time());
-                                
+
                                 $obj = json_decode($req);
-                                
+
                                 $requested_inspection_id = $obj->requested_id;
                                 $edit_inspection_id = isset($obj->inspection_id) ? $obj->inspection_id : "";
                                 if ($edit_inspection_id===0 || $edit_inspection_id==="0") {
                                     $edit_inspection_id = "";
                                 }
-                                
+
                                 $data = array(
                                     'user_id' => $user_id,
                                     'type' => $type,
@@ -433,19 +433,19 @@ class Api extends CI_Controller {
                                     'ip_address' => $ip,
                                     'created_at' => $t,
                                     'requested_id' =>$requested_inspection_id,
-                                    
+
                                     'app_version'=>$app_version,
                                 );
-                                
+
                                 if ($edit_inspection_id!="") {
-                                    
+
                                 } else {
                                     $data['start_date'] = date('Y-m-d', time()); // $obj->start_date,
                                     $data['end_date'] = date('Y-m-d', time()); // $obj->start_date,
                                 }
-                                
+
                                 if ($edit_inspection_id!="") {
-                                    
+
                                 } else {
                                     if (isset($obj->is_building_unit))  {
                                         $data['is_building_unit'] = $obj->is_building_unit;
@@ -464,9 +464,9 @@ class Api extends CI_Controller {
                                     }
                                 }
 
-                                $inspection_id = false;                                
+                                $inspection_id = false;
                                 $this->utility_model->start();
-                                
+
                                 if ($edit_inspection_id!="") {
                                     if ($this->utility_model->update('ins_inspection', $data, array('id'=>$edit_inspection_id))) {
                                         $inspection_id = $edit_inspection_id;
@@ -515,27 +515,27 @@ class Api extends CI_Controller {
                                             }
                                         }
                                     }
-                                    
+
                                     $this->utility_model->delete('ins_inspection_comment', array('inspection_id' => $inspection_id));
-                                    if (is_array($obj->comments)) { 
+                                    if (is_array($obj->comments)) {
                                         foreach ($obj->comments as $row1) {
                                             $this->utility_model->insert('ins_inspection_comment', array('inspection_id' => $inspection_id, 'no' => $row1->no, 'status' => $row1->status, 'primary_photo' => $row1->primary, 'secondary_photo' => $row1->secondary, 'description' => $row1->description));
                                         }
                                     }
-                                    
+
                                     $today = mdate('%Y-%m-%d', time());
                                     $this->utility_model->update('ins_inspection_requested', array('status'=>2, 'completed_at'=>$today), array('id'=>$requested_inspection_id));
 
                                     $this->utility_model->complete();
-                                    
+
                                     $result_data['inspection_id'] = $inspection_id;
                                     $response['status'] = $this->status[0];
-                                } 
+                                }
                                 else {
                                     $response['status'] = $this->status[1];
                                 }
                             }
-                        } 
+                        }
                         else {
                             $response['status'] = $this->status[2];
                         }
@@ -543,20 +543,20 @@ class Api extends CI_Controller {
                         $response['status'] = $this->status[4];
                     }
                 }
-            } 
+            }
             else if ($kind == 'wci') {
                 $type = 3;
                 $user_id = $this->input->get_post('user_id');
 
                 if ($user_id === false) {
                     $response['status'] = $this->status[3];
-                } 
+                }
                 else {
                     $user_id = $this->utility_model->decode($user_id);
                     $user = $this->utility_model->get('ins_user', array('id' => $user_id));
                     if ($user) {
                         if ($param=='check') {
-                            
+
                         }
                         else if ($param == 'submit') {
                             $req = $this->input->get_post('request');
@@ -564,17 +564,17 @@ class Api extends CI_Controller {
                             if ($app_version===false || $app_version=="") {
                                 $app_version = "1.0";
                             }
-                            
+
                             if ($req === false) {
                                 $response['status'] = $this->status[3];
                             } else {
 
                                 $ip = $this->get_client_ip();
                                 $t = mdate('%Y%m%d%H%i%s', time());
-                                
+
                                 $obj = json_decode($req);
                                 $requested_inspection_id = $obj->requested_id;
-                                
+
                                 $data = array(
                                     'user_id' => $user_id,
                                     'type' => $type,
@@ -600,31 +600,31 @@ class Api extends CI_Controller {
                                     'ip_address' => $ip,
                                     'created_at' => $t,
                                     'requested_id' =>$requested_inspection_id,
-                                    
+
                                     'city'=>$obj->city,
                                     'area'=>$obj->area,
                                     'volume'=>$obj->volume,
                                     'qn'=>$obj->qn,
-                                    
+
                                     'wall_area'=>$obj->wall_area,
                                     'ceiling_area'=>$obj->ceiling_area,
                                     'design_location'=>$obj->design_location,
-                                    
+
                                     'image_testing_setup'=>$obj->testing_setup,
                                     'image_manometer'=>$obj->manometer,
-                                    
+
                                     'house_pressure'=>$obj->house_pressure,
                                     'flow'=>$obj->flow,
-                                    
+
                                     'result_duct_leakage'=>$obj->result_duct_leakage,
                                     'result_envelop_leakage'=>$obj->result_envelop_leakage,
-                                    
+
                                     'qn_out'=>$obj->qn_out,
                                     'ach50'=>$obj->ach50,
-                                    
+
                                     'app_version'=>$app_version,
                                 );
-                                
+
                                 if (isset($obj->is_building_unit))  {
                                     $data['is_building_unit'] = $obj->is_building_unit;
 
@@ -643,13 +643,13 @@ class Api extends CI_Controller {
 
                                 if ($this->utility_model->insert('ins_inspection', $data)) {
                                     $inspection_id = $this->utility_model->new_id();
-                                    
+
                                     if (is_array($obj->unit)) {
                                         foreach ($obj->unit as $row) {
                                             $this->utility_model->insert('ins_unit', array('inspection_id'=>$inspection_id, 'no'=>$row->no, 'supply'=>$row->supply, 'return'=>$row->return));
                                         }
                                     }
-                                    
+
                                     $today = mdate('%Y-%m-%d', time());
                                     $this->utility_model->update('ins_inspection_requested', array('status'=>2, 'completed_at'=>$today), array('id'=>$requested_inspection_id));
 
@@ -659,7 +659,7 @@ class Api extends CI_Controller {
                                     $response['status'] = $this->status[1];
                                 }
                             }
-                        } 
+                        }
                         else {
                             $response['status'] = $this->status[2];
                         }
@@ -671,16 +671,16 @@ class Api extends CI_Controller {
             else if ($param=='requested') {
                 $user_id = $this->input->get_post('user_id');
                 $requested_date = $this->input->get_post('date');
-                
+
                 if ($requested_date===false) {
                     $requested_date = "";
                 }
-                
+
                 if ($user_id === false) {
                     $response['status'] = $this->status[3];
                 } else {
                     $user_id = $this->utility_model->decode($user_id);
-                    
+
                     $user = $this->utility_model->get('ins_user', array('id' => $user_id));
                     if ($user) {
                         $table = " ins_inspection_requested a "
@@ -700,7 +700,7 @@ class Api extends CI_Controller {
 //                                . " r.region as region_name, "
 //                                . " u.first_name, u.last_name "
                                 . " from ins_user u, " . $table . " where u.id=a.inspector_id and a.status=1 and a.inspector_id='" . $user_id . "' ";
-                        
+
                         if ($requested_date!="") {
                             $sql .= " and a.requested_at='$requested_date' ";
                         }
@@ -708,7 +708,7 @@ class Api extends CI_Controller {
                         $sql .= " order by a.requested_at asc, a.job_number asc ";
                         $requested_list = $this->utility_model->get_list__by_sql($sql);
                         $result_data = $requested_list;
-                        
+
                         $response['status'] = $this->status[0];
                     } else {
                         $response['status'] = $this->status[4];
@@ -718,7 +718,7 @@ class Api extends CI_Controller {
             else {
                 $response['status'] = $this->status[2];
             }
-        } 
+        }
         else if ($method == 'send') {
             $user_id = $this->input->get_post('user_id');
             $inspection_id = $this->input->get_post('inspection_id');
@@ -726,7 +726,7 @@ class Api extends CI_Controller {
             if ($user_id !== false && $inspection_id !== false) {
                 $user_id = $this->utility_model->decode($user_id);
                 $inspection_id = $this->utility_model->decode($inspection_id);
-                
+
                 $inspection = $this->utility_model->get('ins_inspection', array('user_id' => $user_id, 'id' => $inspection_id));
                 if ($inspection) {
                     $report = $this->send_report($user_id, $inspection_id);
@@ -736,16 +736,16 @@ class Api extends CI_Controller {
 //                        $result_data['email'] = $report;
                         $response['status'] = $this->status[0];
                     }
-                } 
+                }
                 else {
                     $response['status'] = $this->status[3];
                 }
             } else {
                 $response['status'] = $this->status[3];
             }
-        } 
+        }
         else if ($method == 'community') {
-            
+
             if ($param=='check') {
                 $community_id = $this->input->get_post('community_id');
                 if ($community_id!==false) {
@@ -758,15 +758,15 @@ class Api extends CI_Controller {
                         $result_data['community_name'] = "";
                         $result_data['regions'] = $this->utility_model->get_list('ins_region', array());
                     }
-                    
+
                     $t = mdate('%m/%d/%Y', time());
                     $result_data['date'] = $t;
-                    
+
                     $response['status'] = $this->status[0];
                 } else {
                     $response['status'] = $this->status[3];
                 }
-            } 
+            }
             else {
                 $response['status'] = $this->status[3];
             }
@@ -780,29 +780,29 @@ class Api extends CI_Controller {
                 } else {
                     $result_data['region'] = $this->utility_model->get_list('ins_region', array());
                     $result_data['delete'] = array();
-                    
+
                     foreach ($ids as $row) {
                         $region = $this->utility_model->get('ins_region', array('id'=>$row));
                         if ($region) {
-                            
+
                         } else {
                             array_push($result_data['delete'], $row);
                         }
                     }
                 }
-                
+
                 $response['status'] = $this->status[0];
             }
             else if ($param=='field_manager') {
                 $ids = $this->input->get_post('ids');
-                
+
                 if ($ids===false || !is_array($ids)) {
                     $result_data['fm'] = $this->utility_model->get_list('ins_admin', array('kind'=>2));
                     $result_data['delete'] = array();
                 } else {
                     $result_data['fm'] = $this->utility_model->get_list('ins_admin', array('kind'=>2));
                     $result_data['delete'] = array();
-                    
+
                     foreach ($ids as $row) {
                         $fm = $this->utility_model->get('ins_admin', array('id'=>$row));
                         if ($fm) {
@@ -811,7 +811,7 @@ class Api extends CI_Controller {
                         }
                     }
                 }
-                
+
                 $response['status'] = $this->status[0];
             }
             else {
@@ -841,7 +841,7 @@ class Api extends CI_Controller {
             'response' => array(
             )
         );
-        
+
         $request_data = array();
         $result_data = array();
 
@@ -854,16 +854,16 @@ class Api extends CI_Controller {
                 } else {
                     $region = $this->utility_model->decode($region);
 
-                    $user = $this->utility_model->get_list__by_sql(" select a.* from ins_admin a where a.kind=2 and a.status=1 and a.id in ( select manager_id from ins_admin_region where region='$region' ) "); 
+                    $user = $this->utility_model->get_list__by_sql(" select a.* from ins_admin a where a.kind=2 and a.status=1 and a.id in ( select manager_id from ins_admin_region where region='$region' ) ");
                     if ($user) {
                         $result_data['user'] = $user;
                     } else {
                         $result_data['user'] = array();
                     }
-                    
+
                     $response['status'] = $this->status[0];
                 }
-            } 
+            }
             else {
                 $response['status'] = $this->status[2];
             }
@@ -877,29 +877,29 @@ class Api extends CI_Controller {
                 } else {
                     $result_data['region'] = $this->utility_model->get_list('ins_region', array());
                     $result_data['delete'] = array();
-                    
+
                     foreach ($ids as $row) {
                         $region = $this->utility_model->get('ins_region', array('id'=>$row));
                         if ($region) {
-                            
+
                         } else {
                             array_push($result_data['delete'], $row);
                         }
                     }
                 }
-                
+
                 $response['status'] = $this->status[0];
             }
             else if ($param=='field_manager') {
                 $ids = $this->input->get_post('ids');
-                
+
                 if ($ids===false || !is_array($ids)) {
                     $fm = $this->utility_model->get_list('ins_admin', array('kind'=>2));
                     $result_data['delete'] = array();
                 } else {
                     $fm = $this->utility_model->get_list('ins_admin', array('kind'=>2));
                     $result_data['delete'] = array();
-                    
+
                     foreach ($ids as $row) {
                         if ($this->utility_model->get('ins_admin', array('id'=>$row))) {
                         } else {
@@ -907,25 +907,25 @@ class Api extends CI_Controller {
                         }
                     }
                 }
-                
+
                 $fms = array();
                 if (isset($fm) && is_array($fm)) {
                     foreach ($fm as $row) {
                         $region = "";
-                        
+
                         $ffff = $this->utility_model->get_list__by_sql(" select a.region from ins_admin_region a where a.manager_id='" . $row['id'] . "' ");
                         if ($ffff) {
                             foreach ($ffff as $rrr) {
                                 $region .= "r" . $rrr['region'] . "r";
                             }
                         }
-                        
+
                         $row['region'] = $region;
                         array_push($fms, $row);
                     }
                 }
                 $result_data['fm'] = $fms;
-                
+
                 $response['status'] = $this->status[0];
             }
             else {
@@ -937,10 +937,10 @@ class Api extends CI_Controller {
             if ($configuration) {
                 $report_keep_day = intval($configuration['value']);
             }
-            
+
             $current_time = time();
-            
-            $path = "resource/upload/report/"; 
+
+            $path = "resource/upload/report/";
             $files = scandir($path);
             foreach ($files as $file) {
                 $full_path = $path . $file;
@@ -954,10 +954,10 @@ class Api extends CI_Controller {
                     }
                 }
             }
-            
+
             $response['status'] = $this->status[0];
         }
-        
+
         $response['request']['data'] = $request_data;
         $response['response'] = $result_data;
 
@@ -967,14 +967,14 @@ class Api extends CI_Controller {
     public function upload($kind = '', $type = '') {
         $msg = array('code' => 1, 'message' => 'Failed!', 'url' => '', 'path' => '');
         $dir_name = "";
-        
+
         if ($kind != "") {
             if ($type != "") {
                 $dir_name = "resource/upload/$kind/$type/";
             } else {
                 $dir_name = "resource/upload/$kind/";
             }
-            
+
             $uu_id = $this->uuid->v4();
             $ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
 
@@ -995,10 +995,10 @@ class Api extends CI_Controller {
     public function export($kind = '', $method = '') {
         if ($kind == 'inspection') {
             ini_set('memory_limit', '512M');
-            
+
             $inspection_id = $this->input->get_post('id');
 //            $inspection_id = $this->utility_model->decode($inspection_id);
-            
+
             $type = $this->input->get_post('type');
             if ($type===false) {
                 $type = "full";
@@ -1010,7 +1010,7 @@ class Api extends CI_Controller {
                 $this->m_pdf->initialize();
             }
 
-            
+
             $html = "";
             if ($type=='duct') {
                 $html = $this->get_report_html__for_duct_leakage($inspection_id);
@@ -1019,26 +1019,26 @@ class Api extends CI_Controller {
             } else {
                 $html = $this->get_report_html($inspection_id, $type);
             }
-            
+
             $this->m_pdf->pdf->WriteHTML($html);
             $this->m_pdf->pdf->Output("report.pdf", "D");
         }
-        
+
         if ($kind == 'statistics') {
             if ($method == 'inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $file_format = $this->input->get_post('file_format');
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $description = $this->input->get_post('desc');
                     if ($description===false || $description=="") {
                         $description = "1";
                     }
-                    
+
                     $region = $this->input->get_post('region');
                     $community = $this->input->get_post('community');
                     $start_date = $this->input->get_post('start_date');
@@ -1072,28 +1072,28 @@ class Api extends CI_Controller {
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
-                    
+
                     if ($file_format == "csv") {
                         $data = $this->get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, true, intval($description)===1);
                         array_to_csv($data, "report.csv");
                     }
-                }                
+                }
             }
-            
+
             if ($method == 're_inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $file_format = $this->input->get_post('file_format');
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $description = $this->input->get_post('desc');
                     if ($description===false || $description=="") {
                         $description = "1";
                     }
-                    
+
                     $region = $this->input->get_post('region');
                     $community = $this->input->get_post('community');
                     $start_date = $this->input->get_post('start_date');
@@ -1128,23 +1128,23 @@ class Api extends CI_Controller {
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
-                    
+
                     if ($file_format == "csv") {
                         $data = $this->get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, true, intval($description)===1);
                         array_to_csv($data, "report.csv");
                     }
-                }                
+                }
             }
-            
+
             if ($method == 'checklist') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $file_format = $this->input->get_post('file_format');
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $region = $this->input->get_post('region');
                     $community = $this->input->get_post('community');
                     $start_date = $this->input->get_post('start_date');
@@ -1184,9 +1184,9 @@ class Api extends CI_Controller {
                         array_to_csv($data, "report.csv");
                     }
 //                    echo $html;
-                }                
+                }
             }
-            
+
             if ($method == 'fieldmanager') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
@@ -1195,7 +1195,7 @@ class Api extends CI_Controller {
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $region = $this->input->get_post('region');
                     $start_date = $this->input->get_post('start_date');
                     $end_date = $this->input->get_post('end_date');
@@ -1213,7 +1213,7 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
+
                     if ($file_format == "pdf") {
                         $this->m_pdf->initialize();
                         $html = $this->get_report_data__for_statistics_fieldmanager($region, $start_date, $end_date, $type);
@@ -1228,9 +1228,9 @@ class Api extends CI_Controller {
                     }
 
 //                    echo $html;
-                }                
+                }
             }
-            
+
             if ($method == 'inspector') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
@@ -1271,25 +1271,25 @@ class Api extends CI_Controller {
                         array_to_csv($data, "report.csv");
                     }
 //                    echo $html;
-                }                
+                }
             }
         }
-        
+
         if ($kind == 'scheduling') {
             $this->load->helper('csv');
-            
+
             $region = $this->input->get_post('region');
             $community = $this->input->get_post('community');
             $start_date = $this->input->get_post('start_date');
             $end_date = $this->input->get_post('end_date');
             $inspector_id = $this->input->get_post('inspector_id');
             $ordering = $this->input->get_post('ordering');
-            
+
             $data = $this->get_scheduling_data($inspector_id, $region, $community, $start_date, $end_date, $ordering);
-            
+
             if (count($data)>0) {
                 $filename = "schedule_" . $start_date . "_" . $end_date ;
-                
+
                 $user = $this->utility_model->get('ins_user', array('id'=>$inspector_id));
                 if ($user) {
                     $filename .= "_" . $user['first_name'] . " " . $user['last_name'];
@@ -1297,22 +1297,22 @@ class Api extends CI_Controller {
                 array_to_csv($data, $filename . ".csv");
             }
         }
-        
+
         if ($kind == 'payable') {
             if ($method == 'payroll') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $file_format = $this->input->get_post('file_format');
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $inspector = $this->input->get_post('inspector');
                     $period = $this->input->get_post('period');
                     $start_date = $this->input->get_post('start_date');
                     $end_date = $this->input->get_post('end_date');
-                    
+
                     if ($inspector===false) {
                         $inspector = "";
                     }
@@ -1328,31 +1328,31 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
+
                     if ($file_format == "pdf") {
                         $this->m_pdf->initialize();
                         $html = $this->get_report_data__for_payable_payroll($inspector, $period, $start_date, $end_date);
-                        
+
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
-                    
+
                     if ($file_format == "csv") {
                         $data = $this->get_report_data__for_payable_payroll($inspector, $period, $start_date, $end_date, true);
                         array_to_csv($data, "report.csv");
                     }
                 }
             }
-            
+
             if ($method == 're_inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $file_format = $this->input->get_post('file_format');
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $region = $this->input->get_post('region');
                     $community = $this->input->get_post('community');
                     $start_date = $this->input->get_post('start_date');
@@ -1391,23 +1391,23 @@ class Api extends CI_Controller {
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
-                    
+
                     if ($file_format == "csv") {
                         $data = $this->get_report_data__for_payable_re_inspection($region, $community, $start_date, $end_date, $status, $type, $epo_status, true);
                         array_to_csv($data, "report.csv");
                     }
-                }                
+                }
             }
 
             if ($method == 'pending_inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $file_format = $this->input->get_post('file_format');
                     if ($file_format===false || $file_format=="") {
                         $file_format = "pdf";
                     }
-                    
+
                     $region = $this->input->get_post('region');
                     $community = $this->input->get_post('community');
                     $start_date = $this->input->get_post('start_date');
@@ -1454,16 +1454,16 @@ class Api extends CI_Controller {
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
-                    
+
                     if ($file_format == "csv") {
                         $data = $this->get_report_data__for_payable_pending_inspection($region, $community, $start_date, $end_date, $status, $type, $epo_status, $payment_status, $re_inspection, true);
                         array_to_csv($data, "report.csv");
                     }
-                }                
+                }
             }
-            
+
         }
-        
+
         if ($kind == 'requested_inspection') {
             if ($this->session->userdata('user_id')) {
                 ini_set('memory_limit', '512M');
@@ -1487,22 +1487,22 @@ class Api extends CI_Controller {
                 if ($type===false) {
                     $type = "";
                 }
-                
+
                 $data = $this->get_report_data__for_requested_inspection($start_date, $end_date, $status, $type, true);
                 array_to_csv($data, "report.csv");
-            } 
-            
+            }
+
         }
     }
-    
+
     public function email($kind, $method="") {
         $response = array('code'=>-1, 'message'=>'Failed to send email');
-        
+
         if ($kind == 'statistics') {
             if ($method == 'inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $this->m_pdf->initialize();
 
                     $region = $this->input->get_post('region');
@@ -1530,16 +1530,16 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
-                    
+
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
                         $uu_id = $this->uuid->v4();
-                        
+
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -1552,7 +1552,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -1568,17 +1568,17 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
                 }
             }
-            
+
             if ($method == 're_inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $this->m_pdf->initialize();
 
                     $region = $this->input->get_post('region');
@@ -1606,8 +1606,8 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
-                    
+
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
@@ -1615,7 +1615,7 @@ class Api extends CI_Controller {
 
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -1628,7 +1628,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -1644,13 +1644,13 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
                 }
             }
-            
+
             if ($method == 'checklist') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
@@ -1681,15 +1681,15 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
                         $uu_id = $this->uuid->v4();
-                        
+
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -1702,7 +1702,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_statistics_checklist($region, $community, $start_date, $end_date, $status, $type);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -1718,13 +1718,13 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
                 }
             }
-            
+
             if ($method == 'fieldmanager') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
@@ -1747,15 +1747,15 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
                         $uu_id = $this->uuid->v4();
-                        
+
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -1768,7 +1768,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_statistics_fieldmanager($region, $start_date, $end_date, $type);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -1784,13 +1784,13 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
                 }
             }
-            
+
             if ($method == 'inspector') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
@@ -1813,15 +1813,15 @@ class Api extends CI_Controller {
                     if ($type===false) {
                         $type = "";
                     }
-                    
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
                         $uu_id = $this->uuid->v4();
-                        
+
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -1834,7 +1834,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_statistics_inspector($region, $start_date, $end_date, $type);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -1850,18 +1850,18 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
                 }
             }
         }
-        
+
         else if ($kind == 'inspection') {
             if ($this->session->userdata('user_id')) {
                 ini_set('memory_limit', '512M');
-                
+
                 $inspection_id = $this->input->get_post('id');
                 if ($inspection_id===false || $inspection_id=="") {
                     $response['message'] = "Invalid Inspection";
@@ -1881,7 +1881,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $report = $this->send_report($this->session->userdata('user_id'), $inspection_id, true, $recipients);
                         if ($report===false) {
                             $response = $this->status[1];
@@ -1897,11 +1897,11 @@ class Api extends CI_Controller {
         }
 
         else if ($kind == 'payable') {
-            
+
             if ($method == 're_inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $this->m_pdf->initialize();
 
                     $region = $this->input->get_post('region');
@@ -1933,7 +1933,7 @@ class Api extends CI_Controller {
                     if ($epo_status===false) {
                         $epo_status = "";
                     }
-                    
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
@@ -1941,7 +1941,7 @@ class Api extends CI_Controller {
 
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -1954,7 +1954,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_payable_re_inspection($region, $community, $start_date, $end_date, $status, $type, $epo_status);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -1970,7 +1970,7 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
@@ -1980,7 +1980,7 @@ class Api extends CI_Controller {
             if ($method == 'pending_inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
                     ini_set('memory_limit', '512M');
-                    
+
                     $this->m_pdf->initialize();
 
                     $region = $this->input->get_post('region');
@@ -2020,7 +2020,7 @@ class Api extends CI_Controller {
                     if ($re_inspection===false) {
                         $re_inspection = "";
                     }
-                    
+
                     $user_id = $this->session->userdata('user_id');
                     $user = $this->user_model->get_user__by_id('admin', $user_id);
                     if ($user) {
@@ -2028,7 +2028,7 @@ class Api extends CI_Controller {
 
                         $recipients = array();
                         array_push($recipients, array('email'=>$user['email']));
-                        
+
                         $recipient = $this->input->get_post('recipient');
                         if ($recipient!==false && $recipient!="") {
                             $emails = explode(",", $recipient);
@@ -2041,7 +2041,7 @@ class Api extends CI_Controller {
                                 }
                             }
                         }
-                        
+
                         $html = $this->get_report_data__for_payable_pending_inspection($region, $community, $start_date, $end_date, $status, $type, $epo_status, $payment_status, $re_inspection);
                         $this->m_pdf->pdf->WriteHTML($html);
 
@@ -2057,20 +2057,20 @@ class Api extends CI_Controller {
                         } else {
 
                         }
-                        
+
                         sleep(1);
 //                        unlink($filename);
                     }
                 }
             }
-            
+
         }
-        
+
         print_r(json_encode($response, JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG));
     }
-    
-    
-    
+
+
+
     private function send_report($user_id, $inspection_id, $manual_report=false, $recipients=array()) {
         $ret = false;
         if ($manual_report) {
@@ -2078,7 +2078,7 @@ class Api extends CI_Controller {
         } else {
             $inspection = $this->utility_model->get('ins_inspection', array('user_id' => $user_id, 'id' => $inspection_id));
         }
-        
+
         if ($inspection['type']==3) {
             $sender = array();
             $user = $this->utility_model->get('ins_user', array('id'=>$inspection['user_id']));
@@ -2088,7 +2088,7 @@ class Api extends CI_Controller {
                 if ($fm) {
                     array_push($sender, array('email'=>$fm['email']));
                 }
-                
+
                 foreach ($recipients as $row) {
                     array_push($sender, array('email'=>$row));
                 }
@@ -2097,19 +2097,19 @@ class Api extends CI_Controller {
                 if ($fm) {
                     array_push($sender, array('email'=>$fm['email']));
                 }
-                
+
                 // add inspector. 6/3
                 if ($user) {
                     array_push($sender, array('email'=>$user['email']));
                 }
             }
-            
+
 
             $inspection_requested = $this->utility_model->get('ins_inspection_requested', array('id'=>$inspection['requested_id']));
             $complete_date = $inspection['end_date'];
             if ($inspection_requested) {
                 $complete_date = $inspection_requested['completed_at'];
-                
+
                 if (isset($inspection_requested['document_person']) && $inspection_requested['document_person']!="") {
                     $emails = explode(",", $inspection_requested['document_person']);
                     if (is_array($emails)) {
@@ -2122,7 +2122,7 @@ class Api extends CI_Controller {
                     }
                 }
             }
-            
+
             $result_duct_leakage = $this->utility_model->get('ins_code', array('kind'=>'rst_duct', 'code'=>$inspection['result_duct_leakage']));
             $result_envelop_leakage = $this->utility_model->get('ins_code', array('kind'=>'rst_envelop', 'code'=>$inspection['result_envelop_leakage']));
 
@@ -2134,7 +2134,7 @@ class Api extends CI_Controller {
                     array_push($sender, $row);
                 }
             }
-            
+
             $file1 = $this->make_pdf_for_duct_leakage($inspection_id);
             $file2 = $this->make_pdf_for_envelop_leakage($inspection_id);
 
@@ -2155,7 +2155,7 @@ class Api extends CI_Controller {
                         . "The Inspections Team" . "<br>"
                         . "</div>";
 
-                
+
                 if ($this->send_mail($subject, $body, $sender, true)==="") {
                     $ret = true;
                 }
@@ -2184,7 +2184,7 @@ class Api extends CI_Controller {
             sleep(30);
 //                unlink($file1);
 //                unlink($file2);
-        } 
+        }
         else {
             $html_subject = "";
 
@@ -2198,27 +2198,27 @@ class Api extends CI_Controller {
                 default:
                     $html_subject = "Inspection - FAIL";
             }
-            
+
             switch ($inspection['type']) {
                 case 1:
                     $html_subject = "Drainage Plane " . $html_subject;
                     break;
-                
+
                 case 2:
                     $html_subject = "Lath " . $html_subject;
                     break;
             }
-            
+
             $html_subject .= " with Job Number " . $inspection['job_number'] . "";
 
             $sender = array();
-            
+
             if ($manual_report) {
                 $fm = $this->utility_model->get('ins_admin', array('id'=>$user_id));
                 if ($fm) {
                     array_push($sender, array('email'=>$fm['email']));
                 }
-                
+
                 foreach ($recipients as $row) {
                     array_push($sender, array('email'=>$row));
                 }
@@ -2248,7 +2248,7 @@ class Api extends CI_Controller {
                     array_push($sender, array('email'=>$user['email']));
                 }
                 // ------------------
-                
+
                 // add requested inspection's fm. 6/7/17.
                 $requested_inspection = $this->utility_model->get('ins_inspection_requested', array('id'=>$inspection['requested_id']));
                 if ($requested_inspection) {
@@ -2272,60 +2272,60 @@ class Api extends CI_Controller {
                     $ret = true;
                 }
             }
-            
+
             sleep(1);
 //            unlink($file);
         }
-        
+
 //        return $ret ? $sender : false;
         return $ret;
     }
-    
+
     private function make_pdf_for_duct_leakage($inspection_id) {
         $this->m_pdf->initialize("B4-C", "P");
-        
+
         $fname = mdate('%Y-%m-%d %H%i%s', time());
         $fname = $this->utility_model->escape_filename($fname);
-        
+
         $inspection = $this->utility_model->get('ins_inspection', array('id'=>$inspection_id));
         if ($inspection) {
             $fname = $inspection['community'] . "_" . $inspection['job_number'] . "_duct_leakage" . "__" . $fname;
         }
-        
+
         $html = $this->get_report_html__for_duct_leakage($inspection_id);
         $this->m_pdf->pdf->WriteHTML($html);
-        
+
         $filename = "resource/upload/report/" . $fname . ".pdf";
         $this->m_pdf->pdf->Output($filename, "F");
-        
+
         return $filename;
     }
-    
+
     private function make_pdf_for_envelop_leakage($inspection_id) {
         $this->m_pdf->initialize("B4-C", "P");
-        
+
         $fname = mdate('%Y-%m-%d %H%i%s', time());
         $fname = $this->utility_model->escape_filename($fname);
-        
+
         $inspection = $this->utility_model->get('ins_inspection', array('id'=>$inspection_id));
         if ($inspection) {
             $fname = $inspection['community'] . "_" . $inspection['job_number'] . "_envelope_leakage" . "__" . $fname;
         }
-        
+
         $html = $this->get_report_html__for_envelop_leakage($inspection_id);
         $this->m_pdf->pdf->WriteHTML($html);
-        
+
         $filename = "resource/upload/report/" . $fname . ".pdf";
         $this->m_pdf->pdf->Output($filename, "F");
-        
+
         return $filename;
     }
-    
+
     private function make_pdf($inspection_id) {
         $this->m_pdf->initialize();
-        
+
         $fname = "";
-        
+
         $inspection = $this->utility_model->get('ins_inspection', array('id'=>$inspection_id));
         if ($inspection) {
             if ($inspection['type']==1) {
@@ -2334,38 +2334,38 @@ class Api extends CI_Controller {
             else if ($inspection['type']==2) {
                 $fname = "Lath Inspection";
             }
-            
+
             $result_code = $this->utility_model->get('ins_code', array('kind'=>'rst', 'code'=>$inspection['result_code']));
             if ($result_code) {
                 $fname .= " - " . $result_code['name'];
             }
-            
+
             $fname .= " with Job Number " . $inspection['job_number'];
-            
+
             $community = $this->utility_model->get('ins_community', array('community_id'=>$inspection['community']));
             if ($community) {
                 $fname .= " " . $community['community_name'];
             }
         }
-        
+
         $fname .= "__" . mdate('%Y-%m-%d %H%i%s', time());
         $fname = $this->utility_model->escape_filename($fname);
-        
+
         $html = $this->get_report_html($inspection_id, 'pass');
         $this->m_pdf->pdf->WriteHTML($html);
-        
+
         $filename = "resource/upload/report/" . $fname . ".pdf";
         $this->m_pdf->pdf->Output($filename, "F");
-        
+
         return $filename;
     }
 
     public function get_report_html($inspection_id, $type='full') {
         //$sql = " select a.*, u.email, c2.name as result_name as result_code from ins_code c2, ins_inspection a left join ins_user u on a.user_id=u.id where a.id='" . $inspection_id . "' and c2.kind='rst' and c2.code=a.result_code ";
         //modified by bongbong 2016/04/08
-        $sql = "select a.*, u.email, c2.name as result_name, 
+        $sql = "select a.*, u.email, c2.name as result_name,
                 (select count(*) from ins_inspection d where replace(d.job_number,'-','')=replace(a.job_number,'-','') and type=1 and (d.result_code=1 or d.result_code=2)) as pass_drg_cnt
-                from ins_code c2, ins_inspection a 
+                from ins_code c2, ins_inspection a
                 left join ins_user u on a.user_id=u.id where a.id='" . $inspection_id . "' and c2.kind='rst' and c2.code=a.result_code ";
         $inspection = $this->utility_model->get__by_sql($sql);
 
@@ -2374,7 +2374,7 @@ class Api extends CI_Controller {
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
 
         $html_body = "";
-        
+
         $title = "";
         if ($inspection['type'] == '1')
             $title = "DRAINAGE PLANE INSPECTION REPORT";
@@ -2382,10 +2382,10 @@ class Api extends CI_Controller {
             $title = "LATH INSPECTION REPORT";
 
         $html_body .= "<h1 style='text-align: center; color: #00e;'>" . $title . "</h1>";
-        
+
         // added logo
         $html_body .= '<div class="row text-center"><img src="' . $this->image_url_change(LOGO_PATH) . '" style="max-width: 400px; margin: auto;"></div>';
-        
+
         // added by bongbong 2016/04/08
         if ($inspection["pass_drg_cnt"] == 0 && $inspection["type"] == '2') { // if there is no a Drainage Plane with pass or pass exception for this lath check
             $warning_message = "No Pass or Pass with Exception Drainage Inspection was completed for this lot";
@@ -2394,7 +2394,7 @@ class Api extends CI_Controller {
 
         $title = $inspection['community'] . ", " . $inspection['lot'] . ", " . $inspection['start_date'];
         $html_body .= "<h3 style='text-align: right; color: #006;'>" . $title . "</h3>";
-        
+
         if ($inspection['image_signature'] != "") {
             $html_body .= "<div class='row' style='text-align: right;'><img style='float: right; max-width: 150px;' src='" . $this->image_url_change($inspection['image_signature']) . "'></div>";
         }
@@ -2421,7 +2421,7 @@ class Api extends CI_Controller {
         }
 
         if ($inspection['latitude'] == '-1' && $inspection['longitude'] == '-1' && $inspection['accuracy'] == '-1') {
-            
+
         } else {
             $google_map = "<img width='300' src='http://maps.googleapis.com/maps/api/staticmap?center=" . $inspection['latitude'] . "+" . $inspection['longitude'] . "&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true' alt='Google Map'>";
             $html_body .="<tr><td colspan='2'>GPS Location : <span>Lat: " . $inspection['latitude'] . ", Lon: " . $inspection['longitude'] . ", Acc: " . $inspection['accuracy'] . "m</span></td></tr>";
@@ -2445,25 +2445,25 @@ class Api extends CI_Controller {
 
         $failed_image = $this->utility_model->get_list('ins_exception_image', array('inspection_id'=>$inspection_id));
         $failed_image_count = count($failed_image);
-        
+
         $html_body .= '<p style="font-size: 18px;">Overall Comments: ' . $inspection['overall_comments']  . '</p>';
         if ($failed_image_count>0) {
             $html_body .= "<div class='row'><table class='checklist'>";
-            
+
             $image_percent = intval(100/$failed_image_count * 3 / 4) ;
-            
+
             $html_body .= "<tr><td class='text-center'>";
-            
+
             foreach ($failed_image as $row) {
                 $img = "<img style='max-width: " . $image_percent . "%; padding:5px; ' src='" . $this->image_url_change($row['image']) . "'>";
                 $html_body .= $img;
             }
-            
+
             $html_body .= "</td></tr>";
-            
+
             $html_body .= "</table></div>";
         }
-        
+
         $inspection_comment_list_code = "";
         $inspection_type = intval($inspection['type']);
         if ($inspection_type==1) {
@@ -2471,14 +2471,14 @@ class Api extends CI_Controller {
         } else {
             $inspection_comment_list_code = "lth_comment";
         }
-        
+
         $comment_list = $this->utility_model->get_list__by_sql(" select a.*, c.name as comment_name from ins_inspection_comment a left join ins_code c on c.kind='$inspection_comment_list_code' and c.code=a.no where a.inspection_id='$inspection_id' order by a.no asc ");
         if (count($comment_list)>0) {
             $html_body .= "<div class='row'><table class='checklist' border='1'>";
             $html_body .= "<thead>";
             $html_body .= "<tr><th class='text-center'>Comments</th></tr>";
             $html_body .= "</thead>";
-            
+
             $html_body .= "<tbody>";
             foreach ($comment_list as $row) {
                 $html_body .= "<tr><td>";
@@ -2488,7 +2488,7 @@ class Api extends CI_Controller {
             $html_body .= "</tbody>";
             $html_body .= "</table></div>";
         }
-        
+
         $header_style = "background: #ddd; font-size:18px; padding: 10px 2px;";
         $body_style = "background: #f8f8f8;";
 
@@ -2501,7 +2501,7 @@ class Api extends CI_Controller {
                 $location = $row['name'];
                 $checklist = $this->utility_model->get_list__by_sql("SELECT a.*, c.name as status_name, b.name as check_name FROM ins_code c, ins_checklist a JOIN ins_code b ON a.no=b.code WHERE a.status=c.code and c.kind='sts' and b.kind='" . $k . "' and a.inspection_id='" . $inspection_id . "' and a.location_id='" . $row['id'] . "'  ORDER BY a.no ");
                 foreach ($checklist as $point) {
-                    
+
                     if ($type=='full' || ($type=='pass' && $point['status']!='0' && $point['status']!='1' && $point['status']!='4')) {
                         $html_body .= "<tr><td class='location' style='" . $body_style . "'>" . $location . "</td><td class='item' style='" . $body_style . "'>" . $point['check_name'] . "</td><td class='status' style='" . $body_style . "'>" . $point['status_name'] . "</td></tr>";
                         if ($point['status'] == '2' || $point['status'] == '3') {
@@ -2534,7 +2534,7 @@ class Api extends CI_Controller {
 
         return $html;
     }
-    
+
     public function get_report_html__for_mail($file) {
         $html_styles = "<style type='text/css'>.text-center{text-align:center}.row{float:left;width:100%;margin-bottom:20px}.col-50-percent{float:left;width:50%}span{color:#111;padding:2px 7px;font-weight:bold}.label-danger{background:#d9534f;color:#fff;font-size:30px;font-weight:bold;padding:5px 2px;text-align:center}.label-success{background:#5cb85c;color:#fff;font-size:30px;font-weight:bold;padding:5px 2px;text-align:center}.label-warning{background:#f0ad4e;color:#fff;font-size:30px;font-weight:bold;padding:5px 2px;text-align:center}.checklist{border:1px solid #000;width:100%}.checklist .location{width:100px;text-align:center}.checklist .status{width:100px;text-align:center}.checklist .item{padding:4px 8px}</style>";
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
@@ -2545,14 +2545,14 @@ class Api extends CI_Controller {
         if ($template) {
             $html_body .= "<div class='row'>" . $template['value'] . "</div>";
         }
-        
+
         $html_body .= "<div class='row'></div>";
 
         $url = base_url() . $file;
         $html_body .= "<div class='row'>"
                 . '<a href="' . $url . '">' . "Attached File" . '</a>'
                 . "</div>";
-        
+
         $html_body .= "<div class='row'></div>";
 
         $html_footer = "</body></html>";
@@ -2561,7 +2561,7 @@ class Api extends CI_Controller {
 
         return $html;
     }
-    
+
     private function send_mail($subject, $body, $sender, $isHTML=false) {
         $mail = new PHPMailer;
 
@@ -2600,14 +2600,14 @@ class Api extends CI_Controller {
         $mail->AltBody = "";
 
         if ($mail->send()) {
-            
+
         } else {
             return $mail->ErrorInfo;
         }
-        
+
         return "";
     }
-    
+
     private function send_mail_with_file($subject, $body, $sender, $file, $isHTML=false) {
         $mail = new PHPMailer;
 
@@ -2623,7 +2623,7 @@ class Api extends CI_Controller {
 //            $mail->isMail();                                      // Set mailer to use SMTP
 //        }
         $mail->isSMTP();                                      // Set mailer to use SMTP
-        
+
         $mail->Host = SMTP_HOST;  // Specify main and backup SMTP servers
         $mail->SMTPAuth = true;                               // Enable SMTP authentication
         $mail->Username = SMTP_USER;                // SMTP username
@@ -2644,17 +2644,17 @@ class Api extends CI_Controller {
         $mail->Subject = $subject;
         $mail->Body = $body;
         $mail->AltBody = "";
-        
+
 //        $mail->addAttachment($file);
 
         if ($mail->send()) {
-            
+
         } else {
             return $mail->ErrorInfo;
         }
-        
+
         return "";
-    }    
+    }
 
     private function send_mail_with_files($subject, $body, $sender, $files, $isHTML=false) {
         $mail = new PHPMailer;
@@ -2692,48 +2692,48 @@ class Api extends CI_Controller {
         $mail->Subject = $subject;
         $mail->Body = $body;
         $mail->AltBody = "";
-        
+
 //        foreach ($files as $file) {
 //            $mail->addAttachment($file);
 //        }
 
         if ($mail->send()) {
-            
+
         } else {
             return $mail->ErrorInfo;
         }
-        
+
         return "";
-    }    
-    
+    }
+
     private function get_location($inspection_id, $location_name, $type) {
         $result = array('omit'=>1);
-        
+
         $location = $this->utility_model->get('ins_location', array('inspection_id'=>$inspection_id, 'name'=>$location_name));
         if ($location) {
             $location_id = $location['id'];
 
             $result['omit'] = 0;
             $result['front'] = 0;
-            
+
             if ($location_name=='Front')  {
                 $result['front'] = 1;
             }
-                
+
             $c = $this->utility_model->get_count('ins_checklist', array('inspection_id'=>$inspection_id, 'location_id'=>$location_id));
             if ($type == 1) {
                 if ($c != 21) {
                     $result['omit'] = 1;
-                } 
+                }
             }
             else {
                 if ($c == 15 || $c == 13) {
-                    
-                } else {                    
+
+                } else {
                     $result['omit'] = 1;
                 }
             }
-            
+
             $result['list'] = array();
             $list = $this->utility_model->get_list__by_sql(" select "
                     . " a.no as kind, a.status as stat, a.description as cmt, a.primary_photo, a.secondary_photo "
@@ -2748,7 +2748,7 @@ class Api extends CI_Controller {
                             'img'=>$row['primary_photo'],
                         );
                     }
-                    
+
                     $row['snd'] = '';
                     if (isset($row['secondary_photo']) && $row['secondary_photo']!="") {
                         $row['snd'] = array(
@@ -2756,14 +2756,14 @@ class Api extends CI_Controller {
                             'img'=>$row['secondary_photo'],
                         );
                     }
-                    
+
                     array_push($result['list'], $row);
                 }
             }
-            
+
             return $result;
-        } 
-        
+        }
+
         return "";
     }
 
@@ -2772,14 +2772,14 @@ class Api extends CI_Controller {
                 . " a.no as kind, a.status as stat, a.description as cmt, a.primary_photo, a.secondary_photo "
                 . " from ins_inspection_comment a "
                 . " where a.inspection_id='$inspection_id' order by a.no ");
-        
+
         if ($list) {
             $result = array();
             $result['list'] = array();
-        
+
             foreach ($list as $row) {
                 $row['submit'] = '1';
-                
+
                 $row['prm'] = '';
                 if (isset($row['primary_photo']) && $row['primary_photo']!="") {
                     $row['prm'] = array(
@@ -2798,17 +2798,17 @@ class Api extends CI_Controller {
 
                 array_push($result['list'], $row);
             }
-            
+
             return $result;
         }
 
         return "";
     }
-    
-    
+
+
     private function get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, $is_array=false, $include_description=true) {
         $reports = array();
-        
+
         $table = " select  a.*, "
                 . " c1.name as inspection_type, c2.name as result_name, "
                 . " r.region as region_name, tt.community_name, "
@@ -2819,28 +2819,28 @@ class Api extends CI_Controller {
                 . " where a.region=r.id and c1.kind='ins' and c1.code=a.type and c2.kind='rst' and c2.code=a.result_code  ";
 
         $common_sql = "";
-        
+
         if ($start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
         }
 
@@ -2848,7 +2848,7 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.community='$community' ";
         }
 
@@ -2856,19 +2856,19 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.result_code='$status' ";
         }
-        
+
         if ($type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
-        
-        
+
+
         $sql = $table;
 
         if ($common_sql!="") {
@@ -2900,7 +2900,7 @@ class Api extends CI_Controller {
                 $count_text .= "</span>";
             }
         }
-        
+
         $count_sql = " select count(*) from ( " . $sql . " and a.house_ready=0 ) t ";
         $house_not_ready = $this->datatable_model->get_count($count_sql);
         if ($count_text!="") {
@@ -2910,14 +2910,14 @@ class Api extends CI_Controller {
         $count_text .= "House Not Ready: " . $house_not_ready;
         $count_text .= "(" . round($house_not_ready*1.0/$total * 100, 2) . "%)";
 
-        $count_text .= "</h4>";    
-        
+        $count_text .= "</h4>";
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -2926,12 +2926,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Inspection Report";
         if ($type == '1') {
@@ -2940,9 +2940,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -2950,24 +2950,24 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         if ($community!="") {
             $c = $this->utility_model->get('ins_community', array('community_id'=>$community));
             if ($c) {
                 if ($sub_title!="") {
                     $sub_title .= ", ";
                 }
-                
+
                 $sub_title .= $c['community_name'];
             }
         }
 
         $cls = "text-right";
-        
+
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
@@ -2975,19 +2975,19 @@ class Api extends CI_Controller {
         if ($count_text!="") {
             $html_body .=  $count_text ;
         }
-        
+
         $html_body .= '<div class="row">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Type</th>' . 
+                    '<tr>' .
+                        '<th>Type</th>' .
                         '<th>Region</th>' .
-                        '<th>Community</th>' . 
+                        '<th>Community</th>' .
                         '<th>Job Number</th>' .
-                        '<th>Address</th>' . 
-                        '<th>Field Manager</th>' . 
+                        '<th>Address</th>' .
+                        '<th>Field Manager</th>' .
                         ( $include_description ? '<th>Description</th>' : '' ) .
                         '<th>Date</th>' .
                         '<th>Result</th>' .
@@ -2995,14 +2995,14 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         $sql = $table;
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $sql .= " order by a.start_date ";
 
         if ($include_description) {
@@ -3031,36 +3031,36 @@ class Api extends CI_Controller {
                 'house_ready'=>'House Ready',
             ));
         }
-        
+
         $data = $this->datatable_model->get_content($sql);
         if ($data && is_array($data)) {
             foreach ($data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $field_manager = "";
                 if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
                     $field_manager = $row['first_name'] . " " . $row['last_name'];
                 }
-                
+
                 // replace community name.  2016/11/3
                 $community_name = ""; // $row['community'];
                 if (isset($row['community_name']) && $row['community_name']!="") {
                     $community_name = $row['community_name'];
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $row['inspection_type']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['region_name']  . '</td>';
                 $html_body .= '<td class="text-center">' . $community_name  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['job_number']  . '</td>';
                 $html_body .= '<td>' . $row['address']  . '</td>';
                 $html_body .= '<td class="text-center">' . $field_manager  . '</td>';
-                
+
                 if ($include_description) {
                     $html_body .= '<td>' . $row['overall_comments']  . '</td>';
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $row['start_date']  . '</td>';
-                
+
                 $cls = "";
                 if ($row['result_code'] == '1')
                     $cls = "label-success";
@@ -3068,12 +3068,12 @@ class Api extends CI_Controller {
                     $cls = "label-warning";
                 if ($row['result_code'] == '3')
                     $cls = "label-danger";
-                
+
                 $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $row['result_name']  . '</span></td>';
                 $html_body .= '<td class="text-center"><span class="">' . ($row['house_ready']==1 ? "House Ready" : "House Not Ready") . '</span></td>';
-                
+
                 $html_body .= '</tr>';
-                
+
                 if ($include_description) {
                     array_push($reports, array(
                         'inspection_type'=>$row['inspection_type'],
@@ -3086,7 +3086,7 @@ class Api extends CI_Controller {
                         'date'=>$row['start_date'],
                         'result'=>$row['result_name'],
                         'house_ready'=>$row['house_ready']==1 ? "House Ready" : "House Not Ready"
-                    ));                
+                    ));
                 } else {
                     array_push($reports, array(
                         'inspection_type'=>$row['inspection_type'],
@@ -3098,22 +3098,22 @@ class Api extends CI_Controller {
                         'date'=>$row['start_date'],
                         'result'=>$row['result_name'],
                         'house_ready'=>$row['house_ready']==1 ? "House Ready" : "House Not Ready"
-                    ));                
+                    ));
                 }
             }
         }
-        
-        
+
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
@@ -3125,7 +3125,7 @@ class Api extends CI_Controller {
         $reports = array();
 
         $table = " ins_region r, ins_code c1, ins_code c2,  "
-                . " ( SELECT p1.inspection_id, p2.* " 
+                . " ( SELECT p1.inspection_id, p2.* "
                 . "   FROM "
                 . "    ( SELECT MAX(t.id) AS inspection_id, t.job_number, bbb.address, t.type FROM ins_inspection t LEFT JOIN ins_building_unit bbb ON REPLACE(t.job_number,'-','')=REPLACE(bbb.job_number, '-', '') AND bbb.address=t.address and t.is_building_unit=1 GROUP BY t.job_number, bbb.address, t.type ) p1, "
                 . "    ( SELECT t.type, t.job_number, bbb.address, MAX(t.start_date) AS inspection_date, COUNT(*) AS inspection_count  FROM ins_inspection t  LEFT JOIN ins_building_unit bbb ON REPLACE(t.job_number,'-','')=REPLACE(bbb.job_number, '-', '') AND bbb.address=t.address and t.is_building_unit=1 GROUP BY t.job_number, bbb.address, t.type ) p2 "
@@ -3140,28 +3140,28 @@ class Api extends CI_Controller {
                 . " ";
 
         $common_sql = "";
-        
+
         if ($start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
         }
 
@@ -3169,7 +3169,7 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.community='$community' ";
         }
 
@@ -3177,19 +3177,19 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.result_code='$status' ";
         }
-        
+
         if ($type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
-        
-        
+
+
         $sql = " select  a.*, "
                 . " (g.inspection_count-1) as inspection_count, q.epo_number as requested_epo_number, "
                 . " c1.name as inspection_type, c2.name as result_name, "
@@ -3200,7 +3200,7 @@ class Api extends CI_Controller {
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $count_sql = " select count(*) from ( " . $sql . " ) ttt ";
         $total = $this->datatable_model->get_count($count_sql);
 
@@ -3209,7 +3209,7 @@ class Api extends CI_Controller {
         $count_sql = " SELECT c.name AS result_name, t.result_code, t.tnt "
                 . " FROM ins_code c, ( select a.result_code, count(*) as tnt from ( $sql ) a group by a.result_code ) t "
                 . " WHERE c.kind='rst' AND c.code=t.result_code ORDER BY c.code ";
-        
+
         $tnt = $this->utility_model->get_list__by_sql($count_sql);
         if ($tnt && is_array($tnt)) {
             foreach ($tnt as $row) {
@@ -3227,14 +3227,14 @@ class Api extends CI_Controller {
             }
         }
 
-        $count_text .= "</h4>";    
-        
+        $count_text .= "</h4>";
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -3243,12 +3243,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Inspection Report";
         if ($type == '1') {
@@ -3257,9 +3257,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -3267,24 +3267,24 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         if ($community!="") {
             $c = $this->utility_model->get('ins_community', array('community_id'=>$community));
             if ($c) {
                 if ($sub_title!="") {
                     $sub_title .= ", ";
                 }
-                
+
                 $sub_title .= $c['community_name'];
             }
         }
 
         $cls = "text-right";
-        
+
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
@@ -3292,19 +3292,19 @@ class Api extends CI_Controller {
         if ($count_text!="") {
             $html_body .=  $count_text ;
         }
-        
+
         $html_body .= '<div class="row">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Type</th>' . 
+                    '<tr>' .
+                        '<th>Type</th>' .
                         '<th>Region</th>' .
-                        '<th>Community</th>' . 
+                        '<th>Community</th>' .
                         '<th>Job Number</th>' .
-                        '<th>Address</th>' . 
-                        '<th>Field Manager</th>' . 
+                        '<th>Address</th>' .
+                        '<th>Field Manager</th>' .
                         ( $include_description ? '<th>Description</th>' : '' ) .
                         '<th>Date</th>' .
                         '<th>EPO Number</th>' .
@@ -3313,9 +3313,9 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         $sql = " select  a.*, "
                 . " (g.inspection_count-1) as inspection_count, q.epo_number, "
                 . " c1.name as inspection_type, c2.name as result_name, "
@@ -3325,7 +3325,7 @@ class Api extends CI_Controller {
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $sql .= " order by g.inspection_count desc ";
 
         if ($include_description) {
@@ -3356,34 +3356,34 @@ class Api extends CI_Controller {
                 'result'=>'Result',
             ));
         }
-        
+
         $data = $this->datatable_model->get_content($sql);
         if ($data && is_array($data)) {
             foreach ($data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $field_manager = "";
                 if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
                     $field_manager = $row['first_name'] . $row['last_name'];
                 }
-                
+
                 // replace community name.  2016/11/3
                 $community_name = ""; // $row['community'];
                 if (isset($row['community_name']) && $row['community_name']!="") {
                     $community_name = $row['community_name'];
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $row['inspection_type']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['region_name']  . '</td>';
                 $html_body .= '<td class="text-center">' . $community_name  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['job_number']  . '</td>';
                 $html_body .= '<td>' . $row['address']  . '</td>';
                 $html_body .= '<td class="text-center">' . $field_manager  . '</td>';
-                
+
                 if ($include_description) {
                     $html_body .= '<td>' . $row['overall_comments']  . '</td>';
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $row['start_date']  . '</td>';
 
                 $epo_number = "";
@@ -3392,10 +3392,10 @@ class Api extends CI_Controller {
                 } else {
                     $epo_number = isset($row['requested_epo_number']) && $row['requested_epo_number']!=0 ? $row['requested_epo_number'] : "";
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $epo_number . '</td>';
                 $html_body .= '<td class="text-center">' . $row['inspection_count']  . '</td>';
-                
+
                 $cls = "";
                 if ($row['result_code'] == '1')
                     $cls = "label-success";
@@ -3403,11 +3403,11 @@ class Api extends CI_Controller {
                     $cls = "label-warning";
                 if ($row['result_code'] == '3')
                     $cls = "label-danger";
-                
+
                 $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $row['result_name']  . '</span></td>';
-                
+
                 $html_body .= '</tr>';
-                
+
                 if ($include_description) {
                     array_push($reports, array(
                         'inspection_type'=>$row['inspection_type'],
@@ -3421,7 +3421,7 @@ class Api extends CI_Controller {
                         'epo_number'=>$epo_number,
                         're_inspections'=>$row['inspection_count'],
                         'result'=>$row['result_name']
-                    ));                
+                    ));
                 } else {
                     array_push($reports, array(
                         'inspection_type'=>$row['inspection_type'],
@@ -3434,29 +3434,29 @@ class Api extends CI_Controller {
                         'epo_number'=>$epo_number,
                         're_inspections'=>$row['inspection_count'],
                         'result'=>$row['result_name']
-                    ));                
+                    ));
                 }
             }
         }
-        
-        
+
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
             return $html;
         }
     }
-    
+
     private function get_report_data__for_statistics_checklist($region, $community, $start_date, $end_date, $status, $type, $is_array=false) {
         $reports = array();
 
@@ -3468,30 +3468,30 @@ class Api extends CI_Controller {
                 . " left join ins_admin u on a.field_manager=u.id and u.kind=2 "
                 . " where a.region=r.id and c1.kind='ins' and c1.code=a.type and c2.kind='sts' and c2.code=ch.status "
                 . " and loc.inspection_id=a.id and ch.inspection_id=a.id and ch.location_id=loc.id and c3.value=a.type and (c3.kind='drg' or c3.kind='lth') and c3.code=ch.no ";
-        
+
         $common_sql = "";
-        
+
         if ($start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
         }
 
@@ -3499,7 +3499,7 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.community='$community' ";
         }
 
@@ -3507,15 +3507,15 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " ch.status='$status' ";
         }
-        
+
         if ($type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
 
@@ -3523,14 +3523,14 @@ class Api extends CI_Controller {
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $count_sql = " select count(*) from ( " . $sql . " ) t ";
         $total = $this->datatable_model->get_count($count_sql);
 
         $sql .= " and (ch.status=1 or ch.status=2 or ch.status=3) ";
-        
+
         $count_text = "Total: " . $total . "";
-        
+
 //        if ($status=="") {
             $count_sql = " SELECT c.name AS status_name, t.status_code, t.tnt "
                     . " FROM ins_code c, ( select a.status_code, count(*) as tnt from ( $sql ) a group by a.status_code ) t "
@@ -3547,15 +3547,15 @@ class Api extends CI_Controller {
                     } else {
                         $count_text .= '<span class="total-' . $row['status_code'] . '">';
                     }
-                    
+
                     $count_text .= $row['status_name'] . ": " . $row['tnt'];
                     if ($total!=0) {
                         $tnt = intval($row['tnt']);
                         $count_text .= "(" . round($tnt*1.0/$total * 100, 2) . "%)";
                     }
-                    
+
                     if ($is_array) {
-                        
+
                     } else {
                         $count_text .= '</span>';
                     }
@@ -3570,17 +3570,17 @@ class Api extends CI_Controller {
                    'title'=>'',
                     'count'=>'',
                 ));
-            
+
 //        }
-            
+
         $sql .= " order by a.start_date ";
-        
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -3589,12 +3589,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Inspection Report";
         if ($type == '1') {
@@ -3603,9 +3603,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -3613,32 +3613,32 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         if ($community!="") {
             $c = $this->utility_model->get('ins_community', array('community_id'=>$community));
             if ($c) {
                 if ($sub_title!="") {
                     $sub_title .= ", ";
                 }
-                
+
                 $sub_title .= $c['community_name'];
             }
         }
 
         $cls = "text-right";
-        
+
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
-        
+
         if ($count_text!="") {
             $html_body .= "<h4 class='total-checklist'>" . $count_text . "</h4>";
         }
-        
+
         $top_sql = " select  a.*, "
                 . " c1.name as inspection_type, c2.name as status_name, c3.name as item_name, ch.no as item_no, ch.status as status_code, "
                 . " r.region as region_name, loc.name as location_name, "
@@ -3649,8 +3649,8 @@ class Api extends CI_Controller {
 
         if ($common_sql!="") {
             $top_sql .= " and " . $common_sql;
-        }        
-        
+        }
+
         $top_content = $this->get_top_item($top_sql, 'drg', 1, $is_array);
         if ($is_array) {
             if (count($top_content)>0) {
@@ -3669,7 +3669,7 @@ class Api extends CI_Controller {
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                             '<thead>' .
-                                '<tr>' . 
+                                '<tr>' .
                                     '<th colspan="2">Most Passed in Drainage Plane Inspection</th>' .
                                 '</tr>' .
                             '</thead>' .
@@ -3705,7 +3705,7 @@ class Api extends CI_Controller {
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                             '<thead>' .
-                                '<tr>' . 
+                                '<tr>' .
                                     '<th colspan="2">Most Failed in Drainage Plane Inspection</th>' .
                                 '</tr>' .
                             '</thead>' .
@@ -3741,7 +3741,7 @@ class Api extends CI_Controller {
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                             '<thead>' .
-                                '<tr>' . 
+                                '<tr>' .
                                     '<th colspan="2">Most Not Ready in Drainage Plane Inspection</th>' .
                                 '</tr>' .
                             '</thead>' .
@@ -3754,7 +3754,7 @@ class Api extends CI_Controller {
                 $html_body .= '</div>';
             }
         }
-        
+
         $top_content = $this->get_top_item($top_sql, 'lth', 1, $is_array);
         if ($is_array) {
             if (count($top_content)>0) {
@@ -3777,7 +3777,7 @@ class Api extends CI_Controller {
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                             '<thead>' .
-                                '<tr>' . 
+                                '<tr>' .
                                     '<th colspan="2">Most Passed in Lath Inspection</th>' .
                                 '</tr>' .
                             '</thead>' .
@@ -3802,7 +3802,7 @@ class Api extends CI_Controller {
                    'title'=>'Most Failed in Lath Inspection',
                     'count'=>'',
                 ));
-                
+
                 foreach ($top_content as $row) {
                     array_push($reports, $row);
                 }
@@ -3814,7 +3814,7 @@ class Api extends CI_Controller {
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                             '<thead>' .
-                                '<tr>' . 
+                                '<tr>' .
                                     '<th colspan="2">Most Failed in Lath Inspection</th>' .
                                 '</tr>' .
                             '</thead>' .
@@ -3850,7 +3850,7 @@ class Api extends CI_Controller {
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                             '<thead>' .
-                                '<tr>' . 
+                                '<tr>' .
                                     '<th colspan="2">Most Not Ready in Lath Inspection</th>' .
                                 '</tr>' .
                             '</thead>' .
@@ -3863,16 +3863,16 @@ class Api extends CI_Controller {
                 $html_body .= '</div>';
             }
         }
-        
+
 //        $html_body .= '<div class="row" style="margin-top: 25px;">';
-//        
+//
 //        $html_body .= '<table class="data-table table-bordered">';
 //        $html_body .= '' .
 //                '<thead>' .
-//                    '<tr>' . 
-//                        '<th>Type</th>' . 
+//                    '<tr>' .
+//                        '<th>Type</th>' .
 //                        '<th>Region</th>' .
-//                        '<th>Community</th>' . 
+//                        '<th>Community</th>' .
 //                        '<th>Date</th>' .
 //                        '<th>Location</th>' .
 //                        '<th style="width:50%;">CheckItem</th>' .
@@ -3880,27 +3880,27 @@ class Api extends CI_Controller {
 //                    '</tr>' .
 //                '</thead>' .
 //                '';
-//        
+//
 //        $html_body .= '<tbody>';
-//        
-//        
+//
+//
 //        $data = $this->datatable_model->get_content($sql);
 //        if ($data && is_array($data)) {
 //            foreach ($data as $row) {
 //                $html_body .= '<tr>';
-//                
+//
 //                $field_manager = "";
 //                if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
 //                    $field_manager = $row['first_name'] . $row['last_name'];
 //                }
-//                
+//
 //                $html_body .= '<td class="text-center">' . $row['inspection_type']  . '</td>';
 //                $html_body .= '<td class="text-center">' . $row['region_name']  . '</td>';
 //                $html_body .= '<td class="text-center">' . $row['community']  . '</td>';
 //                $html_body .= '<td class="text-center">' . $row['start_date']  . '</td>';
 //                $html_body .= '<td class="text-center">' . $row['location_name']  . '</td>';
 //                $html_body .= '<td class="">' . $row['item_name']  . '</td>';
-//                
+//
 //                $cls = "";
 //                if ($row['status_code'] == '1')
 //                    $cls = "label-success";
@@ -3908,43 +3908,43 @@ class Api extends CI_Controller {
 //                    $cls = "label-warning";
 //                if ($row['status_code'] == '2')
 //                    $cls = "label-danger";
-//                
+//
 //                $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $row['status_name']  . '</span></td>';
-//                
-//                
+//
+//
 //                $html_body .= '</tr>';
 //            }
 //        }
-//        
-//        
+//
+//
 //        $html_body .= '</tbody>';
 //        $html_body .= '</table>';
-//        
+//
 //        $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
             return $html;
         }
     }
-    
+
     private function get_top_item($sql, $inspection_type, $status, $is_array=false) {
         $reports = array();
         $result = "";
         $sql .= " and (c3.kind='$inspection_type') and ch.status='$status' ";
-        
+
         $count_sql = " SELECT c.name AS item_name, t.item_no, t.tnt "
                 . " FROM ins_code c, ( select a.status_code, a.item_no, count(*) as tnt from ( $sql ) a group by a.status_code, a.item_no ) t "
                 . " WHERE c.kind='$inspection_type' and t.status_code='$status' and c.code=t.item_no "
                 . " ORDER BY t.tnt desc "
                 . " LIMIT 10 ";
-        
+
         $top = $this->utility_model->get_list__by_sql($count_sql);
         if ($top && is_array($top)) {
             foreach ($top as $row) {
@@ -3952,14 +3952,14 @@ class Api extends CI_Controller {
                 $result .= '<td>' . $row['item_no'] . ". " . $row['item_name'] . '</td>';
                 $result .= '<td class="text-center">' . $row['tnt'] . '</td>';
                 $result .= '</tr>';
-                
+
                 array_push($reports, array(
                    'title'=>$row['item_no'] . ". " . $row['item_name'],
                     'count'=>$row['tnt'],
                 ));
             }
         }
-        
+
         if ($is_array) {
             return $reports;
         } else {
@@ -3967,19 +3967,19 @@ class Api extends CI_Controller {
         }
     }
 
-    
+
     private function get_scheduling_data($inspector_id, $region, $community, $start_date, $end_date, $ordering) {
         $result = array();
-        
+
         $cols = array( "a.requested_at", "a.community_name", "a.job_number", "a.address", "c.city", "m.first_name", "a.category", "a.time_stamp" );
-        
+
         $common_sql = "";
-        
+
         if ($inspector_id!==false && $inspector_id!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.inspector_id='$inspector_id' ";
         }
 
@@ -3987,23 +3987,23 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.requested_at>='$start_date' ";
         }
-        
+
         if ($end_date!==false && $end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.requested_at<='$end_date' ";
         }
-        
+
         if ($region!==false && $region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " c.region='$region' ";
         }
 
@@ -4011,10 +4011,10 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " substr(a.job_number,1,4)='$community' ";
         }
-        
+
         $order_sql = "";
         if ($ordering!==false && $ordering!="") {
             $order_item = explode(",,", $ordering);
@@ -4032,16 +4032,16 @@ class Api extends CI_Controller {
                         if ($order_sql!="") {
                             $order_sql .= ", ";
                         }
-                        
+
                         $order_sql .= $cols[$col] . " " . $dir . " ";
                     }
                 }
-                
+
                 if ($order_sql!="") {
                     $order_sql = " order by " . $order_sql;
                 }
             }
-        }        
+        }
 
         $table = " ins_inspection_requested a "
                . " left join ins_community c on c.community_id=substr(a.job_number,1,4)"
@@ -4055,14 +4055,14 @@ class Api extends CI_Controller {
                 . " c1.name as category_name, c.community_id, c.region, r.region as region_name, c.city, "
                 . " u.first_name, u.last_name "
                 . " from ins_user u, ins_code c1, " . $table . " where u.id=a.inspector_id and c1.kind='ins' and c1.code=a.category and a.status=1 ";
-        
+
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $sql .= $order_sql;
         $data = $this->datatable_model->get_content($sql);
-        
+
         if ($data && is_array($data)) {
             $header = array();
             if ($inspector_id=="") {
@@ -4076,13 +4076,13 @@ class Api extends CI_Controller {
             $header['field_manager'] = "Field Manager";
             $header['inspection_type'] = "Inspection Type";
             $header['time_stamp'] = "Requested Time";
-            
+
             array_push($result, $header);
 
             $last_inspector_id = "";
             foreach ($data as $row) {
                 $item = array();
-                
+
                 if ($inspector_id=="") {
                     if ($last_inspector_id=="" || $last_inspector_id!=$row['inspector_id']) {
                         $last_inspector_id = $row['inspector_id'];
@@ -4100,11 +4100,11 @@ class Api extends CI_Controller {
                         array_push($result, $item);
                     }
                 }
-                
+
                 if ($inspector_id=="") {
                     $item['inspector'] = "";
                 }
-                
+
                 $item['requested_at'] = $row['requested_at'];
                 $item['community'] = $row['community_name'];
                 $item['job_number'] = $row['job_number'];
@@ -4113,66 +4113,66 @@ class Api extends CI_Controller {
                 if ($row['category']==3) {
                     $item['city'] = $row['city_duct'];
                 }
-                
+
                 $item['field_manager'] = $row['field_manager_name'];
                 $item['inspection_type'] = $row['category_name'];
                 $item['time_stamp'] = mdate('%Y-%m-%d %H:%i:%s', strtotime($row['time_stamp']));
-                
+
                 array_push($result, $item);
             }
         }
-        
+
         return $result;
     }
 
-    
+
     private function get_report_data__for_statistics_fieldmanager($region, $start_date, $end_date, $type, $is_array=false) {
         $reports = array();
 
-        $table = " ins_admin a where a.kind=2 "; 
+        $table = " ins_admin a where a.kind=2 ";
 //        $table = " ( select field_manager from ins_building group by field_manager ) b "
 //                . " left join ins_admin a on a.kind=2 and concat(a.first_name, ' ', a.last_name)=b.field_manager"
-//                . " left join ins_region r on r.id=a.region where b.field_manager is not null and b.field_manager<>'' "; 
-        
+//                . " left join ins_region r on r.id=a.region where b.field_manager is not null and b.field_manager<>'' ";
+
         $common_sql = "";
-        
+
         if ($start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
             $table .= " and a.id in ( select manager_id from ins_admin_region where region='$region' ) ";
         }
-        
+
         if ($type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
 
         $sql = " select  a.* "
                 . " from " . $table . " "
                 . " order by a.first_name ";
-        
+
         $data = $this->datatable_model->get_content($sql);
         $table_data = array();
 
@@ -4189,7 +4189,7 @@ class Api extends CI_Controller {
                 }
             }
             $row['region_name'] = $region_name;
-            
+
             $inspections = 0;
             if (isset($row['id']) && $row['id']!='') {
                 $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' ";
@@ -4199,7 +4199,7 @@ class Api extends CI_Controller {
                 $inspections = $this->datatable_model->get_count($sql);
                 $row['inspections'] = $inspections;
             } else {
-                
+
             }
 
             if ($inspections==0) {
@@ -4257,14 +4257,14 @@ class Api extends CI_Controller {
 
             array_push($table_data, $row);
         }
-        
-        
+
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -4273,12 +4273,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Inspection Report";
         if ($type == '1') {
@@ -4287,9 +4287,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -4297,25 +4297,25 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         $cls = "text-right";
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
-        
+
         $html_body .= '<div class="row" style="margin-top: 10px;">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Field Manager</th>' . 
+                    '<tr>' .
+                        '<th>Field Manager</th>' .
                         '<th>Region</th>' .
-                        '<th>Total Inspections</th>' . 
+                        '<th>Total Inspections</th>' .
                         '<th>Not Ready(%)</th>' .
                         '<th>Pass(%)</th>' .
                         '<th>Pass with Exception(%)</th>' .
@@ -4324,9 +4324,9 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         array_push($reports, array(
             'field_manager'=>'Field Manager',
             'region'=>'Region',
@@ -4337,17 +4337,17 @@ class Api extends CI_Controller {
             'fail'=>'Fail(%)',
             'reinspections'=>'Reinspections(%)',
         ));
-        
+
         if ($table_data && is_array($table_data)) {
             foreach ($table_data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $field_manager = "";
 //                $field_manager = $row['field_manager'];
                 if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
                     $field_manager = $row['first_name'] . $row['last_name'];
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $field_manager  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['region_name']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['inspections']  . '</td>';
@@ -4358,7 +4358,7 @@ class Api extends CI_Controller {
                 $html_body .= '<td class="text-center">' . $row['reinspection']  . '</td>';
 
                 $html_body .= '</tr>';
-                
+
                 array_push($reports, array(
                     'field_manager'=>$field_manager,
                     'region'=>$row['region_name'],
@@ -4371,16 +4371,16 @@ class Api extends CI_Controller {
                 ));
             }
         }
-        
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
@@ -4390,46 +4390,46 @@ class Api extends CI_Controller {
 
     private function get_report_data__for_statistics_inspector($region, $start_date, $end_date, $type, $is_array=false) {
         $reports = array();
-        $table = " ins_user a "; 
-        
+        $table = " ins_user a ";
+
         $common_sql = "";
-        
+
         if ($start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
         }
-        
+
         if ($type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
 
         $sql = " select  a.* "
                 . " from " . $table . " "
                 . " order by a.first_name ";
-        
+
         $data = $this->datatable_model->get_content($sql);
         $table_data = array();
 
@@ -4497,14 +4497,14 @@ class Api extends CI_Controller {
 
             array_push($table_data, $row);
         }
-        
-        
+
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -4513,12 +4513,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Inspection Report";
         if ($type == '1') {
@@ -4527,9 +4527,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -4537,24 +4537,24 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         $cls = "text-right";
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
-        
+
         $html_body .= '<div class="row" style="margin-top: 10px;">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Inspector</th>' . 
-                        '<th>Total Inspections</th>' . 
+                    '<tr>' .
+                        '<th>Inspector</th>' .
+                        '<th>Total Inspections</th>' .
                         '<th>Not Ready(%)</th>' .
                         '<th>Pass(%)</th>' .
                         '<th>Pass with Exception(%)</th>' .
@@ -4564,9 +4564,9 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         array_push($reports, array(
             'inspector' => 'Inspector',
             'inspections' => 'Total Inspections',
@@ -4581,12 +4581,12 @@ class Api extends CI_Controller {
         if ($table_data && is_array($table_data)) {
             foreach ($table_data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $field_manager = "";
                 if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
                     $field_manager = $row['first_name'] . $row['last_name'];
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $field_manager  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['inspections']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['not_ready']  . '</td>';
@@ -4595,9 +4595,9 @@ class Api extends CI_Controller {
                 $html_body .= '<td class="text-center">' . $row['fail']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['reinspection']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['fee']  . '</td>';
-                
+
                 $html_body .= '</tr>';
-                
+
                 array_push($reports, array(
                     'inspector'=>$field_manager,
                     'inspections'=>$row['inspections'],
@@ -4610,39 +4610,51 @@ class Api extends CI_Controller {
                 ));
             }
         }
-        
-        
+
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
             return $html;
         }
     }
-    
-    
+
+    public function testFunc($param1,$param2){
+      switch ($param1) {
+        case '1':
+          echo $this->get_report_html__for_duct_leakage($param2);
+          break;
+          case '2':
+            echo $this->get_report_html__for_envelop_leakage($param2);
+            break;
+        default:
+          # code...
+          break;
+      }
+    }
     private function get_report_html__for_duct_leakage($inspection_id) {
         $sql = " select a.*, u.email, c2.name as result_name "
                 . " , c3.name as result_duct_leakage_name, c4.name as result_envelop_leakage_name "
                 . " from ins_code c2, ins_code c3, ins_code c4, ins_inspection a "
                 . " left join ins_user u on a.user_id=u.id "
                 . " where a.id='" . $inspection_id . "' and c2.kind='rst' and c2.code=a.result_code and c3.kind='rst_duct' and c3.code=a.result_duct_leakage and c4.kind='rst_envelop' and c4.code=a.result_envelop_leakage ";
-        
+
         $inspection = $this->utility_model->get__by_sql($sql);
-        
+
         $html = "";
         $html_head = "";
         $html_body = "";
-        
+
         $html .= '<html>';
         $html_head .= '<head>';
         $html_head .= '<style type="text/css">'
@@ -4677,24 +4689,30 @@ class Api extends CI_Controller {
                         . '.footer .width-60-percent { border: 1px solid #000; }'
                     . '</style>';
         $html_head .= '</head>';
-        
+
         $html_body .= '<body>';
-        
+
         if ($inspection) {
+          $builder = "WCI";
+          if($inspection['type'] == 3){
+            $builder = "WCI";
+          }else{
+            $builder = "Pulte";
+          }
             $html_body .= '<h2 class="font-light" style="font-size: 13px;">FORM R405-2014 Duct Leakage Test Report Performance Method</h2>';
             $html_body .= '<h1 class="title text-center">FLORIDA ENERGY EFFICIENCY CODE FOR BUILDING CONSTRUCTION</h1>';
             $html_body .= '<h1 class="sub-title text-center font-light" style="margin-top: 3px; padding:0 140px;">Form R405 Duct Leakage Test Report Performance Method</h1>';
 
             $html_body .= '<div class="row" style="padding: 0 2px;">';
             $html_body .= '<table class="performance-method width-full" style="">';
-            $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: </td></tr>';
+            $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: <span class="text-value">' . $builder.'</td></tr>';
             $html_body .= '<tr><td>Street: <span class="text-value">' . $inspection['address'] . '</span></td><td>Permit Office: </td></tr>';
             $html_body .= '<tr><td>City, State, Zip: <span class="text-value">' . $inspection['city'] . '</span></td><td>Permit Number: </td></tr>';
             $html_body .= '<tr><td>Design Location: <span class="text-value">' . $inspection['design_location'] . '</span></td><td>Jurisidiction: </td></tr>';
             $html_body .= '<tr><td>&nbsp;</td><td>Duct Test Time: Post Construction</td></tr>';
             $html_body .= '</table>';
             $html_body .= '</div>';
-            
+
             $cfm25_system_1 = $this->cfm25($inspection_id, 1);
             $cfm25_system_2 = $this->cfm25($inspection_id, 2);
             $cfm25_system_3 = $this->cfm25($inspection_id, 3);
@@ -4734,11 +4752,17 @@ class Api extends CI_Controller {
             $html_body .= '<td class="width-40-percent footer-padding">';
             $html_body .= '<br><br>';
             $html_body .= '<h2 class="footer-description">I certify the tested duct leakage to outside, Qn, is not greater than the proposed duct leakage Qn specified on Form R405-2014.</h2>';
-            
+
             $html_body .= '<table class="">'
                         . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">SIGNATURE: </span></td>'
                             . '<td style="padding-left: 8px; vertical-align:bottom; border-bottom: 1px solid #000;"><img class="img-responsive" src="' . $this->image_url_change(base_url()) . 'resource/upload/signature.png" alt="" style="height: 42px;"></td>'
+                        . '</tr>'
+                        . '<tr>'
+                            . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
+                        . '</tr>'
+                        . '<tr>'
+                            . '<td style="vertical-align:bottom;"><span class="footer-value">RESNET ID: 9377172</span></td>'
                         . '</tr>'
                         . '</table>';
             $html_body .= '<br>';
@@ -4762,28 +4786,28 @@ class Api extends CI_Controller {
 
             $html_body .= '<div class="row" style="height: 16px;"></div>';
         }
-        
+
         $html_body .= '</body>';
-        
+
         $html .= $html_head . $html_body;
         $html .= '</html>';
-                
+
         return $html;
     }
-    
+
     private function get_report_html__for_envelop_leakage($inspection_id) {
         $sql = " select a.*, u.email, c2.name as result_name "
                 . " , c3.name as result_duct_leakage_name, c4.name as result_envelop_leakage_name "
                 . " from ins_code c2, ins_code c3, ins_code c4, ins_inspection a "
                 . " left join ins_user u on a.user_id=u.id "
                 . " where a.id='" . $inspection_id . "' and c2.kind='rst' and c2.code=a.result_code and c3.kind='rst_duct' and c3.code=a.result_duct_leakage and c4.kind='rst_envelop' and c4.code=a.result_envelop_leakage ";
-        
+
         $inspection = $this->utility_model->get__by_sql($sql);
-        
+
         $html = "";
         $html_head = "";
         $html_body = "";
-        
+
         $html .= '<html>';
         $html_head .= '<head>';
         $html_head .= '<style type="text/css">'
@@ -4826,23 +4850,30 @@ class Api extends CI_Controller {
                         . 'li { padding: 3px 0; } '
                     . '</style>';
         $html_head .= '</head>';
-        
+
         $html_body .= '<body>';
-        
+
         if ($inspection) {
+          $builder = "WCI";
+          if($inspection['type'] == 3){
+            $builder = "WCI";
+          }else{
+            $builder = "Pulte";
+          }
+
             $html_body .= '<h1 class="title text-center">FLORIDA ENERGY EFFICIENCY CODE FOR BUILDING CONSTRUCTION</h1>';
             $html_body .= '<h1 class="sub-title text-center font-light" style="margin-top: 3px; padding:0 100px;">Envelope Leakage Test Report<br>Prescriptive and Performance Method</h1>';
 
             $html_body .= '<div class="row" style="padding: 0 2px;">';
             $html_body .= '<table class="performance-method width-full" style="">';
-            $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: </td></tr>';
+            $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: <span class="text-value">' . $builder.'</td></tr>';
             $html_body .= '<tr><td>Street: <span class="text-value">' . $inspection['address'] . '</span></td><td>Permit Office: </td></tr>';
             $html_body .= '<tr><td>City, State, Zip: <span class="text-value">' . $inspection['city'] . '</span></td><td>Permit Number: </td></tr>';
             $html_body .= '<tr><td>Design Location: <span class="text-value">' . $inspection['design_location'] . '</span></td><td>Jurisidiction: </td></tr>';
             $html_body .= '<tr><td>Cond. Floor Area: <span class="text-value">' . $this->show_decimal($inspection['area'], 0) . ' sq.ft</span></td><td>Cond. Volume: <span class="text-value">' . $this->show_decimal($inspection['volume'], 0) . ' cu.ft</span></td></tr>';
             $html_body .= '</table>';
             $html_body .= '</div>';
-            
+
             $cfm25_system_1 = $this->cfm25($inspection_id, 1);
             $cfm25_system_2 = $this->cfm25($inspection_id, 2);
             $cfm25_system_3 = $this->cfm25($inspection_id, 3);
@@ -4851,14 +4882,14 @@ class Api extends CI_Controller {
             $html_body .= '<div class="row" style="height: 12px;"></div>';
             $html_body .= '<div class="row" style="padding: 0 16px;">';
             $html_body .= '<table class="width-full"><tr>';
-            
+
             $c = floatval($inspection['flow']) / pow(floatval($inspection['house_pressure']), 0.65);
             $cfm50 = $c * 12.7154;
             $ela = $cfm50 * 0.055;
             $eqla = $cfm50 * 0.1032;
             $ach = floatval($inspection['ach50']) / 25.36;
             $sla = $ela * 0.00694 / floatval($inspection['area']);
-            
+
             $html_body .= '<td class="width-70-percent" style="vertical-align:top; line-height: 14px;">';
             $html_body .= '<div class="row" style="padding: 0 16px;">';
             $html_body .= '<h2 class="part-title" style="margin-bottom: 20px;">Envelope Leakage Test Results</h2>';
@@ -4877,7 +4908,7 @@ class Api extends CI_Controller {
             $html_body .= '</table>';
             $html_body .= '</div>';
             $html_body .= '</td>';
-            
+
             $html_body .= '<td class="width-30-percent" style="vertical-align:top;">';
             $html_body .= '<h2 class="part-title">Leakage Characteristics</h2>';
             $html_body .= '<table class="leakage-characteristics" style="padding-left: 20px;">';
@@ -4890,11 +4921,11 @@ class Api extends CI_Controller {
             $html_body .= '<tr><td>SLA: &nbsp;</td><td class="border-bottom text-center"> ' . $this->show_decimal($sla, 4) . '  </td></tr>';
             $html_body .= '</table>';
             $html_body .= '</td>';
-            
+
             $html_body .= '</tr></table>';
             $html_body .= '</div>';
-            
-            
+
+
             $html_body .= '<div class="row" style="height: 24px;"></div>';
             $html_body .= '<div class="row" style="padding: 0 12px;">';
             $html_body .= '<h3 style="font-size: 12.24px; font-weight: 100; margin: 4px 0 2px; line-height: 14px;">';
@@ -4913,7 +4944,7 @@ class Api extends CI_Controller {
             $html_body .= '</ul>';
             $html_body .= '</div>';
             $html_body .= '</div>';
-            
+
 
             $html_body .= '<div class="row" style="height: 16px;"></div>';
             $html_body .= '<div class="row"><table class="width-full footer"><tr>';
@@ -4921,11 +4952,17 @@ class Api extends CI_Controller {
             $html_body .= '<td class="width-40-percent footer-padding">';
             $html_body .= '<br><br>';
             $html_body .= '<h2 class="footer-description">I hereby certify that the above envelope leakage performance results demonstrate compliance with Florida Energy Code requirements in accordance with Section R402.4.1.2.</h2>';
-            
+
             $html_body .= '<table class="">'
                         . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">SIGNATURE: </span></td>'
                             . '<td style="padding-left: 8px; vertical-align:bottom; border-bottom: 1px solid #000;"><img class="img-responsive" src="' . $this->image_url_change(base_url()) . 'resource/upload/signature.png" alt="" style="height: 42px;"></td>'
+                        . '</tr>'
+                        . '<tr>'
+                            . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
+                        . '</tr>'
+                        . '<tr>'
+                            . '<td style="vertical-align:bottom;"><span class="footer-value">RESNET ID: 9377172</span></td>'
                         . '</tr>'
                         . '</table>';
             $html_body .= '<br>';
@@ -4950,15 +4987,15 @@ class Api extends CI_Controller {
 
             $html_body .= '<div class="row" style="height: 16px;"></div>';
         }
-        
+
         $html_body .= '</body>';
-        
+
         $html .= $html_head . $html_body;
         $html .= '</html>';
-        
+
         return $html;
     }
-    
+
     private function cfm25($inspection_id, $no) {
         $unit = $this->utility_model->get('ins_unit', array('inspection_id'=>$inspection_id, 'no'=>$no));
         if ($unit) {
@@ -4969,49 +5006,49 @@ class Api extends CI_Controller {
             if ($unit['return']!="") {
                 $result += floatval($unit['return']);
             }
-            return $result/2;            
+            return $result/2;
         } else {
             return 0;
         }
     }
-    
+
     private function show_decimal($value, $decimal, $is_integer=false) {
         return number_format(floatval($value), intval($decimal), ".", "‚");
     }
-    
+
     private function image_url_change($url) {
         $url = str_replace("https://", "http://", $url);
         return $url;
     }
-        
+
 
     private function get_report_data__for_payable_payroll($inspector, $period, $start_date, $end_date, $is_array=false) {
         $reports = array();
-        
-        $table = " select * from ins_inspector_payroll a "; 
-        
+
+        $table = " select * from ins_inspector_payroll a ";
+
         $filter_sql = "";
         if ($inspector!="") {
             if ($filter_sql!="") {
                 $filter_sql .= " and ";
             }
-            
+
             $filter_sql .= " a.inspector_id='$inspector' ";
         }
-        
+
         if ($period!="") {
             if ($filter_sql!="") {
                 $filter_sql .= " and ";
             }
-            
+
             $filter_sql .= " a.start_date='$period' ";
         }
-        
+
         if ($start_date!="" || $end_date!="") {
             if ($filter_sql!="") {
                 $filter_sql .= " and ";
             }
-            
+
             $date_sql = " ( a.transaction_date is null or a.transaction_date='' or ";
             if ($start_date!="" && $end_date!="") {
                 $date_sql .= " ( a.transaction_date>='" . $start_date . "' and a.transaction_date<='" . $end_date . "' ) ";
@@ -5021,10 +5058,10 @@ class Api extends CI_Controller {
                 $date_sql .= " a.transaction_date<='" . $end_date . "' ";
             }
             $date_sql .= " ) ";
-            
+
             $filter_sql .= $date_sql;
         }
-        
+
         $sql = $table;
         if ($filter_sql!="") {
             $sql .= " where " . $filter_sql;
@@ -5035,7 +5072,7 @@ class Api extends CI_Controller {
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -5044,17 +5081,17 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Processed Inspector's Payments Report";
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         $cls = "text-right";
         if ($inspector!="") {
@@ -5063,35 +5100,35 @@ class Api extends CI_Controller {
                 $sub_title = "Inspector: " . $u['first_name'] . " " . $u['last_name'];
             }
         }
-        
+
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
-        
+
         $html_body .= '<div class="row">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Inspector Name</th>' . 
+                    '<tr>' .
+                        '<th>Inspector Name</th>' .
                         '<th>Email</th>' .
-                        '<th>Phone Number</th>' . 
-                        '<th>Address</th>' . 
-                        '<th>Pay Period</th>' . 
+                        '<th>Phone Number</th>' .
+                        '<th>Address</th>' .
+                        '<th>Pay Period</th>' .
                         '<th>Check Amount</th>' .
                         '<th>Check Number</th>' .
                         '<th>Transaction Date</th>' .
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         $sql .= " order by a.updated_at asc ";
 
         if (true) {
@@ -5106,12 +5143,12 @@ class Api extends CI_Controller {
                 'transaction_date'=>'Transaction Date',
             ));
         }
-        
+
         $data = $this->datatable_model->get_content($sql);
         if ($data && is_array($data)) {
             foreach ($data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $html_body .= '<td class="">' . $row['inspector_name']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['inspector_email']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['inspector_phone'] . '</td>';
@@ -5120,7 +5157,7 @@ class Api extends CI_Controller {
                 $html_body .= '<td class="text-center">$' . number_format($row['check_amount'], 2)  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['check_number']  . '</td>';
                 $html_body .= '<td class="text-center">$' . $row['transaction_date']  . '</td>';
-                
+
 //                $cls = "";
 //                $field_value = "";
 //                if ($row['status'] == 1) {
@@ -5130,10 +5167,10 @@ class Api extends CI_Controller {
 //                    $cls = "label-warning";
 //                    $field_value = "PENDING";
 //                }
-//                
+//
 //                $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $field_value  . '</span></td>';
                 $html_body .= '</tr>';
-                
+
                 array_push($reports, array(
                     'name'=>$row['inspector_name'],
                     'email'=>$row['inspector_email'],
@@ -5144,71 +5181,71 @@ class Api extends CI_Controller {
                     'number'=>$row['check_number'],
                     'transaction_date'=>$row['transaction_date'],
 //                    'status'=>$row['status']==1 ? "PAID" : "PENDING",
-                ));                
+                ));
             }
         }
-        
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
             return $html;
         }
     }
-    
+
     private function get_report_data__for_payable_re_inspection($region, $community, $start_date, $end_date, $status, $type, $epo_status, $is_array=false) {
         $reports = array();
 
         $table = " ins_region r, ins_code c1, ins_code c2, "
                 . " ins_inspection a "
-                
+
                 . " left join "
                 . " ( SELECT t.type, t.job_number, bbb.address, COUNT(*) AS inspection_count "
                 . " FROM ins_inspection t "
                 . " LEFT JOIN ins_building_unit bbb ON REPLACE(t.job_number,'-','')=REPLACE(bbb.job_number, '-', '') AND bbb.address=t.address and t.is_building_unit=1 "
                 . " GROUP BY t.job_number, bbb.address, t.type ) p "
                 . " ON p.type=a.type AND a.job_number=p.job_number AND (a.address=p.address OR p.address IS NULL) "
-                
+
                 . " LEFT JOIN ins_inspection_requested q ON a.requested_id=q.id "
                 . " LEFT JOIN ins_admin u ON a.field_manager=u.id AND u.kind=2 "
                 . " LEFT JOIN ins_community tt ON tt.community_id=a.community "
-                
+
                 . " WHERE a.region=r.id AND c1.kind='ins' AND c1.code=a.type AND c2.kind='rst' "
                 . "       AND c2.code=a.result_code AND p.inspection_count>1 "
                 . " ";
-        
+
         $common_sql = "";
-        
+
         if ($start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
         }
 
@@ -5216,7 +5253,7 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.community='$community' ";
         }
 
@@ -5224,18 +5261,18 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.result_code='$status' ";
         }
-        
+
         if ($type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
-        
+
         if ($epo_status!==false && $epo_status!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
@@ -5247,14 +5284,14 @@ class Api extends CI_Controller {
                 $common_sql .= " a.epo_status='$epo_status' ";
             }
         }
-        
+
         $sql = " select  a.*, "
                 . " c1.name as inspection_type, c2.name as result_name, "
                 . " r.region as region_name, tt.community_name, "
-                
+
                 . " (p.inspection_count-1) as inspection_count, q.epo_number as requested_epo_number, '' as pay_invoice_number, "
                 . " a.epo_number as inspection_epo_number, a.epo_status as inspection_epo_status, a.invoice_number as inspection_invoice_number, "
-                
+
                 . " u.first_name, u.last_name, '' as additional "
                 . " from " . $table . " ";
 
@@ -5270,7 +5307,7 @@ class Api extends CI_Controller {
         $count_sql = " SELECT c.name AS result_name, t.result_code, t.tnt "
                 . " FROM ins_code c, ( select a.result_code, count(*) as tnt from ( $sql ) a group by a.result_code ) t "
                 . " WHERE c.kind='rst' AND c.code=t.result_code ORDER BY c.code ";
-        
+
         $tnt = $this->utility_model->get_list__by_sql($count_sql);
         if ($tnt && is_array($tnt)) {
             foreach ($tnt as $row) {
@@ -5288,14 +5325,14 @@ class Api extends CI_Controller {
             }
         }
 
-        $count_text .= "</h4>";    
-        
+        $count_text .= "</h4>";
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -5304,12 +5341,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Re-Inspections EPO Report";
         if ($type == '1') {
@@ -5318,9 +5355,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -5328,40 +5365,40 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         if ($community!="") {
             $c = $this->utility_model->get('ins_community', array('community_id'=>$community));
             if ($c) {
                 if ($sub_title!="") {
                     $sub_title .= ", ";
                 }
-                
+
                 $sub_title .= $c['community_name'];
             }
         }
 
         $cls = "text-right";
-        
+
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
 
         $html_body .= '<div class="row">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Type</th>' . 
+                    '<tr>' .
+                        '<th>Type</th>' .
                         '<th>Region</th>' .
-                        '<th>Community</th>' . 
+                        '<th>Community</th>' .
                         '<th>Job Number</th>' .
-                        '<th>Address</th>' . 
-                        '<th>Field Manager</th>' . 
+                        '<th>Address</th>' .
+                        '<th>Field Manager</th>' .
                         '<th>Date</th>' .
                         '<th>Result</th>' .
                         '<th>Status</th>' .
@@ -5371,22 +5408,22 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         $sql = " select  a.*, "
                 . " c1.name as inspection_type, c2.name as result_name, "
                 . " r.region as region_name, tt.community_name, "
-                
+
                 . " p.inspection_count, q.epo_number as requested_epo_number, pay.invoice_number as pay_invoice_number, "
                 . " a.epo_number as inspection_epo_number, a.epo_status as inspection_epo_status, a.invoice_number as inspection_invoice_number, "
-                
+
                 . " u.first_name, u.last_name, '' as additional "
                 . " from " . $table . " ";
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $sql .= " order by a.start_date desc ";
 
         array_push($reports, array(
@@ -5403,30 +5440,30 @@ class Api extends CI_Controller {
             'epo_status'=>'EPO Status',
             'invoice_number'=>'Invoice Number',
         ));
-        
+
         $data = $this->datatable_model->get_content($sql);
         if ($data && is_array($data)) {
             foreach ($data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $field_manager = "";
                 if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
                     $field_manager = $row['first_name'] . $row['last_name'];
                 }
-                
+
                 // replace community name.  2016/11/3
                 $community_name = ""; // $row['community'];
                 if (isset($row['community_name']) && $row['community_name']!="") {
                     $community_name = $row['community_name'];
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $row['inspection_type']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['region_name']  . '</td>';
                 $html_body .= '<td class="text-center">' . $community_name  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['job_number']  . '</td>';
                 $html_body .= '<td>' . $row['address']  . '</td>';
                 $html_body .= '<td class="text-center">' . $field_manager  . '</td>';
-                
+
                 $html_body .= '<td class="text-center">' . $row['start_date']  . '</td>';
 
                 $cls = "";
@@ -5436,33 +5473,33 @@ class Api extends CI_Controller {
                     $cls = "label-warning";
                 if ($row['result_code'] == '3')
                     $cls = "label-danger";
-                
+
                 $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $row['result_name']  . '</span></td>';
                 $html_body .= '<td class="text-center"><span class="label '. ($row['house_ready']=="1" ? "label-success" : "label-warning") . '">' . ($row['house_ready']=="1" ? "House Ready" : "House Not Ready")  . '</span></td>';
-                
+
                 $epo_number = " ";
                 $epo_status = $row['inspection_epo_status'];
                 $invoice_number = " ";
-                
+
                 if (isset($row['inspection_epo_number']) && $row['inspection_epo_number']!="") {
                     $epo_number = $row['inspection_epo_number'];
                 } else if (isset($row['requested_epo_number']) && $row['requested_epo_number']!=0) {
                     $epo_number = $row['requested_epo_number'];
                 }
-                
+
                 if (isset($row['pay_invoice_number']) && $row['pay_invoice_number']!="") {
                     $invoice_number = $row['pay_invoice_number'];
                 } else {
                     $invoice_number = $row['inspection_invoice_number'];
                 }
-                
-                
+
+
                 $html_body .= '<td class="text-center">' . $epo_number . '</td>';
                 $html_body .= '<td class="text-center">' . $this->get_epo_status_title($epo_status) . '</td>';
                 $html_body .= '<td class="text-center">' . $invoice_number . '</td>';
-                
+
                 $html_body .= '</tr>';
-                
+
                 array_push($reports, array(
                     'inspection_type'=>$row['inspection_type'],
                     'region'=>$row['region_name'],
@@ -5476,27 +5513,27 @@ class Api extends CI_Controller {
                     'epo_number'=>$epo_number,
                     'epo_status'=>$this->get_epo_status_title($epo_status),
                     'invoice_number'=>$invoice_number,
-                ));                
+                ));
             }
         }
-        
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
             return $html;
         }
     }
-    
+
     private function get_report_data__for_payable_pending_inspection($region, $community, $start_date, $end_date, $status, $type, $epo_status, $payment_status, $re_inspection, $is_array=false) {
         $reports = array();
 
@@ -5521,30 +5558,30 @@ class Api extends CI_Controller {
                 . " WHERE a.region=r.id AND c1.kind='ins' AND c1.code=a.type AND c2.kind='rst' "
                 . " AND c2.code=a.result_code "
                 . " ";
-        
+
         $common_sql = "";
-        
+
         if ($start_date!==false && $start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.start_date>='$start_date' ";
         }
-        
+
         if ($end_date!==false && $end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.end_date<='$end_date' ";
         }
-        
+
         if ($region!==false && $region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.region='$region' ";
         }
 
@@ -5552,23 +5589,23 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.community='$community' ";
         }
-        
+
         if ($status!==false && $status!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.result_code='$status' ";
         }
-        
+
         if ($type!==false && $type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.type='$type' ";
         }
 
@@ -5583,7 +5620,7 @@ class Api extends CI_Controller {
                 $common_sql .= " a.epo_status='$epo_status' ";
             }
         }
-        
+
         if ($re_inspection!==false && $re_inspection!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
@@ -5591,12 +5628,12 @@ class Api extends CI_Controller {
 
             if ($re_inspection=="1") {
                 $common_sql .= " ( p.inspection_count>1 and a.first_submitted=0 ) ";
-            } 
+            }
             if ($re_inspection=="0") {
                 $common_sql .= " ( p.inspection_count<=1 and a.first_submitted=1 ) ";
             }
         }
-        
+
         if ($payment_status!==false && $payment_status!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
@@ -5694,14 +5731,14 @@ class Api extends CI_Controller {
         $count_text .= number_format($pending_amount, 2);
         $count_text .= '</span>';
 
-        $count_text .= "</h4>";    
-        
+        $count_text .= "</h4>";
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -5710,12 +5747,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Inspections Pending Payment Report";
         if ($type == '1') {
@@ -5724,9 +5761,9 @@ class Api extends CI_Controller {
         if ($type == "2") {
             $title = "Lath " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $sub_title = "";
         if ($region!="") {
             $r = $this->utility_model->get('ins_region', array('id'=>$region));
@@ -5734,40 +5771,40 @@ class Api extends CI_Controller {
                 $sub_title .= $r['region'];
             }
         }
-        
+
         if ($community!="") {
             $c = $this->utility_model->get('ins_community', array('community_id'=>$community));
             if ($c) {
                 if ($sub_title!="") {
                     $sub_title .= ", ";
                 }
-                
+
                 $sub_title .= $c['community_name'];
             }
         }
 
         $cls = "text-right";
-        
+
         if ($sub_title!="") {
             $html_body .= "<h5 class='" . $cls . "'>" . $sub_title . "</h5>";
         }
-        
+
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
         }
 
         $html_body .= '<div class="row">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Type</th>' . 
+                    '<tr>' .
+                        '<th>Type</th>' .
                         '<th>Region</th>' .
-                        '<th>Community</th>' . 
+                        '<th>Community</th>' .
                         '<th>Job Number</th>' .
-                        '<th>Address</th>' . 
-                        '<th>Field Manager</th>' . 
+                        '<th>Address</th>' .
+                        '<th>Field Manager</th>' .
                         '<th>Date</th>' .
                         '<th>Result</th>' .
                         '<th>EPO Number</th>' .
@@ -5776,9 +5813,9 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         $sql .= " order by a.start_date desc ";
 
         array_push($reports, array(
@@ -5794,30 +5831,30 @@ class Api extends CI_Controller {
             'epo_status'=>'EPO Status',
             'payment_status'=>'Paymenet Status',
         ));
-        
+
         $data = $this->datatable_model->get_content($sql);
         if ($data && is_array($data)) {
             foreach ($data as $row) {
                 $html_body .= '<tr>';
-                
+
                 $field_manager = "";
                 if (isset($row['first_name']) && isset($row['last_name']) && $row['first_name']!="" && $row['last_name']!="") {
                     $field_manager = $row['first_name'] . $row['last_name'];
                 }
-                
+
                 // replace community name.  2016/11/3
                 $community_name = ""; // $row['community'];
                 if (isset($row['community_name']) && $row['community_name']!="") {
                     $community_name = $row['community_name'];
                 }
-                
+
                 $html_body .= '<td class="text-center">' . $row['inspection_type']  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['region_name']  . '</td>';
                 $html_body .= '<td class="text-center">' . $community_name  . '</td>';
                 $html_body .= '<td class="text-center">' . $row['job_number']  . '</td>';
                 $html_body .= '<td>' . $row['address']  . '</td>';
                 $html_body .= '<td class="text-center">' . $field_manager  . '</td>';
-                
+
                 $html_body .= '<td class="text-center">' . $row['start_date']  . '</td>';
 
                 $cls = "";
@@ -5827,29 +5864,29 @@ class Api extends CI_Controller {
                     $cls = "label-warning";
                 if ($row['result_code'] == '3')
                     $cls = "label-danger";
-                
+
                 $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $row['result_name']  . '</span></td>';
-                
+
                 $epo_number = " ";
                 $epo_status = $row['epo_status'];
                 $payment_status = false;
-                
+
 //                if (isset($row['inspection_epo_number']) && $row['inspection_epo_number']!="") {
 //                    $epo_number = $row['inspection_epo_number'];
 //                }
-                
+
                 if (isset($row['invoice_id']) && $row['invoice_id']!="") {
                     $payment_status = true;
                 }
-                
-                
-                
+
+
+
                 $html_body .= '<td class="text-center">' . $epo_number . '</td>';
                 $html_body .= '<td class="text-center">' . $this->get_epo_status_title($epo_status) . '</td>';
                 $html_body .= '<td class="text-center"><span class="label ' . ( $payment_status===true ? "label-success" : "label-warning" ) . '">' . ( $payment_status===true ? "PAID" : "PENDING" ) . '</span></td>';
-                
+
                 $html_body .= '</tr>';
-                
+
                 array_push($reports, array(
                     'inspection_type'=>$row['inspection_type'],
                     'region'=>$row['region_name'],
@@ -5862,30 +5899,30 @@ class Api extends CI_Controller {
                     'epo_number'=>$epo_number,
                     'epo_status'=>$this->get_epo_status_title($epo_status),
                     'payment_status'=>$payment_status===true ? "PAID" : "PENDING",
-                ));                
+                ));
             }
         }
-        
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
-        } 
+        }
         else {
             return $html;
         }
     }
-    
-    
-    
+
+
+
     private function get_report_data__for_requested_inspection($start_date, $end_date, $status, $type, $is_array=false) {
         $reports = array();
 
@@ -5903,28 +5940,28 @@ class Api extends CI_Controller {
         }
 
         $common_sql = "";
-        
+
         if ($start_date!==false && $start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.requested_at>='$start_date' ";
         }
-        
+
         if ($end_date!==false && $end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.requested_at<='$end_date' ";
         }
-        
+
         if ($type!==false && $type!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.category='$type' ";
         }
 
@@ -5932,10 +5969,10 @@ class Api extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.status='$status' ";
         }
-        
+
         $sql = " select  a.id, a.category, a.reinspection, a.epo_number, a.job_number, a.requested_at, a.assigned_at, a.completed_at, a.manager_id, a.inspector_id, "
                 . " a.time_stamp, a.ip_address, a.community_name, a.lot, a.address, a.status, a.area, a.volume, a.qn, a.city as city_duct, "
                 . " '' as additional, "
@@ -5947,7 +5984,7 @@ class Api extends CI_Controller {
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
 //        $count_sql = " select count(*) from ( " . $sql . " ) ttt ";
 //        $total = $this->datatable_model->get_count($count_sql);
 //
@@ -5956,7 +5993,7 @@ class Api extends CI_Controller {
 //        $count_sql = " SELECT c.name AS result_name, t.result_code, t.tnt "
 //                . " FROM ins_code c, ( select a.result_code, count(*) as tnt from ( $sql ) a group by a.result_code ) t "
 //                . " WHERE c.kind='rst' AND c.code=t.result_code ORDER BY c.code ";
-//        
+//
 //        $tnt = $this->utility_model->get_list__by_sql($count_sql);
 //        if ($tnt && is_array($tnt)) {
 //            foreach ($tnt as $row) {
@@ -5974,14 +6011,14 @@ class Api extends CI_Controller {
 //            }
 //        }
 //
-//        $count_text .= "</h4>";    
-        
+//        $count_text .= "</h4>";
+
         $table_styles = " .data-table {width: 100%; border: 1px solid #000; } "
                 . " .data-table thead th { padding: 7px 5px; } "
                 . " .table-bordered { border-collapse: collapse; }"
                 . " .table-bordered thead th, .table-bordered tbody td { border: 1px solid #000; }  "
                 . " .table-bordered tbody td { font-size: 85%; padding: 4px 4px; }  ";
-        
+
         $html_styles = "<style type='text/css'> " . $table_styles . " "
                 . " .text-right{text-align:right;} "
                 . " .text-center{text-align:center;} "
@@ -5990,12 +6027,12 @@ class Api extends CI_Controller {
                 . " .col-50-percent{float:left;width:50%;} "
                 . ".total-inspection span , .total-checklist span { font-size: 84%; } .total-checklist span.total-1 { color: #02B302; } .total-checklist span.total-2 { color: #e33737; } .total-checklist span.total-3 { color: #11B4CE; }  .total-inspection span.total-1 { color: #02B302; } .total-inspection span.total-2 { color: #e89701; } .total-inspection span.total-3 { color: #e33737; }"
                 . "</style>";
-        
+
         $html_header = "<html><head><meta charset='utf-8'/><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>Report</title>" . $html_styles . "</head><body>";
         $html_body = "";
-        
+
         $html_body .= "<div class='row text-center'>" . '<img alt="" src="' . $this->image_url_change(LOGO_PATH) . '" style="margin: auto; max-width: 400px;">' . "</div>";
-        
+
         $cls = "text-center";
         $title = "Requested Inspection Report";
         if ($type == '1') {
@@ -6007,9 +6044,9 @@ class Api extends CI_Controller {
         if ($type == "3") {
             $title = "WCI Duct Leakage " . $title;
         }
-        
+
         $html_body .= "<h1 class='" . $cls . "'>" . $title . "</h1>";
-        
+
         $cls = "text-right";
         if ($start_date!="" && $end_date!="") {
             $html_body .= "<h6 class='" . $cls . "'>" . $start_date . " ~ " . $end_date . "</h6>";
@@ -6018,19 +6055,19 @@ class Api extends CI_Controller {
 //        if ($count_text!="") {
 //            $html_body .=  $count_text ;
 //        }
-        
+
         $html_body .= '<div class="row">';
-        
+
         $html_body .= '<table class="data-table table-bordered">';
         $html_body .= '' .
                 '<thead>' .
-                    '<tr>' . 
-                        '<th>Inspection Date</th>' . 
+                    '<tr>' .
+                        '<th>Inspection Date</th>' .
                         '<th>Community</th>' .
                         '<th>Job Number</th>' .
-                        '<th>Address</th>' . 
+                        '<th>Address</th>' .
                         '<th>City</th>' .
-                        '<th>Field Manager</th>' . 
+                        '<th>Field Manager</th>' .
                         '<th>Inspection Type</th>' .
                         '<th>Requested Time</th>' .
                         '<th>Inspector</th>' .
@@ -6038,9 +6075,9 @@ class Api extends CI_Controller {
                     '</tr>' .
                 '</thead>' .
                 '';
-        
+
         $html_body .= '<tbody>';
-        
+
         $sql .= " order by a.requested_at desc ";
 
         array_push($reports, array(
@@ -6055,7 +6092,7 @@ class Api extends CI_Controller {
             'inspector'=>'Inspector',
             'status'=>'Status',
         ));
-        
+
         $data = $this->datatable_model->get_content($sql);
         if ($data && is_array($data)) {
             foreach ($data as $row) {
@@ -6065,7 +6102,7 @@ class Api extends CI_Controller {
                 $html_body .= '<td>' . $row['community_name']  . '</td>';
                 $html_body .= '<td>' . $row['job_number']  . '</td>';
                 $html_body .= '<td>' . $row['address']  . '</td>';
-                
+
                 $city = "";
                 if ($row['category']==3) {
                     if (isset($row['city_duct']) && $row['city_duct']!="") {
@@ -6076,7 +6113,7 @@ class Api extends CI_Controller {
                         $city = $row['city'];
                     }
                 }
-                
+
                 $html_body .= '<td>' . $city  . '</td>';
 
                 $field_manager = "";
@@ -6089,17 +6126,17 @@ class Api extends CI_Controller {
 
                 $requested_time = date('Y-m-d H:i:s', strtotime($row['time_stamp']));
                 $html_body .= '<td>' . $requested_time . '</td>';
-                
+
                 $html_body .= '<td>' . $row['inspector_name']  . '</td>';
-                
-                
+
+
 //                // replace community name.  2016/11/3
 //                $community_name = ""; // $row['community'];
 //                if (isset($row['community_name']) && $row['community_name']!="") {
 //                    $community_name = $row['community_name'];
 //                }
 //                $html_body .= '<td class="text-center">' . $community_name  . '</td>';
-                
+
                 $cls = "";
                 $status_name = "";
                 if ($row['status'] == 2) {
@@ -6112,11 +6149,11 @@ class Api extends CI_Controller {
                     $cls = "label-default";
                     $status_name = "Unassigned";
                 }
-                
+
                 $html_body .= '<td class="text-center"><span class="label '. $cls  . '">' . $status_name . '</span></td>';
-                
+
                 $html_body .= '</tr>';
-                
+
                 array_push($reports, array(
                     'inspection_date'=>$row['requested_at'],
                     'community'=>$row['community_name'],
@@ -6128,29 +6165,29 @@ class Api extends CI_Controller {
                     'requested_time'=>$requested_time,
                     'inspector'=>$row['inspector_name'],
                     'status'=>$status_name
-                ));                
+                ));
             }
         }
-        
-        
+
+
         $html_body .= '</tbody>';
         $html_body .= '</table>';
-        
+
         $html_body .= '</div>';
-        
-        
+
+
         $html_footer = "</body></html>";
 
         $html = $html_header . $html_body . $html_footer;
-        
+
         if ($is_array) {
             return $reports;
         } else {
             return $html;
         }
     }
-    
-    
+
+
     private function get_epo_status_title($status) {
         if ($status==0) {
             return "To Request";
@@ -6164,17 +6201,17 @@ class Api extends CI_Controller {
         if ($status==3) {
             return "Not Needed";
         }
-        
+
         return "";
     }
-    
-    
+
+
     public function test($id) {
         echo $this->get_report_html__for_envelop_leakage($id);
-        
+
         echo "<br>";
         echo "End";
         echo "<br>";
     }
-    
+
 }

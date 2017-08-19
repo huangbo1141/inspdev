@@ -45,7 +45,7 @@ define('FOPEN_READ_WRITE_CREATE_STRICT',		'x+b');
 
 define("DB_HOST", 'localhost');
 define("DB_USER", 'root');
-define("DB_PASSWORD", '');
+define("DB_PASSWORD", '111');
 define("DB_DATABASE", 'inspections');
 
 define("DB_PREFIX", 'ins_');
