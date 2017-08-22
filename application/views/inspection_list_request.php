@@ -33,7 +33,7 @@
     <!-- END SIDEBAR -->
 
     <!-- BEGIN CONTENT -->
-    <div class="page-content-wrapper">
+    <div class="page-content-wrapper" id="entirepage">
         <div class="page-content">
 
             <!-- BEGIN PAGE HEADER-->
@@ -141,6 +141,10 @@
 <!-- END CONTAINER -->
 
 <?php require 'common/footer.php'; ?>
+
+<form id="form_check_wci" action="<?php echo $basePath;?>inspection/check_wci.html" method="post">
+    <input type="hidden" name="id" id="detail_id3" value="">
+</form>
 
 <form id="form_move_pulte" action="<?php echo $basePath;?>inspection/edit_inspection_requested.html" method="post">
     <input type="hidden" name="id" id="detail_id1" value="">

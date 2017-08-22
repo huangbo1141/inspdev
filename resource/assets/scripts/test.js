@@ -82,6 +82,7 @@ jQuery(document).ready(function() {
         "searchable": false
       }
     ],
+
     "columns": [{
         "data": "requested_at",
       },
@@ -200,36 +201,8 @@ jQuery(document).ready(function() {
   });
 
   $("#btn_check").on('click', function(e) {
-    var modalform = $("#entirepage");
-    $.ajax({
-      type: "POST",
-      url: 'testme',
-      data: null,
-      success: function(resp, status, xhr) {
-        var ret = resp.response;
-        if (ret == 200) {
-          location.href = "";
-        } else {
-          alert("Error on Request");
-        }
-        Metronic.unblockUI(modalform);
-
-      },
-      error: function(request, status, error) {
-        alert("There's network error");
-        Metronic.unblockUI(modalform);
-      },
-      dataType: 'json'
-    });
-    Metronic.blockUI({
-      message: 'Processing...',
-      target: modalform,
-      overlayColor: 'none',
-      cenrerY: true,
-      centerX: true,
-      boxed: true
-    });
     e.preventDefault();
+
   });
 
   $("#btn_view").on('click', function(e) {

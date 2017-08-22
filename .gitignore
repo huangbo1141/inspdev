@@ -18,3 +18,4 @@ application/third_party/mpdf/examples/
 application/third_party/mpdf/patterns/
 application/third_party/mpdf/ttfontdata/
 application/third_party/mpdf/ttfonts/
+*.zip

@@ -4703,6 +4703,7 @@ class Api extends CI_Controller {
             $html_body .= '<h1 class="title text-center">FLORIDA ENERGY EFFICIENCY CODE FOR BUILDING CONSTRUCTION</h1>';
             $html_body .= '<h1 class="sub-title text-center font-light" style="margin-top: 3px; padding:0 140px;">Form R405 Duct Leakage Test Report Performance Method</h1>';
 
+
             $html_body .= '<div class="row" style="padding: 0 2px;">';
             $html_body .= '<table class="performance-method width-full" style="">';
             $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: <span class="text-value">' . $builder.'</td></tr>';

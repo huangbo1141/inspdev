@@ -64,28 +64,28 @@
                                 <input type="text" placeholder="" id="date_requested" name="date_requested" readonly class="form-control date-picker no-readonly"  maxlength="10" required value="<?php echo $inspection['requested_at']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="job_number">Job Number :</label>
                             <div class="col-md-5">
                                 <input type="text" placeholder="" id="job_number" name="job_number" class="form-control" value="<?php echo $inspection['job_number']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="lot">Lot # :</label>
                             <div class="col-md-5">
                                 <input type="text" placeholder="" id="lot" name="lot" class="form-control"  value="<?php echo $inspection['lot']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="community">Community :</label>
                             <div class="col-md-5">
                                 <input type="text" placeholder="" id="community" name="community" class="form-control"  value="<?php echo $inspection['community_name']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="address">Address :</label>
                             <div class="col-md-5">
@@ -120,25 +120,38 @@
                                 <input type="text" placeholder="" id="wall_area" name="wall_area" class="form-control"  value="<?php echo $inspection['wall_area']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="ceiling_area">Ceiling Area(ft<sup>2</sup>) :</label>
                             <div class="col-md-5">
                                 <input type="text" placeholder="" id="ceiling_area" name="ceiling_area" class="form-control"  value="<?php echo $inspection['ceiling_area']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="design_location">Design Location :</label>
                             <div class="col-md-5">
                                 <input type="text" placeholder="" id="design_location" name="design_location" class="form-control"  value="<?php echo $inspection['design_location']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="field_manager">Field Manager Email :</label>
                             <div class="col-md-5">
-                                <input type="email" placeholder="" id="field_manager" name="field_manager" class="form-control"  value="<?php echo $inspection['manager_email']; ?>">
+                              <?php
+                                 if (isset($field_managers)&&is_array($field_managers)) {
+                                     if (count($field_managers)>0) {
+                                         echo '<input list="field_manager" name="field_manager" class="form-control">';
+                                         echo '<datalist id="field_manager">';
+                                         foreach ($field_managers as $key=>$value) {
+                                             $email = $value;
+                                             echo "<option value='$email'>";
+                                         }
+                                         echo '</datalist>';
+                                     }
+                                 }
+                              ?>
+                                <!-- <input type="email" placeholder="" id="field_manager" name="field_manager" class="form-control"  value="<?php echo $inspection['manager_email']; ?>"> -->
                             </div>
                         </div>
 
@@ -148,7 +161,7 @@
                                 <input type="text" placeholder="" id="qn" name="qn" minlength="4" maxlength="4" class="form-control"  value="<?php echo $inspection['qn']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-20 form-group">
                             <label class="control-label col-md-3" for="document_person">Document Persons :</label>
                             <div class="col-md-5">
@@ -162,10 +175,11 @@
                             <div class="col-md-5">
                                 <button type="submit" class="btn btn-warning">Submit</button>
                             </div>
-                            
+
                             <input type="hidden" id="requested_id" name="requested_id" value="<?php echo $inspection['id']; ?>">
                             <input type="hidden" id="manager_id" name="manager_id" value="<?php echo $inspection['manager_id']; ?>">
                         </div>
+
                     </form>
                 </div>
             </div>

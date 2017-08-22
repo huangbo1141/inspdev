@@ -1,260 +1,269 @@
 function init() {
-    if ($("#msg_alert").html() != '') {
-        setTimeout(hideAlert, 2000);
-    }
+  if ($("#msg_alert").html() != '') {
+    setTimeout(hideAlert, 2000);
+  }
 }
 
 function scheduling() {
-    location.href = $("#basePath").val() + "scheduling/energy";
+  location.href = $("#basePath").val() + "scheduling/energy";
 }
 
 function submit_data() {
-    showLoading();
-    
-    $.ajax({
-        type: "POST",
-        url: 'update_duct_leakage_inspection_requested',
-        data: {
-            id: $("#requested_id").val(),
-            manager_id: $("#manager_id").val(),
-            
-            date_requested: $("#date_requested").val(),
-            job_number: $("#job_number").val(),
-            lot: $("#lot").val(),
-            
-            community: $("#community").val(),
-            address: $("#address").val(),
-            city: $("#city").val(),
-            area: $("#area").val(),
-            volume: $("#volume").val(),
-            wall_area: $("#wall_area").val(),
-            ceiling_area: $("#ceiling_area").val(),
-            
-            design_location: $("#design_location").val(),
-            field_manager: $("#field_manager").val(),
-            qn: $("#qn").val(),
-            
-            document_person: $("#document_person").val(),
-        },
-        dataType: 'json',
-        success: function (data) {
-            hideLoading();
-            showAlert(data.err_msg);
+  showLoading();
 
-            if (data.err_code == 0) {
-                setTimeout(scheduling, 700);
-            } else {
-                $('form').bootstrapValidator('resetForm', false);
-            }
-        },
-        error: function () {
-            hideLoading();
-            showAlert(Message.SERVER_ERROR);
-            $('form').bootstrapValidator('resetForm', false);
-        }
-    });
+  $.ajax({
+    type: "POST",
+    url: 'update_duct_leakage_inspection_requested',
+    data: {
+      id: $("#requested_id").val(),
+      manager_id: $("#manager_id").val(),
+
+      date_requested: $("#date_requested").val(),
+      job_number: $("#job_number").val(),
+      lot: $("#lot").val(),
+
+      community: $("#community").val(),
+      address: $("#address").val(),
+      city: $("#city").val(),
+      area: $("#area").val(),
+      volume: $("#volume").val(),
+      wall_area: $("#wall_area").val(),
+      ceiling_area: $("#ceiling_area").val(),
+
+      design_location: $("#design_location").val(),
+      field_manager: $("#field_manager").val(),
+      qn: $("#qn").val(),
+
+      document_person: $("#document_person").val(),
+    },
+    dataType: 'json',
+    success: function(data) {
+      hideLoading();
+      showAlert(data.err_msg);
+
+      if (data.err_code == 0) {
+        setTimeout(scheduling, 700);
+      } else {
+        $('form').bootstrapValidator('resetForm', false);
+      }
+    },
+    error: function() {
+      hideLoading();
+      showAlert(Message.SERVER_ERROR);
+      $('form').bootstrapValidator('resetForm', false);
+    }
+  });
 }
 
-jQuery(document).ready(function () {
-    $('.date-picker').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-    });
+jQuery(document).ready(function() {
+  $('.date-picker').datepicker({
+    autoclose: true,
+    format: 'yyyy-mm-dd'
+  });
 
-    $('form').bootstrapValidator({
-        feedbackIcons: {
-            valid: 'has-success',
-            invalid: 'has-error',
-            validating: ''
+  $('form').bootstrapValidator({
+      feedbackIcons: {
+        valid: 'has-success',
+        invalid: 'has-error',
+        validating: ''
+      },
+      fields: {
+        date_requested: {
+          validators: {
+            notEmpty: {
+              message: 'Select the date'
+            },
+          }
         },
-        fields: {
-            date_requested: {
-                validators: {
-                    notEmpty: {
-                        message: 'Select the date'
-                    },
-                }
+        job_number: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Job Number'
             },
-            job_number: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Job Number'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
-                }
+            integer: {
+              message: 'Enter the Number',
             },
-            lot: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Lot'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
-                }
+            greaterThan: {
+              value: 1,
+              message: 'Enter the Number greater than 1',
+            }
+          }
+        },
+        lot: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Lot'
             },
-            community: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Community'
-                    },
-                }
+            integer: {
+              message: 'Enter the Number',
             },
-            address: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Address'
-                    },
-                }
+            greaterThan: {
+              value: 1,
+              message: 'Enter the Number greater than 1',
+            }
+          }
+        },
+        community: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Community'
             },
-            city: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the City'
-                    },
-                }
+          }
+        },
+        address: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Address'
             },
-            area: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Area'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
-                }
+          }
+        },
+        city: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the City'
             },
-            volume: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Volume'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
-                }
+          }
+        },
+        area: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Area'
             },
-            wall_area: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Wall Area'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
-                }
+            integer: {
+              message: 'Enter the Number',
             },
-            ceiling_area: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Ceiling Area'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
-                }
+            greaterThan: {
+              value: 1,
+              message: 'Enter the Number greater than 1',
+            }
+          }
+        },
+        volume: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Volume'
             },
-            design_location: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Design Location'
-                    },
-                }
+            integer: {
+              message: 'Enter the Number',
             },
-            field_manager: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Field Manager Email Address'
-                    },
-                    emailAddress: {
-                        message: 'Enter the Valid Email Address'
-                    },
-                }
+            greaterThan: {
+              value: 1,
+              message: 'Enter the Number greater than 1',
+            }
+          }
+        },
+        wall_area: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Wall Area'
             },
-            qn: {
-                validators: {
-                    notEmpty: {
-                        message: 'Enter the Volume'
-                    },
-                    numeric: {
-                        message: 'Enter the Number',
-                    },
-                    greaterThan: {
-                        value: 0.01,
-                        message: 'Enter the Number greater than 0.01',
-                    },
-                    lessThan: {
-                        value: 0.99,
-                        message: 'Enter the Number less than 0.99',
-                    }
-                }
+            integer: {
+              message: 'Enter the Number',
             },
-        }
+            greaterThan: {
+              value: 1,
+              message: 'Enter the Number greater than 1',
+            }
+          }
+        },
+        ceiling_area: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Ceiling Area'
+            },
+            integer: {
+              message: 'Enter the Number',
+            },
+            greaterThan: {
+              value: 1,
+              message: 'Enter the Number greater than 1',
+            }
+          }
+        },
+        design_location: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Design Location'
+            },
+          }
+        },
+        field_manager: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Field Manager Email Address'
+            },
+            emailAddress: {
+              message: 'Enter the Valid Email Address'
+            },
+          }
+        },
+        browser: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Field Manager Email Address'
+            },
+            emailAddress: {
+              message: 'Enter the Valid Email Address'
+            },
+          }
+        },
+        qn: {
+          validators: {
+            notEmpty: {
+              message: 'Enter the Volume'
+            },
+            numeric: {
+              message: 'Enter the Number',
+            },
+            greaterThan: {
+              value: 0.01,
+              message: 'Enter the Number greater than 0.01',
+            },
+            lessThan: {
+              value: 0.99,
+              message: 'Enter the Number less than 0.99',
+            }
+          }
+        },
+      }
     })
-    .on('success.field.bv', function (e, data) {
-        if (data.bv.isValid()) {
-            data.bv.disableSubmitButtons(false);
-        }
+    .on('success.field.bv', function(e, data) {
+      if (data.bv.isValid()) {
+        data.bv.disableSubmitButtons(false);
+      }
     });
 
-    $('form').on('submit', function (e) {
-        if (e.isDefaultPrevented()) {
-        } else {
-            e.preventDefault();
-            
-            var v = $("#job_number").val();
-            var addr = $("#address").val();
-            var lot = $("#lot").val();
+  $('form').on('submit', function(e) {
+    if (e.isDefaultPrevented()) {} else {
+      e.preventDefault();
 
-            bootbox.confirm({
-                title: 'Are you sure?',
-                message: 'An Inspection for this lot ('+lot+') for this address ('+addr+') for this job number('+v+') will be requested.<br>Please confirm:',
-                buttons: {
-                    'cancel': {
-                        label: 'No',
-                        className: 'btn-default'
-                    },
-                    'confirm': {
-                        label: 'Yes',
-                        className: 'btn-danger'
-                    }
-                },
-                callback: function(result) {
-                    if (result) {
-                        submit_data();
-                    } else {
-                        $('form').bootstrapValidator('resetForm', false);
-                    }
-                }
-            });
+      var v = $("#job_number").val();
+      var addr = $("#address").val();
+      var lot = $("#lot").val();
+
+      bootbox.confirm({
+        title: 'Are you sure?',
+        message: 'An Inspection for this lot (' + lot + ') for this address (' + addr + ') for this job number(' + v + ') will be requested.<br>Please confirm:',
+        buttons: {
+          'cancel': {
+            label: 'No',
+            className: 'btn-default'
+          },
+          'confirm': {
+            label: 'Yes',
+            className: 'btn-danger'
+          }
+        },
+        callback: function(result) {
+          if (result) {
+            submit_data();
+          } else {
+            $('form').bootstrapValidator('resetForm', false);
+          }
         }
-    });
+      });
+    }
+  });
 
-    init();
+  init();
 });
