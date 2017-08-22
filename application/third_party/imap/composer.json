@@ -1,0 +1,6 @@
+{
+    "require": {
+        "ddeboer/imap": "^0.5.2",
+        "paquettg/php-html-parser": "^1.7"
+    }
+}

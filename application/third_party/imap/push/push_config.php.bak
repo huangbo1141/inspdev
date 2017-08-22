@@ -1,0 +1,111 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of config
+ *
+ * @author hgc
+ */
+$g_documentrootname = $_SERVER['DOCUMENT_ROOT'] . "/adminuser/";
+$g_relative_upload_path = "assets/uploads/";
+$g_real_upload_path = $g_documentrootname . $g_relative_upload_path;
+
+$g_env = 0;     //  0   local       1   server
+$g_pushmode = 0;    //  0   dev     1   product
+$g_config = array();
+if ($g_env == 0) {
+    $db = array(
+        'host' => 'localhost',
+        'dbname' => 'resigndate',
+        'username' => 'root',
+        'password' => '111',
+    );
+
+    $g_config = array(
+        "host" => $db['host'],
+        "dbname" => $db['dbname'],
+        "username" => $db['username'],
+        "password" => $db['password'],
+        "upload" => array("realuploadpath" => $g_real_upload_path,
+            "documentrootname" => $g_documentrootname,
+            "relativeuploadpath" => $g_relative_upload_path));
+
+    if ($g_pushmode == 0) {
+        $g_config["pushconfig"] = array(
+            // The APNS server that we will use
+            'server' => 'gateway.sandbox.push.apple.com:2195',
+            // The SSL certificate that allows us to connect to the APNS servers
+            'certificate' => 'C:\xampp\htdocs\admin\assets\rest\apns\push\ckDev.pem',
+            'passphrase' => 'twinklestar',
+            // Configuration of the MySQL database
+            'db' => $db,
+            // Name and path of our log file
+            'logfile' => 'd:\push_development.log',
+        );
+    } else {
+        $g_config["pushconfig"] = array(
+            // The APNS server that we will use
+            'server' => 'gateway.push.apple.com:2195',
+            // The SSL certificate that allows us to connect to the APNS servers
+            'certificate' => 'C:\xampp\htdocs\admin\assets\rest\apns\push\ckPro.pem',
+            'passphrase' => 'twinklestar',
+            // Configuration of the MySQL database
+            'db' => $db,
+            // Name and path of our log file
+            'logfile' => 'd:\push_production.log',
+        );
+    }
+} else {
+    $db = array(
+        'host' => 'localhost',
+        'dbname' => 'reigndate_demo',
+        'username' => 'bohuang',
+        'password' => 'sEme*343',
+    );
+    $g_config = array(
+        "host" => $db['host'],
+        "dbname" => $db['dbname'],
+        "username" => $db['username'],
+        "password" => $db['password'],
+        "upload" => array("realuploadpath" => $g_real_upload_path,
+            "documentrootname" => $g_documentrootname,
+            "relativeuploadpath" => $g_relative_upload_path));
+
+    if ($g_pushmode == 0) {
+        $g_config["pushconfig"] = array(
+            // The APNS server that we will use
+            'server' => 'gateway.sandbox.push.apple.com:2195',
+            // The SSL certificate that allows us to connect to the APNS servers
+            'certificate' => '/var/www/html/adminuser/assets/rest/apns/push/ckDev.pem',
+            'passphrase' => 'twinklestar',
+            // Configuration of the MySQL database
+            'db' => $db,
+            // Name and path of our log file
+            'logfile' => '/root/log/push_development.log',
+        );
+    } else {
+        $g_config["pushconfig"] = array(
+            // The APNS server that we will use
+            'server' => 'gateway.push.apple.com:2195',
+            // The SSL certificate that allows us to connect to the APNS servers
+            'certificate' => '/var/www/html/adminuser/assets/rest/apns/push/ckPro.pem',
+            'passphrase' => 'twinklestar',
+            // Configuration of the MySQL database
+            'db' => $db,
+            // Name and path of our log file
+            'logfile' => '/root/log/push_production.log',
+        );
+    }
+}
+
+
+if (isset($_REQUEST['printmode']) && $_REQUEST['printmode'] == 1) {
+    
+}else{
+    header('Content-Type: application/json');
+}
