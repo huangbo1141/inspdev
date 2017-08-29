@@ -136,7 +136,7 @@
                         </div>
 
                         <div class="row margin-bottom-10 form-group">
-                            <label class="control-label col-md-3" for="field_manager">Field Manager Email :</label>
+                            <label class="control-label col-md-3" for="field_manager">Field Manager</label>
                             <div class="col-md-5">
                               <?php
                                  if (isset($field_managers)&&is_array($field_managers)) {
@@ -144,7 +144,7 @@
                                          echo '<input list="field_manager" name="field_manager" class="form-control">';
                                          echo '<datalist id="field_manager">';
                                          foreach ($field_managers as $key=>$value) {
-                                             $email = $value;
+                                             $email = $value['field_manager'];
                                              echo "<option value='$email'>";
                                          }
                                          echo '</datalist>';

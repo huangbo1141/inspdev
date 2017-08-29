@@ -206,12 +206,13 @@ jQuery(document).ready(function() {
       url: 'testme',
       data: null,
       success: function(resp, status, xhr) {
-        var ret = resp.response;
+          if(resp != null){
+              var ret = resp.response;
         if (ret == 200) {
           location.href = "";
-        } else {
-          alert("Error on Request");
-        }
+        } 
+          }
+        
         Metronic.unblockUI(modalform);
 
       },

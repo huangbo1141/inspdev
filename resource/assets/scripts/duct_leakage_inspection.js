@@ -10,32 +10,35 @@ function scheduling() {
 
 function submit_data() {
   showLoading();
+  var p = $("input[name='field_manager']").val();
+  var data = {
+    id: $("#requested_id").val(),
+    manager_id: $("#manager_id").val(),
+
+    date_requested: $("#date_requested").val(),
+    job_number: $("#job_number").val(),
+    lot: $("#lot").val(),
+
+    community: $("#community").val(),
+    address: $("#address").val(),
+    city: $("#city").val(),
+    area: $("#area").val(),
+    volume: $("#volume").val(),
+    wall_area: $("#wall_area").val(),
+    ceiling_area: $("#ceiling_area").val(),
+
+    design_location: $("#design_location").val(),
+    field_manager: p,
+    qn: $("#qn").val(),
+
+    document_person: $("#document_person").val(),
+  }
+
 
   $.ajax({
     type: "POST",
     url: 'update_duct_leakage_inspection_requested',
-    data: {
-      id: $("#requested_id").val(),
-      manager_id: $("#manager_id").val(),
-
-      date_requested: $("#date_requested").val(),
-      job_number: $("#job_number").val(),
-      lot: $("#lot").val(),
-
-      community: $("#community").val(),
-      address: $("#address").val(),
-      city: $("#city").val(),
-      area: $("#area").val(),
-      volume: $("#volume").val(),
-      wall_area: $("#wall_area").val(),
-      ceiling_area: $("#ceiling_area").val(),
-
-      design_location: $("#design_location").val(),
-      field_manager: $("#field_manager").val(),
-      qn: $("#qn").val(),
-
-      document_person: $("#document_person").val(),
-    },
+    data: data,
     dataType: 'json',
     success: function(data) {
       hideLoading();
@@ -187,26 +190,26 @@ jQuery(document).ready(function() {
             },
           }
         },
-        field_manager: {
-          validators: {
-            notEmpty: {
-              message: 'Enter the Field Manager Email Address'
-            },
-            emailAddress: {
-              message: 'Enter the Valid Email Address'
-            },
-          }
-        },
-        browser: {
-          validators: {
-            notEmpty: {
-              message: 'Enter the Field Manager Email Address'
-            },
-            emailAddress: {
-              message: 'Enter the Valid Email Address'
-            },
-          }
-        },
+        // field_manager: {
+        //   validators: {
+        //     notEmpty: {
+        //       message: 'Enter the Field Manager Email Address'
+        //     },
+        //     emailAddress: {
+        //       message: 'Enter the Valid Email Address'
+        //     },
+        //   }
+        // },
+        // browser: {
+        //   validators: {
+        //     notEmpty: {
+        //       message: 'Enter the Field Manager Email Address'
+        //     },
+        //     emailAddress: {
+        //       message: 'Enter the Valid Email Address'
+        //     },
+        //   }
+        // },
         qn: {
           validators: {
             notEmpty: {

@@ -3,15 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/xampp/htdocs/inspdev/resource/assets/scripts/inspection_list.js</file>
-            <file>file:/C:/xampp/htdocs/inspdev/application/third_party/imap/imap.php</file>
-            <file>file:/C:/xampp/htdocs/inspdev/application/third_party/imap/push/push_config.php</file>
-            <file>file:/C:/xampp/htdocs/inspdev/application/libraries/M_checkwci.php</file>
-            <file>file:/C:/xampp/htdocs/inspdev/resource/assets/scripts/duct_leakage_inspection.js</file>
             <file>file:/C:/xampp/htdocs/inspdev/application/controllers/inspection.php</file>
             <file>file:/C:/xampp/htdocs/inspdev/index.php</file>
-            <file>file:/C:/xampp/htdocs/inspdev/application/libraries/M_pdf.php</file>
-            <file>file:/C:/xampp/htdocs/inspdev/resource/assets/scripts/inspection_list_request.js</file>
         </group>
     </open-files>
 </project-private>

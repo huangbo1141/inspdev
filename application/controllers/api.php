@@ -672,6 +672,9 @@ class Api extends CI_Controller {
                 $user_id = $this->input->get_post('user_id');
                 $requested_date = $this->input->get_post('date');
 
+
+                $response['requested_date'] = $requested_date;
+
                 if ($requested_date===false) {
                     $requested_date = "";
                 }
@@ -680,6 +683,7 @@ class Api extends CI_Controller {
                     $response['status'] = $this->status[3];
                 } else {
                     $user_id = $this->utility_model->decode($user_id);
+                    $response['user_id'] = $user_id;
 
                     $user = $this->utility_model->get('ins_user', array('id' => $user_id));
                     if ($user) {
@@ -702,10 +706,11 @@ class Api extends CI_Controller {
                                 . " from ins_user u, " . $table . " where u.id=a.inspector_id and a.status=1 and a.inspector_id='" . $user_id . "' ";
 
                         if ($requested_date!="") {
-                            $sql .= " and a.requested_at='$requested_date' ";
+                            $sql .= " and a.requested_at >= '$requested_date' ";
                         }
 
                         $sql .= " order by a.requested_at asc, a.job_number asc ";
+                        $response['sql'] = $sql;
                         $requested_list = $this->utility_model->get_list__by_sql($sql);
                         $result_data = $requested_list;
 
@@ -4760,9 +4765,6 @@ class Api extends CI_Controller {
                             . '<td style="padding-left: 8px; vertical-align:bottom; border-bottom: 1px solid #000;"><img class="img-responsive" src="' . $this->image_url_change(base_url()) . 'resource/upload/signature.png" alt="" style="height: 42px;"></td>'
                         . '</tr>'
                         . '<tr>'
-                            . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
-                        . '</tr>'
-                        . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">RESNET ID: 9377172</span></td>'
                         . '</tr>'
                         . '</table>';
@@ -4958,9 +4960,6 @@ class Api extends CI_Controller {
                         . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">SIGNATURE: </span></td>'
                             . '<td style="padding-left: 8px; vertical-align:bottom; border-bottom: 1px solid #000;"><img class="img-responsive" src="' . $this->image_url_change(base_url()) . 'resource/upload/signature.png" alt="" style="height: 42px;"></td>'
-                        . '</tr>'
-                        . '<tr>'
-                            . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
                         . '</tr>'
                         . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">RESNET ID: 9377172</span></td>'

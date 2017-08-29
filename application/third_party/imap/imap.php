@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('_IMAP_PATH')) {
-	define('_IMAP_PATH', dirname(preg_replace('/\\\\/', '/', __FILE__)) . '/');
+    define('_IMAP_PATH', dirname(preg_replace('/\\\\/', '/', __FILE__)) . '/');
 }
 
 require_once _IMAP_PATH . 'vendor/autoload.php';
@@ -14,35 +14,48 @@ use Ddeboer\Imap\Search\Text\Body;
 use Ddeboer\Imap\Search\Email\FromAddress;
 use PHPHtmlParser\Dom;
 
-class CheckWCi {
-
+class CheckWCi
+{
     private $db_host = "localhost";
-    private $db_name = "reward";
+    private $db_name = "inspdev";
     private $db_username = "root";
-    private $db_password = "";
-    private $config;
+    private $db_password = "111";
     private $last_req_date = "";
+    public $ipaddr = "-1";
 
-    function __construct() {
+    private $host = "secure.emailsrvr.com";
+    private $user = "inspect@e3bldg.com";
+    private $password = "sN>8KM)=";
+    private $printmode = 0;
+    private $printdetail = 0;
+    private $fakeinsert = 0;
+    private $index_jobinfo = "JOB INFORMATION";
+    private $index_jobinfo_found = 0;
+    private $index_coninfo = "CONTACT INFORMATION:";
+    private $index_coninfo_found = 0;
 
-        global $g_config;
-        $config = $g_config;
-        $this->db_host = $config['host'];
-        $this->db_name = $config['dbname'];
-        $this->db_username = $config['username'];
-        $this->db_password = $config['password'];
-        // Create a connection to the database.
+    public function __construct()
+    {
+        if (true) {
+            $this->db_host = "localhost";
+            $this->db_name = "inspdev";
+            $this->db_username = "development@insp";
+            $this->db_password = "o8vSF396[Fzl";
+        }
         $this->pdo = new PDO(
-                'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name, $this->db_username, $this->db_password, array());
+                'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name,
+            $this->db_username,
+            $this->db_password,
+            array()
+        );
 
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->query('SET NAMES utf8mb4');
-
-        $this->config = $config;
     }
 
-    public function getLastRequestTime() {
+    public function getLastRequestTime()
+    {
         $sql = "select requested_at from  ins_inspection_requested order by requested_at desc limit 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
@@ -52,11 +65,13 @@ class CheckWCi {
         }
     }
 
-    public function addTables($input, $action = "add") {
+    public function addTables($input, $action = "add")
+    {
         $ret = array();
-        global $g_ins_admin;
-        global $g_ins_building;
-        global $g_ins_inspection_requested;
+        $g_ins_admin = array("id","kind","email","first_name","last_name","address","password","cell_phone","other_phone","status","region","builder","allow_email","created_at","updated_at");
+        $g_ins_building = array("job_number","community","address","field_manager","builder","created_at","updated_at","unit_count");
+        $g_ins_inspection_requested = array("id","reinspection","epo_number","category","job_number","created_at","requested_at","assigned_at","completed_at","manager_id","inspector_id","time_stamp","ip_address","community_name","lot","address","status","city","area","volume","qn","wall_area","ceiling_area","design_location","is_building_unit","inspection_id","document_person");
+        $g_ins_community = array("id","community_id","community_name","city","region","builder","created_at","updated_at");
 
         $sql = "";
         $ret['response'] = 400;
@@ -81,37 +96,87 @@ class CheckWCi {
                 if (isset($input['ins_admin'])) {
                     $params = $g_ins_admin;
                     $tdata = $input['ins_admin'];
-                    $insertData = extractAsArray($tdata, $params);
-                    $sql = makeInsertDataSql($insertData, "ins_admin");
+                    $email = $tdata['email'];
+                    $sql = "select * from ins_admin where email = '$email'";
                     $stmt = $this->pdo->prepare($sql);
                     $stmt->execute();
 
-                    $id = $this->pdo->lastInsertId();
-                    $builderid = $id;
+                    $message = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $builderid = 0;
+                    if ($message) {
+                        $builderid = $message['id'];
+                    } else {
+                      $insertData = extractAsArray($tdata, $params);
+                      $sql = makeInsertDataSql($insertData, "ins_admin");
+                      $stmt = $this->pdo->prepare($sql);
+                      $stmt->execute();
 
-                    $updatedata = array();
-                    $updatedata['first_name'] = $builderid;
-                    $sql = makeUpdateSql($updatedata, "ins_admin", array("id"=>$builderid));
-                    $stmt = $this->pdo->prepare($sql);
-                    $stmt->execute();
+                      $id = $this->pdo->lastInsertId();
+                      $builderid = $id;
+                    }
+
+
+                    // $updatedata = array();
+                    // $updatedata['first_name'] = $builderid;
+                    // $sql = makeUpdateSql($updatedata, "ins_admin", array("id" => $builderid));
+                    // $stmt = $this->pdo->prepare($sql);
+                    // $stmt->execute();
 
                     if (isset($input['ins_building'])) {
                         $params = $g_ins_building;
                         $tdata = $input['ins_building'];
-                        $tdata['field_manager'] = $builderid . " WCI";
-                        $insertData = extractAsArray($tdata, $params);
-                        $sql = makeInsertDataSql($insertData, "ins_building");
+                        $job_number = $tdata['job_number'];
+                        $sql = "select * from ins_building where job_number = $job_number";
                         $stmt = $this->pdo->prepare($sql);
                         $stmt->execute();
 
-                        $id = $this->pdo->lastInsertId();
-                        $buildingid = $id;
+                        $message = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($message) {
+                            $ret['duplicate_building'] =  $job_number;
+                        } else {
+                            $insertData = extractAsArray($tdata, $params);
+                            $sql = makeInsertDataSql($insertData, "ins_building");
+                            $stmt = $this->pdo->prepare($sql);
+                            $stmt->execute();
+
+                            $id = $this->pdo->lastInsertId();
+                            $buildingid = $id;
+                            $ret['building_inserted'] =  $job_number;
+                        }
+                        //$tdata['field_manager'] = $builderid . " WCI";
+                    }
+
+                    if (isset($input['ins_community'])) {
+                        $params = $g_ins_community;
+                        $tdata = $input['ins_community'];
+                        $insertData = extractAsArray($tdata, $params);
+                        // check if community is inserted or Not
+                        $community_id = $insertData['community_id'];
+                        $community_name = $insertData['community_name'];
+                        $sql = "select * from ins_community where community_id = '".$community_id."' and community_name = '".$community_name."'";
+                        $stmt = $this->pdo->prepare($sql);
+                        $stmt->execute();
+                        $message = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($message) {
+                            //
+                            // already inserted
+                            $ret['community_rowid'] = $message['id'];
+                        } else {
+                            $sql = makeInsertDataSql($insertData, "ins_community");
+                            $stmt = $this->pdo->prepare($sql);
+                            $stmt->execute();
+
+                            $id = $this->pdo->lastInsertId();
+                            $community_insertid = $id;
+                            $ret['community_rowid'] = $community_insertid;
+                        }
                     }
 
                     if (isset($input['ins_req'])) {
                         $params = $g_ins_inspection_requested;
                         $tdata = $input['ins_req'];
                         $tdata['manager_id'] = $builderid;
+                        $tdata['ip_address'] = $this->ipaddr;
                         $insertData = extractAsArray($tdata, $params);
                         $sql = makeInsertDataSql($insertData, "ins_inspection_requested");
                         $stmt = $this->pdo->prepare($sql);
@@ -136,27 +201,26 @@ class CheckWCi {
         return $ret;
     }
 
-    private $host = "secure.emailsrvr.com";
-    private $user = "inspect@e3bldg.com";
-    private $password = "sN>8KM)=";
-    private $printmode = 0;
-    private $printdetail = 0;
-    private $testdata = 0;
-    private $index_jobinfo = "JOB INFORMATION";
-    private $index_jobinfo_found = 0;
-    private $index_coninfo = "CONTACT INFORMATION:";
-    private $index_coninfo_found = 0;
 
-    public function resetValues() {
+
+    public function resetValues()
+    {
         $this->index_jobinfo_found = 0;
         $this->index_coninfo_found = 0;
     }
 
-    public function start($count = 0) {
+    public function start($count = 0)
+    {
         $ret = array();
         if (true) {
             $ret = $this->fetchMessages($count);
-            //$this->outputResult($ret, 2);
+            $this->outputResult($ret, 1);
+        }
+        if (false) {
+            $str = "Beach&nbsp;";
+            $ret[] = $str;
+            $ret = str_replace("&nbsp;", "", $ret, $i);
+            $this->outputResult($ret, 1);
         }
         if (false) {
             $this->getLastRequestTime();
@@ -165,8 +229,6 @@ class CheckWCi {
         if (false) {
             $data = $this->parseHtml($this->test_bodytext3);
             $ret = $this->addTables($data);
-//            $this->outputResult($data, 2);
-            $this->outputResult($ret, 2);
             // var_dump($data);
         }
 
@@ -184,7 +246,8 @@ class CheckWCi {
         return $ret;
     }
 
-    public function filterFontTag($input, $printmode = false) {
+    public function filterFontTag($input, $printmode = false)
+    {
         $ret = array();
         foreach ($input as $key => $value) {
             $dom = new Dom;
@@ -206,15 +269,16 @@ class CheckWCi {
         return $ret;
     }
 
-    public function filterArrayContent($input) {
+    public function filterArrayContent($input)
+    {
         $datas = array();
         $pattern = array('/\'/i', '<br>', '/\&nbsp;/i', '/lt;/i', '/\rt;/i');
         $replace = array('\\\'', '', '', '', '');
         $pattern = array('/\'/i', '<br>', '/\&nbsp;/i');
         $replace = array('\\\'', '', '');
 
-        $pattern = array('<br>', '/\&nbsp;/i');
-        $replace = array('', '');
+        $pattern = array('<br>', '/\&nbsp;/i','/\&nbsp/i');
+        $replace = array('', ' ',' ');
         foreach ($input as $param => $value) {
             $tmp = trim($value);
             if (strlen($tmp) > 0) {
@@ -223,9 +287,9 @@ class CheckWCi {
 
                 if (is_bool($ret) && !$ret) {
                     //$datas[$param] = $tmp;
-                    $datas[$param] = preg_replace($pattern, $replace, $tmp);
+                    $datas[$param] = trim(preg_replace($pattern, $replace, $tmp));
                 } else {
-                    $datas[$param] = $ret;
+                    $datas[$param] = trim($ret);
                 }
             }
         }
@@ -233,32 +297,40 @@ class CheckWCi {
         $datas = str_replace("<>", "", $datas, $i);
         $datas = str_replace("< />", "", $datas, $i);
         $datas = str_replace("\\'", "\'", $datas, $i);
+        $datas = str_replace("< /", "", $datas, $i);
+        $datas = str_replace("<", "", $datas, $i);
+        $datas = str_replace("/>", "", $datas, $i);
+        $datas = str_replace(">", "", $datas, $i);
+        $datas = str_replace("&nbsp;", "", $datas, $i);
 
         return $datas;
     }
 
-    public function getInsertObjects($input) {
+    public function getInsertObjects($input)
+    {
         $ins_building = array();
         // $params = array("tp_id", "tu_id");
         // $datas = extractAsArray($input, $params);
         $timestr = date("YmdHis", time());
         $ins_building['job_number'] = $input['jnum'];
-        $ins_building['community'] = $input['community'];
+        $ins_building['community'] = $input['community_name'];
         $ins_building['address'] = $input['caddress'];
         $ins_building['created_at'] = $timestr;
         $ins_building['updated_at'] = $timestr;
-        //$ins_building['field_manager'] = '264 WCI';
+        $ins_building['field_manager'] = $input['fname']." ".$input['lname'];
         $ins_building['builder'] = '2';
 
 
-        // $ins_community = array();
-        // //$ins_community['community_id'] = '';
-        // $ins_community['community_name'] = $input['community'];
-        // $ins_community['city'] = $input['ccity'];
-        // // $ins_community['region'] = '';
-        // // $ins_community['builder'] = '';;
-        // $ins_community['created_at'] = $timestr;
-        // $ins_community['updated_at'] = $timestr;
+        $ins_community = array();
+        //$ins_community['community_id'] = '';
+        $ins_community['community_name'] = $input['community_name'];
+        $ins_community['city'] = $input['jcity'];
+        // $ins_community['region'] = '';
+        // $ins_community['builder'] = '';;
+        $ins_community['community_id'] = $input['community_id'];
+        $ins_community['builder'] = '2';
+        $ins_community['created_at'] = $timestr;
+        $ins_community['updated_at'] = $timestr;
 
         $ins_req = array();
         $ins_req['category'] = '3';
@@ -266,7 +338,7 @@ class CheckWCi {
         $ins_req['created_at'] = $timestr;
         $ins_req['requested_at'] = $input['dneed'];
         $ins_req['time_stamp'] = $timestr;
-        $ins_req['community_name'] = $input['community'];
+        $ins_req['community_name'] = $input['community_name'];
         $ins_req['lot'] = $input['lot'];
         $ins_req['address'] = $input['jaddress'];
         $ins_req['city'] = $input['jcity'];
@@ -277,10 +349,10 @@ class CheckWCi {
         $ins_admin = array();
         $ins_admin['kind'] = '2';
         $ins_admin['email'] = $input['email'];
-        //$ins_admin['firstname'] = ' ';
-        $ins_admin['last_name'] = 'WCI';
-        $ins_admin['address'] = $input['caddress'];
-        $ins_admin['password'] = 'wci';
+        $ins_admin['first_name'] = $input['fname'];
+        $ins_admin['last_name'] = $input['lname'];
+        $ins_admin['address'] = '';
+        $ins_admin['password'] = '';
         $ins_admin['status'] = '0';
         $ins_admin['builder'] = '2';
         $ins_admin['allow_email'] = '1';
@@ -292,24 +364,26 @@ class CheckWCi {
         $ret = array();
         $ret['ins_admin'] = $this->filterArrayContent($ins_admin);
         $ret['ins_building'] = $this->filterArrayContent($ins_building);
-        // $ret[] = $this->filterArrayContent($ins_community);
+        $ret['ins_community'] = $this->filterArrayContent($ins_community);
         $ret['ins_req'] = $this->filterArrayContent($ins_req);
         return $ret;
     }
 
-    public function extractParams($input, $fields1, $fields2) {
+    public function extractParams($input, $fields1, $fields2)
+    {
         $ret = array();
         for ($i = 0; $i < count($fields1); $i++) {
             $key = $fields1[$i];
             $key_out = $fields2[$i];
             if (isset($input[$key])) {
-                $ret[$key_out] = $input[$key];
+                $ret[$key_out] = trim($input[$key]);
             }
         }
         return $ret;
     }
 
-    public function generateData($input, $printmode = false) {
+    public function generateData($input, $printmode = false)
+    {
         $ret = array();
         $input = $this->filterFontTag($input);
 
@@ -326,6 +400,17 @@ class CheckWCi {
                 $ret['dneed'] = $pieces[2] . '-' . $pieces[0] . '-' . $pieces[1];
             }
         }
+        if (isset($ret['manager'])) {
+            $pieces = explode(" ", $ret['manager']);
+            if (is_array($pieces)&&count($pieces)>=2) {
+                $ret['fname'] = trim($pieces[0]);
+                $ret['lname'] = trim($pieces[1]);
+            }
+        }
+        if (isset($ret['lot'])) {
+            $pieces = explode("/", $ret['lot']);
+            $ret['lot'] = trim($pieces[0]);
+        }
         if (isset($ret['cfrom'])) {
             if ($printmode) {
                 echo 'cfrom';
@@ -334,6 +419,11 @@ class CheckWCi {
 
             $pieces = explode("-", $ret['cfrom']);
             $ret['community'] = trim($pieces[0]);
+
+            $pos1 = stripos($ret['cfrom'], "-");
+            if ($pos1) {
+                $ret['community_name'] = substr($ret['cfrom'], $pos1+1, -1);
+            }
         }
         if (isset($ret['jname'])) {
             $pieces = explode(" ", $ret['jname']);
@@ -343,14 +433,28 @@ class CheckWCi {
                 var_dump($pieces);
             }
             $ret['jnum'] = $pieces[0];
+            $ret['community_id'] = substr($pieces[0], 0, 5);
         }
         if (isset($ret['jaddress'])) {
-            $pieces = explode(",", $ret['jaddress']);
-            if (is_array($pieces) && count($pieces) > 0) {
-                $istr = trim($pieces[count($pieces) - 1]);
-                $ipieces = explode("&nbsp;", $istr);
-                //var_dump($ipieces);
-                $ret['jcity'] = $ipieces[0];
+            // $pieces = explode("<br>", $ret['jaddress']);
+            // if (is_array($pieces) && count($pieces) >= 2) {
+            //     $ret['jaddress'] = $pieces[0];
+            //     $istr = trim($pieces[1]);
+            //     $ipieces = explode(",", $istr);
+            //     //var_dump($ipieces);
+            //     $ret['jcity'] = $ipieces[0];
+            // }
+            $pattern = array('<br>');
+            $replace = array('AAAA');
+
+            $tmp = preg_replace($pattern, $replace, $ret['jaddress']);
+            if ($pos1) {
+                $pieces = explode("AAAA", $tmp);
+                $pieces = $this->filterArrayContent($pieces);
+                $ret['jaddress'] = $pieces[0];
+
+                $subpieces = explode(",", $pieces[1]);
+                $ret['jcity'] = $subpieces[0];
             }
         }
         if (isset($ret['caddress'])) {
@@ -370,9 +474,10 @@ class CheckWCi {
         return $ret;
     }
 
-    public function parseHtml($bodytext = "") {
+    public function parseHtml($bodytext = "")
+    {
         $this->resetValues();
-        if($this->printmode){
+        if ($this->printdetail) {
             echo $bodytext;
         }
         $endP = "<br/>parseHtml Pagraph<br/>";
@@ -389,7 +494,7 @@ class CheckWCi {
                 break;
             }
             $outerHtml = $ptable1->outerHtml();
-            if ($this->printmode) {
+            if ($this->printdetail) {
                 echo $outerHtml;
                 echo $endP;
             }
@@ -407,7 +512,6 @@ class CheckWCi {
                     }
                     $iterms = $this->parseTable($ihtml, ["DATE NEEDED", "JOB NAME", "LOT", "Job Address"], 'TD', false, false);
                     $data = array_merge($data, $iterms);
-                    $this->outputResult($iterms, 1);
 
 
                     // email part table
@@ -418,7 +522,6 @@ class CheckWCi {
                     }
                     $iterms = $this->parseTable($ihtml, ["Email"], 'TD', false, false);
                     $data = array_merge($data, $iterms);
-                    $this->outputResult($iterms, 1);
 
                     // field manager
                     $itable = $ptable1 = $bigtable->find('table')[$cnt - 2];
@@ -436,7 +539,6 @@ class CheckWCi {
                         // $data['$text'] = $text;
                         // $data['$this->index_coninfo'] = $this->index_coninfo;
                     } else {
-
                     }
                 }
             }
@@ -451,8 +553,6 @@ class CheckWCi {
                     }
                     $iterms = $this->parseTable($ihtml, ["FROM", "ADDRESS"], 'TD', false, false);
                     $data = array_merge($data, $iterms);
-                    $this->outputResult($iterms, 1);
-                    //$itable->find('font')
                     $this->index_coninfo_found = 1;
                 }
             }
@@ -474,17 +574,17 @@ class CheckWCi {
             // echo $td_from;
             // echo $td_addr;
             $data = array_merge($data, $iterms);
-            $this->outputResult($iterms, 1);
 
             $this->index_jobinfo_found = 1;
         }
-
+        $this->outputResult($data, 1);
         $data = $this->generateData($data);
         $data = $this->getInsertObjects($data);
         return $data;
     }
 
-    public function outputResult($content, $mode = 0) {
+    public function outputResult($content, $mode = 0)
+    {
         switch ($mode) {
 
             case 2: {
@@ -511,7 +611,8 @@ class CheckWCi {
         }
     }
 
-    public function parseTable($html, $content_ary, $search, $testmode = false, $printmode = false) {
+    public function parseTable($html, $content_ary, $search, $testmode = false, $printmode = false)
+    {
         $endP = "<br/>parseTable Pagraph<br/>";
         if ($printmode) {
             echo $endP;
@@ -554,7 +655,8 @@ class CheckWCi {
         return $data;
     }
 
-    public function checkHead($html, $content, $search, $testmode = false, $printmode = false) {
+    public function checkHead($html, $content, $search, $testmode = false, $printmode = false)
+    {
         $endP = "<br/>checkHead Pagraph<br/>";
         if ($printmode) {
             echo $endP;
@@ -595,7 +697,8 @@ class CheckWCi {
         }
     }
 
-    public function fetchMessages($limit = 2) {
+    public function fetchMessages($limit = 2)
+    {
         set_time_limit(0);
         $host = "smtp.emailsrvr.com";
         $host = "secure.emailsrvr.com";
@@ -641,15 +744,16 @@ class CheckWCi {
             }
             $input = $this->parseHtml($bodytext);
             if (is_array($input) && isset($input['ins_req'])) {
-                $r1 = $this->addTables($input);
-                $ret[] = $r1;
+                if ($this->fakeinsert == 1) {
+                    $ret[] = $input;
+                } else {
+                    $r1 = $this->addTables($input);
+                    $ret[] = $r1;
+                }
             }
 
-
-
-
             $cnt++;
-            if ($limit>0 && $cnt >= $limit) {
+            if ($limit > 0 && $cnt >= $limit) {
                 break;
             }
         }
@@ -1289,5 +1393,4 @@ class CheckWCi {
 </tbody></table>
 </td></tr>
 </tbody></table>';
-
 }
