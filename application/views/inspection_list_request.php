@@ -154,6 +154,32 @@
     <input type="hidden" name="id" id="detail_id2" value="">
 </form>
 
+<div id="unit_dialog" class="bootbox modal fade modal-overflow" tabindex="-1" role="dialog" aria-hidden="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Enter Units</h4>
+            </div>
+            <div class="modal-body">
+                <h4 class="margin-bottom-10">Job Number: 3333-333-33</h4>
+                <div class="form-group">
+                    <label class="control-label col-md-3 col-sm-6">Community ID : </label>
+                    <div class="col-md-9 col-sm-6 input-group">
+                        <!-- <input type="number" class="form-control" maxlength="6" value="" id="number_of_units" placeholder="" aria-describedby="btn_unit"> -->
+                        <input type="text" placeholder="" data-mask="" id="number_of_units" name="number_of_units" class="form-control" value="">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="<?php echo $resPath;?>assets/plugins/inputmask/inputmask.min.js" type="text/javascript"></script>
+<script src="<?php echo $resPath;?>assets/plugins/inputmask/jquery.inputmask.min.js" type="text/javascript"></script>
+<script src="<?php echo $resPath;?>assets/plugins/inputmask/inputmask.numeric.extensions.min.js" type="text/javascript"></script>
 <script>
     jQuery(document).ready(function () {
         Metronic.init(); // init metronic core componets

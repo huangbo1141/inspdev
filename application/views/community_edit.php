@@ -10,18 +10,18 @@
     <head>
         <?php require 'common/header.php'; ?>
     </head>
-    
+
     <body class="page-header-fixed page-quick-sidebar-over-content">
         <!-- BEGIN HEADER -->
         <?php require 'common/topbar.php'; ?>
         <!-- END HEADER -->
-        
+
         <div class="clearfix">
         </div>
-        
+
         <!-- BEGIN CONTAINER -->
         <div class="page-container">
-            
+
             <!-- BEGIN SIDEBAR -->
             <div class="page-sidebar-wrapper">
                 <div class="page-sidebar navbar-collapse collapse">
@@ -31,11 +31,11 @@
                 </div>
             </div>
             <!-- END SIDEBAR -->
-            
+
             <!-- BEGIN CONTENT -->
             <div class="page-content-wrapper">
                 <div class="page-content">
-                    
+
                     <!-- BEGIN PAGE HEADER-->
             <div class="row inspection-page-header">
                 <div class="col-md-8 col-sm-7 col-xs-6 inspection-title">
@@ -49,7 +49,7 @@
             </div>
                     <hr>
                     <!-- END PAGE HEADER-->
-                    
+
                     <!-- BEGIN PAGE CONTENT -->
                     <div class="row page_content profile-page">
                         <div class="col-md-8 col-sm-8">
@@ -61,7 +61,7 @@
                             <div class="row margin-bottom-10 form-group">
                                 <label class="control-label col-md-3" for="community_idv">Community ID :</label>
                                 <div class="col-md-5">
-                                <input type="text" placeholder="" data-mask="" id="community_idv" name="community_idv" class="form-control" maxlength="4" value="<?php echo $community['community_id'];?>">
+                                <input type="text" placeholder="" data-mask="" id="community_idv" name="community_idv" class="form-control" value="<?php echo $community['community_id'];?>">
                                 </div>
                             </div>
                             <div class="row margin-bottom-10 form-group">
@@ -83,11 +83,11 @@
                                         <option value="0">None</option>
 <?php
     foreach ($region as $row) {
-?>                          
+?>
                                         <option <?php echo $community['region']==$row['id'] ? 'selected' : ''; ?> value="<?php echo $row['id']; ?>"><?php echo $row['region']; ?></option>
 <?php
     }
-?>                                        
+?>
                                     </select>
                                 </div>
                             </div>
@@ -98,15 +98,15 @@
                                         <option value="0">None</option>
 <?php
     foreach ($builder as $row) {
-?>                          
+?>
                                         <option <?php echo $community['builder']==$row['id'] ? 'selected' : ''; ?> value="<?php echo $row['id']; ?>"><?php echo $row['name']; ?></option>
 <?php
     }
-?>                                        
+?>
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div class="row margin-bottom-20 form-group">
                                 <label class="control-label col-md-3"></label>
                                 <div class="col-md-5">
@@ -114,29 +114,32 @@
                                 <button type="submit" class="btn btn-warning"><?php echo $page_title; ?></button>
                                 <?php } ?>
                                 </div>
-                                
+
                                 <input type="hidden" name="community_id" id="community_id" value="<?php echo $community_id; ?>">
                                 <input type="hidden" name="kind" id="kind" value="<?php echo $kind; ?>">
                             </div>
+                            <!-- <div class="row margin-bottom-20 form-group">
+                              <input type="text" placeholder="" id="inputTest" name="InputTest" class="form-control" value="6">
+                              <button type="button" id="btnTest" class="btn btn-warning">Test</button>
+                            </div> -->
                         </form>
                         </div>
                     </div>
                     <!-- END PAGE CONTENT -->
-                    
+
                 </div>
             </div>
             <!-- END CONTENT -->
-            
+
         </div>
         <!-- END CONTAINER -->
-       
+
         <?php require 'common/footer.php'; ?>
-        
-        <script src="<?php echo $resPath;?>assets/plugins/inputmask/inputmask.min.js" type="text/javascript"></script>
+
         <script src="<?php echo $resPath;?>assets/plugins/inputmask/inputmask.min.js" type="text/javascript"></script>
         <script src="<?php echo $resPath;?>assets/plugins/inputmask/jquery.inputmask.min.js" type="text/javascript"></script>
         <script src="<?php echo $resPath;?>assets/plugins/inputmask/inputmask.numeric.extensions.min.js" type="text/javascript"></script>
-        
+
         <script>
             jQuery(document).ready(function () {
                 Metronic.init(); // init metronic core componets
@@ -144,9 +147,9 @@
             });
         </script>
         <!-- END JAVASCRIPTS -->
-        
+
         <script src="<?php echo $resPath;?>assets/scripts/community_edit.js" type="text/javascript"></script>
-        
+
     </body>
 
     <!-- END BODY -->

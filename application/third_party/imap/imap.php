@@ -34,14 +34,13 @@ class CheckWCi
     private $index_coninfo = "CONTACT INFORMATION:";
     private $index_coninfo_found = 0;
 
-    public function __construct()
+    public function __construct($host, $dbname, $dbuser, $dbpass)
     {
-        if (true) {
-            $this->db_host = "localhost";
-            $this->db_name = "inspdev";
-            $this->db_username = "development@insp";
-            $this->db_password = "o8vSF396[Fzl";
-        }
+        $this->db_host = $host;
+        $this->db_name = $dbname;
+        $this->db_username = $dbuser;
+        $this->db_password = $dbpass;
+
         $this->pdo = new PDO(
                 'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name,
             $this->db_username,
@@ -75,23 +74,10 @@ class CheckWCi
 
         $sql = "";
         $ret['response'] = 400;
-        if (isset($input['ins_req'])) {
-            $tdata = $input['ins_req'];
-            $job_number = $tdata['job_number'];
-            $sql = "select * from ins_inspection_requested where job_number = $job_number";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute();
-
-            $message = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($message) {
-                $ret['job_number'] = $job_number;
-                return $ret;
-            }
-        }
-
 
         try {
             $this->pdo->beginTransaction();
+            $array_community = array();
             if ($action == "add") {
                 if (isset($input['ins_admin'])) {
                     $params = $g_ins_admin;
@@ -106,13 +92,13 @@ class CheckWCi
                     if ($message) {
                         $builderid = $message['id'];
                     } else {
-                      $insertData = extractAsArray($tdata, $params);
-                      $sql = makeInsertDataSql($insertData, "ins_admin");
-                      $stmt = $this->pdo->prepare($sql);
-                      $stmt->execute();
+                        $insertData = extractAsArray($tdata, $params);
+                        $sql = makeInsertDataSql($insertData, "ins_admin");
+                        $stmt = $this->pdo->prepare($sql);
+                        $stmt->execute();
 
-                      $id = $this->pdo->lastInsertId();
-                      $builderid = $id;
+                        $id = $this->pdo->lastInsertId();
+                        $builderid = $id;
                     }
 
 
@@ -160,7 +146,7 @@ class CheckWCi
                         if ($message) {
                             //
                             // already inserted
-                            $ret['community_rowid'] = $message['id'];
+                            $ret['duplicate_community_rowid'] = $message['id'];
                         } else {
                             $sql = makeInsertDataSql($insertData, "ins_community");
                             $stmt = $this->pdo->prepare($sql);
@@ -169,23 +155,36 @@ class CheckWCi
                             $id = $this->pdo->lastInsertId();
                             $community_insertid = $id;
                             $ret['community_rowid'] = $community_insertid;
+                            $insertData['id'] = $community_insertid;
+                            $ret['community'] = $insertData;
                         }
                     }
 
                     if (isset($input['ins_req'])) {
-                        $params = $g_ins_inspection_requested;
                         $tdata = $input['ins_req'];
-                        $tdata['manager_id'] = $builderid;
-                        $tdata['ip_address'] = $this->ipaddr;
-                        $insertData = extractAsArray($tdata, $params);
-                        $sql = makeInsertDataSql($insertData, "ins_inspection_requested");
+                        $job_number = $tdata['job_number'];
+                        $sql = "select * from ins_inspection_requested where job_number = $job_number";
                         $stmt = $this->pdo->prepare($sql);
                         $stmt->execute();
 
-                        $id = $this->pdo->lastInsertId();
-                        $reqid = $id;
+                        $message = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($message) {
+                            $ret['duplicate_ins_req_job_number'] = $job_number;
+                        } else {
+                            $params = $g_ins_inspection_requested;
+                            $tdata = $input['ins_req'];
+                            $tdata['manager_id'] = $builderid;
+                            $tdata['ip_address'] = $this->ipaddr;
+                            $insertData = extractAsArray($tdata, $params);
+                            $sql = makeInsertDataSql($insertData, "ins_inspection_requested");
+                            $stmt = $this->pdo->prepare($sql);
+                            $stmt->execute();
 
-                        $ret['job_number'] = $tdata['job_number'];
+                            $id = $this->pdo->lastInsertId();
+                            $reqid = $id;
+
+                            $ret['job_number'] = $tdata['job_number'];
+                        }
                     }
                 }
                 $ret['response'] = 200;
@@ -325,7 +324,7 @@ class CheckWCi
         //$ins_community['community_id'] = '';
         $ins_community['community_name'] = $input['community_name'];
         $ins_community['city'] = $input['jcity'];
-        // $ins_community['region'] = '';
+        $ins_community['region'] = '0';
         // $ins_community['builder'] = '';;
         $ins_community['community_id'] = $input['community_id'];
         $ins_community['builder'] = '2';

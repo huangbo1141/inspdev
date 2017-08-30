@@ -1,3 +1,6 @@
+var units = null;
+var bulk_index = 0;
+
 function edit(k, c) {
   if (c == "3") {
     $("#detail_id2").val(k);
@@ -38,9 +41,117 @@ function cancel(k) {
   });
 }
 
+function ask_unit() {
+  $('body').css('cursor', 'default');
+
+  if (units == null || units.length < 1) {
+    return;
+  }
+
+  start_unit();
+}
+
+function start_unit() {
+  showLoading();
+  bulk_index = 0;
+  enter_unit();
+}
+
+function enter_unit() {
+  $("#unit_dialog .modal-header .modal-title").html("New Community Found <b>" + units[bulk_index].community_name + '</b>');
+  var subject = " " // Job Number : " + units[bulk_index].job_number + "<br>"
+    +
+    'Please Enter Community ID (6 digits) : ' + '' + '<br>';
+
+  $("#unit_dialog .modal-body h4").html(subject);
+  $("#unit_dialog .modal-body .address-area").html('');
+  var community_id = units[bulk_index].community_id;
+  $("#number_of_units").val(community_id);
+
+  hideLoading();
+  $("#unit_dialog").modal('show');
+}
+
+var next_unit = function() {
+  bulk_index++;
+  if (bulk_index >= units.length) {
+    update_unit();
+  } else {
+    enter_unit();
+  }
+};
+
+function update_unit() {
+  var data = [];
+  $.each(units, function(index, row) {
+    data[index] = {
+      id: row.id,
+      community_id: row.community_id,
+    };
+  });
+
+  $.ajax({
+    type: "POST",
+    url: 'update_community',
+    data: {
+      units: JSON.stringify(data),
+    },
+    dataType: 'json',
+    success: function(data) {
+      hideLoading();
+      if (data.err_code == 0) {
+        //showAlert("Successfully Updated!");
+        //$('#table_content').dataTable().api().ajax.reload();
+        location.href = "";
+      } else {
+        showAlert("Failed to Update!");
+      }
+    },
+    error: function() {
+      hideLoading();
+      showAlert(Message.SERVER_ERROR);
+    }
+  });
+}
+
+function delete_unit(job_number) {
+  bootbox.confirm("Are you sure to delete unit?", function(result) {
+    if (result) {
+      showLoading();
+
+      $.ajax({
+        type: "POST",
+        url: 'delete_unit',
+        data: {
+          job_number: job_number
+        },
+        dataType: 'json',
+        success: function(data) {
+          hideLoading();
+          if (data.err_code == 0) {
+            showAlert("Successfully deleted!");
+            $('#table_content').dataTable().api().ajax.reload();
+          } else {
+            showAlert("Failed to delete!");
+          }
+        },
+        error: function() {
+          hideLoading();
+          showAlert(Message.SERVER_ERROR);
+        }
+      });
+    }
+  });
+}
+$("#number_of_units").attr('maxlength', '6');
+// $("#number_of_units").inputmask("999999", {
+//   placeholder: 'x'
+// });
 
 jQuery(document).ready(function() {
   showAlert($("#msg_alert").html());
+
+
 
   $('.date-picker').datepicker({
     format: 'yyyy-mm-dd',
@@ -206,13 +317,18 @@ jQuery(document).ready(function() {
       url: 'testme',
       data: null,
       success: function(resp, status, xhr) {
-          if(resp != null){
-              var ret = resp.response;
-        if (ret == 200) {
-          location.href = "";
-        } 
+        if (resp != null) {
+          var ret = resp.response;
+          if (ret == 200) {
+            //location.href = "";
+            if (resp.array_community == null) {
+              location.href = "";
+            } else {
+              units = resp.array_community;
+              ask_unit();
+            }
           }
-        
+        }
         Metronic.unblockUI(modalform);
 
       },
@@ -244,4 +360,23 @@ jQuery(document).ready(function() {
     $.fileDownload($("#basePath").val() + "api/export/requested_inspection?file_format=csv&status=" + $("#status").val() + "&start_date=" + $("#start_date").val() + "&end_date=" + $("#end_date").val() + "&type=" + $("#inspection_type").val());
   });
 
+  $("#unit_dialog").on('click', '.btn-primary', function(e) {
+    e.preventDefault();
+    if ($("#number_of_units").val() == "") {
+      App.showMessage("Please Enter Community ID!");
+    } else if ($("#number_of_units").val().length != 6) {
+      App.showMessage("Please Enter Community ID (6 digits)");
+    } else {
+      var n = $("#number_of_units").val();
+      var ret = true;
+
+      var address = [];
+
+      units[bulk_index].community_id = n;
+      $("#unit_dialog").modal('hide');
+
+      showLoading();
+      setTimeout(next_unit, 500);
+    }
+  });
 });

@@ -6,9 +6,10 @@ if (!defined('BASEPATH')) {
 
 include_once APPPATH . '/third_party/imap/push/push_config.php';
 
-class Inspection extends CI_Controller {
-
-    public function __construct() {
+class Inspection extends CI_Controller
+{
+    public function __construct()
+    {
         parent::__construct();
         //        $this->load->library('user_agent');
         $this->load->library('holiday');
@@ -20,7 +21,8 @@ class Inspection extends CI_Controller {
         $this->load->model('datatable_model');
     }
 
-    private function send_mail($subject, $body, $sender, $isHTML = false) {
+    private function send_mail($subject, $body, $sender, $isHTML = false)
+    {
         $this->load->library('mailer/phpmailerex');
         $mail = new PHPMailer;
 
@@ -59,7 +61,6 @@ class Inspection extends CI_Controller {
         $mail->AltBody = "";
 
         if ($mail->send()) {
-
         } else {
             return $mail->ErrorInfo;
         }
@@ -67,7 +68,8 @@ class Inspection extends CI_Controller {
         return "";
     }
 
-    public function energy() {
+    public function energy()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -77,7 +79,8 @@ class Inspection extends CI_Controller {
         $this->load->view('inspection_energy', $page_data);
     }
 
-    public function water_intrusion() {
+    public function water_intrusion()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -87,14 +90,14 @@ class Inspection extends CI_Controller {
         $this->load->view('inspection_water', $page_data);
     }
 
-    public function load_list() {
+    public function load_list()
+    {
         $table = " ins_code c1, ins_code c2, ins_code c3, ins_code c4, ins_inspection a "
                 . " left join ins_region r on r.id=a.region "
                 . " left join ins_user u on a.user_id=u.id "
                 . " where c1.kind='ins' and c1.code=a.type and c2.kind='rst' and c2.code=a.result_code and c3.kind='rst_duct' and c3.code=a.result_duct_leakage and c4.kind='rst_envelop' and c4.code=a.result_envelop_leakage ";
 
         if ($this->session->userdata('permission') == 1) {
-
         } elseif ($this->session->userdata('permission') == 0) {
             $table .= " and a.user_id='" . $this->session->userdata('user_id') . "' ";
         } elseif ($this->session->userdata('permission') == 4) {
@@ -227,7 +230,6 @@ class Inspection extends CI_Controller {
         }
 
         if (!$this->session->userdata('user_id')) {
-
         } else {
             $result_data = array();
             $index = 1;
@@ -245,7 +247,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($result));
     }
 
-    public function delete_inspection() {
+    public function delete_inspection()
+    {
         $res = array('err_code' => 1);
         if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
             $id = $this->input->get_post('id');
@@ -266,17 +269,16 @@ class Inspection extends CI_Controller {
                         $res['err_code'] = 0;
                     }
                 } else {
-
                 }
             } else {
-
             }
         }
 
         print_r(json_encode($res));
     }
 
-    public function requested_lists() {
+    public function requested_lists()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -298,7 +300,8 @@ class Inspection extends CI_Controller {
         $this->load->view('inspection_list_request', $page_data);
     }
 
-    public function load_list_request() {
+    public function load_list_request()
+    {
         $cols = array("a.requested_at", "a.community_name", "a.job_number", "a.address", "c.city", "m.first_name", "a.category", "a.time_stamp", "u.first_name",);
         $table = " ins_code c1, ins_inspection_requested a "
                 . " left join ins_community c on c.community_id=substr(a.job_number,1,4)"
@@ -312,7 +315,6 @@ class Inspection extends CI_Controller {
         } elseif ($this->session->userdata('permission') == 0) {
             $table .= " and a.inspector_id='" . $this->session->userdata('user_id') . "' ";
         } elseif ($this->session->userdata('permission') == 1) {
-
         } else {
             $table .= " and c.region in ( select region from ins_admin_region where manager_id='" . $this->session->userdata('user_id') . "' ) ";
         }
@@ -467,7 +469,6 @@ class Inspection extends CI_Controller {
         }
 
         if (!$this->session->userdata('user_id')) {
-
         } else {
             $result["recordsTotal"] = $total;
             $result["recordsFiltered"] = $totalAfterFilter;
@@ -476,11 +477,12 @@ class Inspection extends CI_Controller {
         print_r(json_encode($result));
     }
 
-    public function check_wci() {
-
+    public function check_wci()
+    {
     }
 
-    public function edit_inspection_requested() {
+    public function edit_inspection_requested()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -521,12 +523,10 @@ class Inspection extends CI_Controller {
             $inspection = $this->utility_model->get('ins_inspection_requested', array('id' => $id));
             if ($inspection) {
                 if ($inspection['category'] == 3) {
-
                 } else {
                     $page_data['page_title'] = "Edit Inspection Request";
 
                     if ($this->session->userdata('permission') == 1) {
-
                     } else {
                         $inspection['requested_at'] = $date;
                     }
@@ -544,7 +544,8 @@ class Inspection extends CI_Controller {
         $this->load->view('inspection_request_edit', $page_data);
     }
 
-    public function delete_requested_inspection() {
+    public function delete_requested_inspection()
+    {
         $res = array('err_code' => 1, 'err_msg' => 'No Permission');
 
         if ($this->session->userdata('user_id')) {
@@ -575,7 +576,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    private function get_valid_requested_date() {
+    private function get_valid_requested_date()
+    {
         //        ini_set('date.timezone', 'America/New_York');
         date_default_timezone_set("America/New_York");
         $holidays = new Holiday();
@@ -608,7 +610,8 @@ class Inspection extends CI_Controller {
         return $date;
     }
 
-    public function update_inspection_requested() {
+    public function update_inspection_requested()
+    {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed!";
 
@@ -813,7 +816,6 @@ class Inspection extends CI_Controller {
 
                     if ($inspection_requsted_id != "") {
                         if ($model_home == "1") {
-
                         } else {
                             //                            $manager = $this->utility_model->get('ins_admin', array('id'=>isset($data['manager_id']) ? $data['manager_id'] : $this->session->userdata('user_id')));
                             $manager = $this->utility_model->get('ins_admin', array('id' => $this->session->userdata('user_id')));
@@ -1157,7 +1159,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function check_jobnumber() {
+    public function check_jobnumber()
+    {
         $res = array('err_code' => -1);
         $res['err_msg'] = "Failed!";
 
@@ -1191,7 +1194,6 @@ class Inspection extends CI_Controller {
                         if ($address == "") {
                             $address = $building['unit_address'][0]['address'];
                         } else {
-
                         }
 
                         $uuu = $this->utility_model->get_count('ins_building_unit', array('job_number' => $new_jn, 'address' => $address));
@@ -1278,7 +1280,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function check_inspection_requested() {
+    public function check_inspection_requested()
+    {
         $res = array('err_code' => -1, 'inspection_id' => "");
         $res['err_msg'] = "Failed!";
 
@@ -1317,7 +1320,6 @@ class Inspection extends CI_Controller {
                             $res['err_code'] = 0;
                         }
                     } else {
-
                     }
                 }
 
@@ -1342,7 +1344,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function check_requested_date() {
+    public function check_requested_date()
+    {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed!";
 
@@ -1367,7 +1370,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function detail() {
+    public function detail()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -1436,7 +1440,8 @@ class Inspection extends CI_Controller {
         $this->load->view($page_view, $page_data);
     }
 
-    public function edit() {
+    public function edit()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -1521,7 +1526,8 @@ class Inspection extends CI_Controller {
         $this->load->view($page_view, $page_data);
     }
 
-    private function get_unit($inspection_id, $no) {
+    private function get_unit($inspection_id, $no)
+    {
         $unit = $this->utility_model->get('ins_unit', array('inspection_id' => $inspection_id, 'no' => $no));
         if ($unit) {
             return $unit;
@@ -1530,7 +1536,8 @@ class Inspection extends CI_Controller {
         }
     }
 
-    public function update() {
+    public function update()
+    {
         $res = array('err_code' => 1);
         if ($this->session->userdata('user_id')) {
             if ($this->session->userdata('permission') == 1 || $this->session->userdata('permission') == 2) {
@@ -1630,7 +1637,6 @@ class Inspection extends CI_Controller {
                         }
                     }
                 } else {
-
                 }
             }
         }
@@ -1638,7 +1644,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function update_wci() {
+    public function update_wci()
+    {
         $res = array('err_code' => 1);
         if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
             $inspection_id = $this->input->get_post('inspection_id');
@@ -1712,14 +1719,14 @@ class Inspection extends CI_Controller {
                     $res['err_code'] = 0;
                 }
             } else {
-
             }
         }
 
         print_r(json_encode($res));
     }
 
-    public function load_inspector() {
+    public function load_inspector()
+    {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed!";
 
@@ -1732,7 +1739,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function get_client_ip() {
+    public function get_client_ip()
+    {
         $ipaddress = '';
         if (isset($_SERVER['HTTP_CLIENT_IP'])) {
             $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
@@ -1752,7 +1760,8 @@ class Inspection extends CI_Controller {
         return $ipaddress;
     }
 
-    public function pending_building() {
+    public function pending_building()
+    {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -1762,7 +1771,8 @@ class Inspection extends CI_Controller {
         $this->load->view('inspection_pending_building', $page_data);
     }
 
-    public function load_pending_building() {
+    public function load_pending_building()
+    {
         $cols = array("a.job_number", "a.community", "a.address", "", "", "u.first_name", "a.created_at");
         $table = " ins_building a "
                 . " left join ins_building_unit m on m.job_number=a.job_number "
@@ -1870,7 +1880,6 @@ class Inspection extends CI_Controller {
         }
 
         if (!$this->session->userdata('user_id')) {
-
         } else {
             $new_data = array();
             foreach ($data as $row) {
@@ -1885,7 +1894,6 @@ class Inspection extends CI_Controller {
 
                 $first = $row['created_at'];
                 if (isset($first) && $first != "") {
-
                 } else {
                     $first = $row['updated_at'];
                 }
@@ -1910,7 +1918,8 @@ class Inspection extends CI_Controller {
         print_r(json_encode($result));
     }
 
-    public function duct_leakage_inspection() {
+    public function duct_leakage_inspection()
+    {
         if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
             redirect(base_url() . "user/login.html");
             exit(1);
@@ -1959,7 +1968,8 @@ class Inspection extends CI_Controller {
         $this->load->view('duct_leakage_inspection', $page_data);
     }
 
-    public function update_duct_leakage_inspection_requested() {
+    public function update_duct_leakage_inspection_requested()
+    {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed to request!";
 
@@ -2129,31 +2139,90 @@ class Inspection extends CI_Controller {
         print_r(json_encode($res));
     }
 
-    public function test() {
+    public function test()
+    {
         echo $this->get_valid_requested_date();
         echo "<br>";
         echo "<br>";
     }
 
-    public function testajax() {
+    public function testajax()
+    {
         $ret = array();
         $ret['response'] = 400;
         header('Content-Type: application/json');
         echo json_encode($ret);
     }
 
-    public function testme() {
+
+
+    public function update_community()
+    {
+        $res = array('err_code'=>1, 'err_msg'=>'Failed!');
+        if ($this->session->userdata('user_id')) {
+            if ($this->utility_model->has_permission($this->session->userdata('permission'), 1)) {
+                $units = $this->input->get_post('units');
+                if ($units!==false && $units!="") {
+                    $t = mdate('%Y%m%d%H%i%s', time());
+
+                    $unit_list = json_decode($units, true);
+                    if ($unit_list===false) {
+                        $res['err_msg'] = "Bad Request";
+                    } else {
+                        $this->utility_model->start();
+                        $retarr = array();
+                        foreach ($unit_list as $unit) {
+                            $id = $unit['id'];
+                            $community_id = $unit['community_id'];
+
+                            $building = $this->utility_model->get('ins_community', array('id'=>$id));
+                            if ($building) {
+                                if ($this->utility_model->update('ins_community', array('community_id'=>$community_id, 'updated_at'=>$t), array('id'=>$id))) {
+                                    // succ
+                                    $unit['response'] = 200;
+                                    $retarr[] = $unit;
+                                } else {
+                                    $unit['response'] = 400;
+                                    $retarr[] = $unit;
+                                }
+                            }
+                        }
+
+                        $this->utility_model->complete();
+
+                        $res['err_code'] = 0;
+                        $ret['my_ret'] = $retarr;
+                        $res['err_msg'] = "Successfully Updated!";
+                    }
+                } else {
+                    $res['err_msg'] = "Bad Request";
+                }
+            }
+        } else {
+            $res['err_msg'] = "You haven't permission";
+        }
+
+        print_r(json_encode($res));
+    }
+    public function testme()
+    {
         if (function_exists("set_time_limit") == true and @ ini_get("safe_mode") == 0) {
             @set_time_limit(0);
         }
         $ret = array();
         switch (0) {
+          case 2:{
+            $str = '{"0":{"response":200,"duplicate_building":"16020150175","community_rowid":"245","community":{"community_id":"16020","community_name":"ARTESIA VILLA SF34 AA","city":"NAPLES","builder":"2","created_at":"20170829042056","updated_at":"20170829042056","id":"245"},"duplicate_ins_req_job_number":"16020150175","action":"add"},"1":{"response":200,"duplicate_building":"26500251109","community_rowid":"246","community":{"community_id":"26500","community_name":"PELICAN PRES - PRATO -GR VILLA","city":"FORT MYERS","builder":"2","created_at":"20170829042059","updated_at":"20170829042059","id":"246"},"duplicate_ins_req_job_number":"26500251109","action":"add"},"array_community":[{"community_id":"16020","community_name":"ARTESIA VILLA SF34 AA","city":"NAPLES","builder":"2","created_at":"20170829042056","updated_at":"20170829042056","id":"245"},{"community_id":"26500","community_name":"PELICAN PRES - PRATO -GR VILLA","city":"FORT MYERS","builder":"2","created_at":"20170829042059","updated_at":"20170829042059","id":"246"}],"response":200,"ipaddr":"::1"}';
+            header('Content-Type: application/json');
+            echo $str;
+            break;
+          }
             case 1: {
                     $ret['response'] = 200;
                     header('Content-Type: application/json');
                     // echo json_encode( $ret );
                     // echo json_encode( $ret );
-
+                    $this->m_checkwci->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
                     $this->m_checkwci->initialize();
                     echo json_encode($ret);
                     return;
@@ -2168,9 +2237,20 @@ class Inspection extends CI_Controller {
 
             default: {
                     $ip = $this->get_client_ip();
+                    $this->m_checkwci->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
                     $this->m_checkwci->initialize();
                     $this->m_checkwci->ipaddr = $ip;
-                    $ret = $this->m_checkwci->wci->start();
+                    $ret = $this->m_checkwci->wci->start(0);
+                    if (is_array($ret)) {
+                        $array = array();
+                        for ($i=0;$i<count($ret);$i++) {
+                            $idata = $ret[$i];
+                            if (isset($idata['community'])) {
+                                $array[] = $idata['community'];
+                            }
+                        }
+                        $ret['array_community'] = $array;
+                    }
                     $ret['response'] = 200;
                     $ret['ipaddr'] = $ip;
                     header('Content-Type: application/json');
@@ -2180,5 +2260,4 @@ class Inspection extends CI_Controller {
                 }
         }
     }
-
 }
