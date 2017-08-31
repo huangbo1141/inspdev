@@ -5,21 +5,39 @@ require_once APPPATH.'/third_party/imap/imap.php';
 class M_checkwci {
 
     public $wci;
-    public $host;
+    public $dbhost;
     public $dbname;
     public $dbpass;
     public $dbuser;
 
-    public function setDbInfo($host, $dbname, $dbuser, $dbpass)
+    public $mail_host ;
+    public $mail_user ;
+    public $mail_password ;
+
+    public function setDbInfo($dbhost, $dbname, $dbuser, $dbpass)
     {
-      $this->host = $host;
+      $this->dbhost = $dbhost;
       $this->dbname = $dbname;
       $this->dbuser = $dbuser;
       $this->dbpass = $dbpass;
     }
+    public function setMailInfo($host, $user, $pass)
+    {
+      $this->mail_host = $host;
+      $this->mail_user = $user;
+      $this->mail_password = $pass;
+    }
 
     public function initialize(){
 
-        $this->wci = new CheckWci($this->host,$this->dbname,$this->dbuser,$this->dbpass);
+        $this->wci = new CheckWci();
+        $this->wci->db_host = $this->dbhost;
+        $this->wci->db_name = $this->dbname;
+        $this->wci->db_username = $this->dbuser;
+        $this->wci->db_password = $this->dbpass;
+        $this->wci->mail_host = $this->mail_host;
+        $this->wci->mail_user = $this->mail_user;
+        $this->wci->mail_password = $this->mail_password;
+        $this->wci->initdb();
     }
 }

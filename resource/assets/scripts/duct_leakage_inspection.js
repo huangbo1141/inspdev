@@ -9,11 +9,13 @@ function scheduling() {
 }
 
 function submit_data() {
-  showLoading();
-  var p = $("input[name='field_manager']").val();
+
+  //var p = $("input[name='field_manager']").val();
+  var field_manager = $("#field_manager option:selected").text();
+  var field_manager_id = $("#field_manager option:selected").val();
   var data = {
     id: $("#requested_id").val(),
-    manager_id: $("#manager_id").val(),
+    manager_id: field_manager_id,
 
     date_requested: $("#date_requested").val(),
     job_number: $("#job_number").val(),
@@ -28,16 +30,25 @@ function submit_data() {
     ceiling_area: $("#ceiling_area").val(),
 
     design_location: $("#design_location").val(),
-    field_manager: p,
+    field_manager: field_manager,
     qn: $("#qn").val(),
 
     document_person: $("#document_person").val(),
   }
+  var req_id = $("#requested_id").val();
+  var fname = "update_duct_leakage_inspection_requested";
+  if (req_id.length > 0) {
+    fname = "update_duct_leakage_inspection_requested2";
+  } else {
+    fname = "update_duct_leakage_inspection_requested";
+  }
 
+  // return;
 
+  showLoading();
   $.ajax({
     type: "POST",
-    url: 'update_duct_leakage_inspection_requested',
+    url: fname,
     data: data,
     dataType: 'json',
     success: function(data) {
@@ -97,7 +108,7 @@ jQuery(document).ready(function() {
             notEmpty: {
               message: 'Enter the Lot'
             },
-            integer: {
+            numeric: {
               message: 'Enter the Number',
             },
             greaterThan: {

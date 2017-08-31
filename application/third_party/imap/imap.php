@@ -16,16 +16,16 @@ use PHPHtmlParser\Dom;
 
 class CheckWCi
 {
-    private $db_host = "localhost";
-    private $db_name = "inspdev";
-    private $db_username = "root";
-    private $db_password = "111";
-    private $last_req_date = "";
-    public $ipaddr = "-1";
+    public $db_host = "";
+    public $db_name = "";
+    public $db_username = "";
+    public $db_password = "";
+    public $last_req_date = "";
+    public $ipaddr = "";
 
-    private $host = "secure.emailsrvr.com";
-    private $user = "inspect@e3bldg.com";
-    private $password = "sN>8KM)=";
+    public $mail_host = "";
+    public $mail_user = "";
+    public $mail_password = "";
     private $printmode = 0;
     private $printdetail = 0;
     private $fakeinsert = 0;
@@ -33,24 +33,23 @@ class CheckWCi
     private $index_jobinfo_found = 0;
     private $index_coninfo = "CONTACT INFORMATION:";
     private $index_coninfo_found = 0;
+    private $pdo = null;
 
-    public function __construct($host, $dbname, $dbuser, $dbpass)
+    public function __construct()
     {
-        $this->db_host = $host;
-        $this->db_name = $dbname;
-        $this->db_username = $dbuser;
-        $this->db_password = $dbpass;
+    }
 
-        $this->pdo = new PDO(
-                'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name,
-            $this->db_username,
-            $this->db_password,
-            array()
-        );
+    public function initdb(){
+      $this->pdo = new PDO(
+              'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name,
+          $this->db_username,
+          $this->db_password,
+          array()
+      );
 
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $this->pdo->query('SET NAMES utf8mb4');
+      $this->pdo->query('SET NAMES utf8mb4');
     }
 
     public function getLastRequestTime()
@@ -64,7 +63,7 @@ class CheckWCi
         }
     }
 
-    public function addTables($input, $action = "add")
+    public function addTables($input, $action = "add",$reschedule_notice = false)
     {
         $ret = array();
         $g_ins_admin = array("id","kind","email","first_name","last_name","address","password","cell_phone","other_phone","status","region","builder","allow_email","created_at","updated_at");
@@ -139,7 +138,7 @@ class CheckWCi
                         // check if community is inserted or Not
                         $community_id = $insertData['community_id'];
                         $community_name = $insertData['community_name'];
-                        $sql = "select * from ins_community where community_id = '".$community_id."' and community_name = '".$community_name."'";
+                        $sql = "select * from ins_community where community_name = '".$community_name."'";
                         $stmt = $this->pdo->prepare($sql);
                         $stmt->execute();
                         $message = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -170,6 +169,16 @@ class CheckWCi
                         $message = $stmt->fetch(PDO::FETCH_ASSOC);
                         if ($message) {
                             $ret['duplicate_ins_req_job_number'] = $job_number;
+                            if ($reschedule_notice) {
+                              // update
+                              $params = array("requested_at");
+                              $insertData = extractAsArray($tdata, $params);
+                              $sql = makeUpdateSql($insertData,"ins_inspection_requested",array("job_number"=>$job_number));
+                              $stmt = $this->pdo->prepare($sql);
+                              $stmt->execute();
+
+                              $ret['reschedule_notice_ins_req_job_number'] = $job_number;
+                            }
                         } else {
                             $params = $g_ins_inspection_requested;
                             $tdata = $input['ins_req'];
@@ -195,6 +204,7 @@ class CheckWCi
             $ret['response'] = 102;
             $ret['sql'] = $sql;
             $ret['error'] = $ex;
+            unset($ret['community']);
         }
         $ret['action'] = $action;
         return $ret;
@@ -313,7 +323,7 @@ class CheckWCi
         $timestr = date("YmdHis", time());
         $ins_building['job_number'] = $input['jnum'];
         $ins_building['community'] = $input['community_name'];
-        $ins_building['address'] = $input['caddress'];
+        $ins_building['address'] = $input['jaddress'];
         $ins_building['created_at'] = $timestr;
         $ins_building['updated_at'] = $timestr;
         $ins_building['field_manager'] = $input['fname']." ".$input['lname'];
@@ -741,12 +751,19 @@ class CheckWCi
                 echo "<br/>";
                 echo "<br/>";
             }
+            $subject = $message->getSubject();
+            $reschedule_notice = true;
+            if (stripos($subject, "Reschedule Notice") !== false) {
+                $reschedule_notice = true;
+            } else {
+                $reschedule_notice = false;
+            }
             $input = $this->parseHtml($bodytext);
             if (is_array($input) && isset($input['ins_req'])) {
                 if ($this->fakeinsert == 1) {
                     $ret[] = $input;
                 } else {
-                    $r1 = $this->addTables($input);
+                    $r1 = $this->addTables($input,"add",$reschedule_notice);
                     $ret[] = $r1;
                 }
             }

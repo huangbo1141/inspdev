@@ -1937,7 +1937,7 @@ class Inspection extends CI_Controller
             $emails = array();
             foreach ($field_managers as $key => $value) {
                 //$emails[] = $value['first_name']." ".$value['last_name'];
-                $value['field_manager'] = $value['first_name'] . " " . $value['last_name'];
+                $value['field_manager_name'] = $value['first_name'] . " " . $value['last_name'];
                 $field_managers[$key] = $value;
             }
             //$emails = array_unique($emails);
@@ -1947,7 +1947,9 @@ class Inspection extends CI_Controller
         }
 
         if ($id === false || $id == "") {
-            $page_data['inspection'] = array('id' => '', 'requested_at' => $date, 'job_number' => '', 'lot' => '', 'community_name' => '', 'address' => '', 'city' => '', 'area' => '', 'volume' => '', 'qn' => '', 'wall_area' => '', 'ceiling_area' => '', 'design_location' => '', 'manager_id' => '', 'manager_email' => '', 'document_person' => '');
+            $page_data['inspection'] = array('id' => '', 'requested_at' => $date, 'job_number' => '', 'lot' => '', 'community_name' => '',
+            'address' => '', 'city' => '', 'area' => '', 'volume' => '', 'qn' => '', 'wall_area' => '', 'ceiling_area' => '', 'design_location' => '',
+             'manager_id' => '', 'manager_email' => '', 'document_person' => '');
         } else {
             $inspection = $this->utility_model->get('ins_inspection_requested', array('id' => $id));
             if ($inspection) {
@@ -1961,7 +1963,9 @@ class Inspection extends CI_Controller
 
                 $page_data['inspection'] = $inspection;
             } else {
-                $page_data['inspection'] = array('id' => '', 'requested_at' => $date, 'job_number' => '', 'lot' => '', 'community_name' => '', 'address' => '', 'city' => '', 'area' => '', 'volume' => '', 'qn' => '', 'wall_area' => '', 'ceiling_area' => '', 'design_location' => '', 'manager_id' => '', 'manager_email' => '', 'document_person' => '');
+                $page_data['inspection'] = array('id' => '', 'requested_at' => $date, 'job_number' => '', 'lot' => '', 'community_name' => '',
+                 'address' => '', 'city' => '', 'area' => '', 'volume' => '', 'qn' => '', 'wall_area' => '', 'ceiling_area' => '', 'design_location' => '',
+                  'manager_id' => '', 'manager_email' => '', 'document_person' => '');
             }
         }
 
@@ -2030,10 +2034,10 @@ class Inspection extends CI_Controller
                 $res['err_msg'] = "Already Exist Email Address!";
             } else {
                 $is_already_exist = false;
-                $rrr = $this->utility_model->get('ins_inspection_requested', array('category' => 3, 'job_number' => $job_number, 'status' => 0));
-                if ($rrr) {
-                    $is_already_exist = true;
-                }
+               $rrr = $this->utility_model->get('ins_inspection_requested', array('category' => 3, 'job_number' => $job_number, 'status' => 0));
+               if ($rrr) {
+                   $is_already_exist = true;
+               }
 
                 if (!$is_already_exist) {
                     $t = mdate('%Y%m%d%H%i%s', time());
@@ -2131,6 +2135,72 @@ class Inspection extends CI_Controller
                 } else {
                     $res['err_msg'] = "Already Existed in Requested Inspections!";
                 }
+            }
+        } else {
+            $res['err_msg'] = "You have no permission!";
+        }
+
+        print_r(json_encode($res));
+    }
+    public function update_duct_leakage_inspection_requested2()
+    {
+        $res = array('err_code' => 1);
+        $res['err_msg'] = "Failed to request!";
+
+        if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
+            $id = $this->input->get_post('id');
+            $manager_id = $this->input->get_post('manager_id');
+
+            $date_requested = $this->input->get_post('date_requested');
+            $job_number = $this->input->get_post('job_number');
+            $lot = $this->input->get_post('lot');
+
+            $community = $this->input->get_post('community');
+            $address = $this->input->get_post('address');
+            $city = $this->input->get_post('city');
+            $area = $this->input->get_post('area');
+            $volume = $this->input->get_post('volume');
+            $wall_area = $this->input->get_post('wall_area');
+            $ceiling_area = $this->input->get_post('ceiling_area');
+            $design_location = $this->input->get_post('design_location');
+
+            $field_manager_name = $this->input->get_post('field_manager');
+            $qn = $this->input->get_post('qn');
+
+            $document_person = $this->input->get_post('document_person');
+            if ($document_person === false) {
+                $document_person = "";
+            }
+            if(is_string($id)&& strlen($id)>0){
+              $this->utility_model->start();
+              $data = array(
+                  'category' => 3,
+                  'manager_id' => $manager_id, //$this->session->userdata('user_id'),
+                  'job_number' => $job_number,
+                  'lot' => $lot,
+                  'requested_at' => $date_requested,
+                  'time_stamp' => $t,
+                  'ip_address' => $this->get_client_ip(),
+                  'community_name' => $community,
+                  'address' => $address,
+                  'city' => $city,
+                  'area' => $area,
+                  'volume' => $volume,
+                  'qn' => $qn,
+                  'wall_area' => $wall_area,
+                  'ceiling_area' => $ceiling_area,
+                  'design_location' => $design_location,
+                  'document_person' => $document_person
+              );
+
+              if ($this->utility_model->update('ins_inspection_requested', $data, array('id' => $id))) {
+                  $this->utility_model->complete();
+
+                  $res['err_msg'] = "Successfully Requested!";
+                  $res['err_code'] = 0;
+              }else{
+                $res['err_msg'] = "Failed to request!";
+              }
             }
         } else {
             $res['err_msg'] = "You have no permission!";
@@ -2238,23 +2308,41 @@ class Inspection extends CI_Controller
             default: {
                     $ip = $this->get_client_ip();
                     $this->m_checkwci->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
+                    $this->m_checkwci->setMailInfo(SMTP_HOST, SMTP_USER, SMTP_PASSWORD);
                     $this->m_checkwci->initialize();
                     $this->m_checkwci->ipaddr = $ip;
-                    $ret = $this->m_checkwci->wci->start(0);
+                    $ret = $this->m_checkwci->wci->start(0);  //16
                     if (is_array($ret)) {
                         $array = array();
+                        $array_community_name = array();
                         for ($i=0;$i<count($ret);$i++) {
                             $idata = $ret[$i];
                             if (isset($idata['community'])) {
-                                $array[] = $idata['community'];
+                              $community = $idata['community'];
+                              if (in_array($community['community_name'], $array_community_name)) {
+                                // continue
+                              }else{
+                                $array[] = $community;
+                                $array_community_name[] = $community['community_name'];
+                              }
                             }
                         }
                         $ret['array_community'] = $array;
                     }
                     $ret['response'] = 200;
                     $ret['ipaddr'] = $ip;
-                    header('Content-Type: application/json');
-                    echo json_encode($ret);
+                    $printmode = $this->input->get("printmode");
+                    if(is_string($printmode)&& $printmode == "1"){
+                      //header('Content-Type: application/json');
+                      $ret['printmode'] = 1;
+                      echo "<pre>";
+                      print_r($ret);
+                      echo "</pre>";
+                    }else{
+                      header('Content-Type: application/json');
+                      $ret['printmode'] = 0;
+                      echo json_encode($ret);
+                    }
                     //print_r(json_encode($ret));
                     break;
                 }

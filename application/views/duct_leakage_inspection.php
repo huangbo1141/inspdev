@@ -138,19 +138,21 @@
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="field_manager">Field Manager</label>
                             <div class="col-md-5">
-                              <?php
-                                 if (isset($field_managers)&&is_array($field_managers)) {
-                                     if (count($field_managers)>0) {
-                                         echo '<input list="field_manager" name="field_manager" class="form-control">';
-                                         echo '<datalist id="field_manager">';
-                                         foreach ($field_managers as $key=>$value) {
-                                             $email = $value['field_manager'];
-                                             echo "<option value='$email'>";
-                                         }
-                                         echo '</datalist>';
-                                     }
-                                 }
-                              ?>
+                              <select class="form-control" id="field_manager" name="field_manager">
+                                  <option value="0">None</option>
+<?php
+if (isset($field_managers)&&is_array($field_managers)) {
+    if (count($field_managers)>0) {
+      foreach ($field_managers as $row) {
+          ?>
+                                        <option <?php echo $inspection['manager_id']==$row['id'] ? 'selected' : ''; ?> value="<?php echo $row['id']; ?>"><?php echo $row['field_manager_name']; ?></option>
+      <?php
+      }
+    }
+  }
+
+?>
+                              </select>
                                 <!-- <input type="email" placeholder="" id="field_manager" name="field_manager" class="form-control"  value="<?php echo $inspection['manager_email']; ?>"> -->
                             </div>
                         </div>

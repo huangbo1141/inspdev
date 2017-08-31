@@ -4767,9 +4767,12 @@ class Api extends CI_Controller {
                         . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">RESNET ID: 9377172</span></td>'
                         . '</tr>'
+                        . '<tr>'
+                            . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
+                        . '</tr>'
                         . '</table>';
             $html_body .= '<br>';
-            $html_body .= '<h3 class="footer-value">PRINTED NAME: <span class="text-underline">&nbsp;&nbsp;&nbsp;' . 'Tom Karras - Rater ID 791' . '&nbsp;&nbsp;&nbsp;</span></h3>';
+            $html_body .= '<h3 class="footer-value">PRINTED NAME: <span class="text-underline">&nbsp;&nbsp;&nbsp;' . 'Tom Karras ' . '&nbsp;&nbsp;&nbsp;</span></h3>';
             $html_body .= '<br>';
             $html_body .= '<h3 class="footer-value">DATE: <span class="text-underline">&nbsp;&nbsp;&nbsp;' . $inspection['end_date'] . '&nbsp;&nbsp;&nbsp;</span></h3>';
             $html_body .= '</td>';
@@ -4964,9 +4967,12 @@ class Api extends CI_Controller {
                         . '<tr>'
                             . '<td style="vertical-align:bottom;"><span class="footer-value">RESNET ID: 9377172</span></td>'
                         . '</tr>'
+                        . '<tr>'
+                            . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
+                        . '</tr>'
                         . '</table>';
             $html_body .= '<br>';
-            $html_body .= '<h3 class="footer-value">PRINTED NAME: <span class="text-underline">&nbsp;&nbsp;&nbsp;' . 'Tom Karras - Rater ID 791' . '&nbsp;&nbsp;&nbsp;</span></h3>';
+            $html_body .= '<h3 class="footer-value">PRINTED NAME: <span class="text-underline">&nbsp;&nbsp;&nbsp;' . 'Tom Karras' . '&nbsp;&nbsp;&nbsp;</span></h3>';
             $html_body .= '<br>';
             $html_body .= '<h3 class="footer-value">DATE: <span class="text-underline">&nbsp;&nbsp;&nbsp;' . $inspection['end_date'] . '&nbsp;&nbsp;&nbsp;</span></h3>';
             $html_body .= '</td>';
