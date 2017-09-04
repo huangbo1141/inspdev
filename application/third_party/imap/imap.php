@@ -183,7 +183,7 @@ class CheckWCi
                             $params = $g_ins_inspection_requested;
                             $tdata = $input['ins_req'];
                             $tdata['manager_id'] = $builderid;
-                            $tdata['ip_address'] = $this->ipaddr;
+
                             $insertData = extractAsArray($tdata, $params);
                             $sql = makeInsertDataSql($insertData, "ins_inspection_requested");
                             $stmt = $this->pdo->prepare($sql);
@@ -218,8 +218,9 @@ class CheckWCi
         $this->index_coninfo_found = 0;
     }
 
-    public function start($count = 0)
+    public function start($count = 0,$ip = "")
     {
+        $this->ipaddr = $ip;
         $ret = array();
         if (true) {
             $ret = $this->fetchMessages($count);
@@ -353,7 +354,7 @@ class CheckWCi
         $ins_req['city'] = $input['jcity'];
         $ins_req['status'] = '0';
         $ins_req['design_location'] = '';
-
+        $ins_req['ip_address'] = $this->ipaddr;
 
         $ins_admin = array();
         $ins_admin['kind'] = '2';

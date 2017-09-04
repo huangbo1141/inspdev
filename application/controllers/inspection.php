@@ -1932,7 +1932,7 @@ class Inspection extends CI_Controller
         $page_data['page_name'] = 'duct_leakage_inspection';
         $page_data['page_title'] = "WCI Duct Leakage Inspection";
 
-        $field_managers = $this->utility_model->get_list('ins_admin', array('kind' => '2'));
+        $field_managers = $this->utility_model->get_list('ins_admin', array('builder' => '2'));
         if (is_array($field_managers)) {
             $emails = array();
             foreach ($field_managers as $key => $value) {
@@ -2146,7 +2146,8 @@ class Inspection extends CI_Controller
     {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed to request!";
-
+        $t = mdate('%Y%m%d%H%i%s', time());
+        
         if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
             $id = $this->input->get_post('id');
             $manager_id = $this->input->get_post('manager_id');
@@ -2281,6 +2282,15 @@ class Inspection extends CI_Controller
         }
         $ret = array();
         switch (0) {
+          case 3:{
+            $ip = $this->get_client_ip();
+            $ret['printmode'] = 1;
+            $ret['ip'] = $ip;
+            echo "<pre>";
+            print_r($ret);
+            echo "</pre>";
+            break;
+          }
           case 2:{
             $str = '{"0":{"response":200,"duplicate_building":"16020150175","community_rowid":"245","community":{"community_id":"16020","community_name":"ARTESIA VILLA SF34 AA","city":"NAPLES","builder":"2","created_at":"20170829042056","updated_at":"20170829042056","id":"245"},"duplicate_ins_req_job_number":"16020150175","action":"add"},"1":{"response":200,"duplicate_building":"26500251109","community_rowid":"246","community":{"community_id":"26500","community_name":"PELICAN PRES - PRATO -GR VILLA","city":"FORT MYERS","builder":"2","created_at":"20170829042059","updated_at":"20170829042059","id":"246"},"duplicate_ins_req_job_number":"26500251109","action":"add"},"array_community":[{"community_id":"16020","community_name":"ARTESIA VILLA SF34 AA","city":"NAPLES","builder":"2","created_at":"20170829042056","updated_at":"20170829042056","id":"245"},{"community_id":"26500","community_name":"PELICAN PRES - PRATO -GR VILLA","city":"FORT MYERS","builder":"2","created_at":"20170829042059","updated_at":"20170829042059","id":"246"}],"response":200,"ipaddr":"::1"}';
             header('Content-Type: application/json');
@@ -2311,7 +2321,7 @@ class Inspection extends CI_Controller
                     $this->m_checkwci->setMailInfo(SMTP_HOST, SMTP_USER, SMTP_PASSWORD);
                     $this->m_checkwci->initialize();
                     $this->m_checkwci->ipaddr = $ip;
-                    $ret = $this->m_checkwci->wci->start(0);  //16
+                    $ret = $this->m_checkwci->wci->start(0,$ip);  //16
                     if (is_array($ret)) {
                         $array = array();
                         $array_community_name = array();
