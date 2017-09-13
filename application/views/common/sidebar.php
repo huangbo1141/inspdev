@@ -8,7 +8,7 @@
     </li>
 
     <?php if ($user_permission == 1) { ?>
-    
+
     <?php if ($page_name == 'builder') { ?>
         <li class="active open">
             <a href="<?php echo $basePath; ?>builder/home.html">
@@ -26,9 +26,9 @@
         </li>
     <?php } ?>
 
-    <?php } ?>        
+    <?php } ?>
 
-        
+
     <?php if ($page_name == 'building' || $page_name == 'building_list') { ?>
         <li class="active open">
             <a href="<?php echo $basePath; ?>building/home.html">
@@ -45,7 +45,7 @@
             </a>
         </li>
     <?php } ?>
-        
+
 
     <?php if ($page_name == 'community') { ?>
         <li class="active open">
@@ -121,7 +121,7 @@
             </a>
         </li>
     <?php } ?>
-        
+
 
     <?php if ($user_permission == 1) { ?>
 
@@ -163,12 +163,12 @@
             </ul>
         </li>
     <?php } ?>
-        
+
     <?php } ?>
 
-        
+
     <?php if ($user_permission==1 || $user_permission==2 || $user_permission==3) { ?>
-        
+
     <?php if ($page_name == 'inspection_request') { ?>
         <li class="active open">
             <a href="<?php echo $basePath; ?>inspection/edit_inspection_requested.html">
@@ -185,10 +185,10 @@
             </a>
         </li>
     <?php } ?>
-        
+
     <?php } ?>
-    
-        
+
+
     <?php if ($user_permission == 1) { ?>
 
     <?php if ($page_name == 'duct_leakage_inspection') { ?>
@@ -207,13 +207,13 @@
             </a>
         </li>
     <?php } ?>
-        
+
     <?php } ?>
-        
-        
-        
+
+
+
     <?php if ($user_permission == 1) { ?>
-        
+
     <?php if ($page_name == 'admin' || $page_name == 'user' || $page_name == 'field_manager'  || $page_name == 'construction_manager'
             || $page_name == 'scheduler' ) { ?>
         <li class="active open">
@@ -236,7 +236,7 @@
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>manager/admin.html"> Admin</a></li>
             <?php } ?>
-                
+
             <?php if ($page_name == 'field_manager') { ?>
                 <li class="active"><a href="<?php echo $basePath; ?>manager/field.html"> Field Manager</a></li>
             <?php } else { ?>
@@ -248,13 +248,13 @@
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>manager/construction.html"> Construction Manager</a></li>
             <?php } ?>
-                
+
             <?php if ($page_name == 'scheduler') { ?>
                 <li class="active"><a href="<?php echo $basePath; ?>manager/scheduler.html"> Scheduler</a></li>
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>manager/scheduler.html"> Scheduler</a></li>
             <?php } ?>
-                
+
             </ul>
         </li>
     <?php } else { ?>
@@ -274,13 +274,13 @@
             </ul>
         </li>
     <?php } ?>
-        
+
     <?php } ?>
 
-        
+
     <?php if ($user_permission == 1) { ?>
-        
-    <?php if ($page_name == 'statistics' || $page_name == 'statistics_inspection' || $page_name == 'statistics_re_inspection' 
+
+    <?php if ($page_name == 'statistics' || $page_name == 'statistics_inspection' || $page_name == 'statistics_re_inspection'
             || $page_name == 'statistics_checklist' || $page_name == 'statistics_fieldmanager' || $page_name == 'statistics_inspector'
             || $page_name == 'inspection_pending_building') { ?>
         <li class="active open">
@@ -303,7 +303,7 @@
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>statistics/re_inspection.html"> Re-Inspection</a></li>
             <?php } ?>
-                
+
             <?php if ($page_name == 'statistics_checklist') { ?>
                 <li class="active"><a href="<?php echo $basePath; ?>statistics/checklist.html"> CheckList</a></li>
             <?php } else { ?>
@@ -321,13 +321,13 @@
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>statistics/inspector.html"> Inspector</a></li>
             <?php } ?>
-                
+
             <?php if ($page_name == 'inspection_pending_building') { ?>
                 <li class="active"><a href="<?php echo $basePath; ?>inspection/pending_building.html"> Pending Building Inspection</a></li>
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>inspection/pending_building.html"> Pending Building Inspection</a></li>
             <?php } ?>
-                
+
             </ul>
         </li>
     <?php } else { ?>
@@ -350,13 +350,13 @@
     <?php } ?>
 
     <?php } ?>
-        
+
 
 
     <?php if ($user_permission == 1) { ?>
-        
-    <?php if ($page_name == 'payable' || $page_name == 'inspector_payroll' || $page_name == 'record_payment_received' 
-            || $page_name == 'received_check' || $page_name == 'inspector_payment' 
+
+    <?php if ($page_name == 'payable' || $page_name == 'inspector_payroll' || $page_name == 'record_payment_received'
+            || $page_name == 'received_check' || $page_name == 'inspector_payment'
             || $page_name == 'payable_re_inspection' || $page_name == 'payable_pending_inspection' ) { ?>
         <li class="active open">
             <a href="#">
@@ -378,7 +378,7 @@
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>payable/inspector_payment.html"> Processed Inspector's Payments</a></li>
             <?php } ?>
-                
+
             <?php if ($page_name == 'received_check') { ?>
                 <li class="active"><a href="<?php echo $basePath; ?>payable/received_check.html"> Received Check</a></li>
             <?php } else { ?>
@@ -390,7 +390,7 @@
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>payable/record_payment_received.html"> Record Payments Received</a></li>
             <?php } ?>
-                
+
             <?php if ($page_name == 'payable_re_inspection') { ?>
                 <li class="active"><a href="<?php echo $basePath; ?>payable/re_inspection.html"> EPO and Inspections</a></li>
             <?php } else { ?>
@@ -425,8 +425,8 @@
     <?php } ?>
 
     <?php } ?>
-        
-        
+
+
 
     <?php if ($page_name == 'profile') { ?>
         <li class="active open">
@@ -445,11 +445,12 @@
         </li>
     <?php } ?>
 
-        
-        
+
+
     <?php if ($user_permission == 1) { ?>
-        
-    <?php if ($page_name == 'setting' || $page_name == 'recipient_email' || $page_name == 'report_template' || $page_name == 'admin_configuration') { ?>
+
+    <?php if ($page_name == 'setting' || $page_name == 'recipient_email' || $page_name == 'report_template'
+    || $page_name == 'admin_configuration' || $page_name == 'admin_energy_inspection') { ?>
         <li class="active open">
             <a href="#">
                 <i class="fa fa-cogs"></i>
@@ -477,6 +478,12 @@
                 <li><a href="<?php echo $basePath; ?>admin/template.html"> Report Template</a></li>
             <?php } ?>
 
+            <?php if ($page_name == 'admin_energy_inspection') { ?>
+                <li class="active"><a href="<?php echo $basePath; ?>admin/energy_inspection.html"> Energy Inspection</a></li>
+            <?php } else { ?>
+                <li><a href="<?php echo $basePath; ?>admin/energy_inspection.html"> Energy Inspection</a></li>
+            <?php } ?>
+
             </ul>
         </li>
     <?php } else { ?>
@@ -491,6 +498,7 @@
                 <li><a href="<?php echo $basePath; ?>admin/configuration.html"> Configuration</a></li>
                 <li><a href="<?php echo $basePath; ?>admin/recipient.html"> Recipient Email</a></li>
                 <li><a href="<?php echo $basePath; ?>admin/template.html"> Report Template</a></li>
+                <li><a href="<?php echo $basePath; ?>admin/energy_inspection.html"> Energy Inspection</a></li>
             </ul>
         </li>
     <?php } ?>
@@ -501,8 +509,8 @@
                 <span class="title">Log Out</span>
             </a>
         </li>
-        
+
     <?php } ?>
-        
-    
+
+
 </ul>

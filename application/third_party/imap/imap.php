@@ -14,15 +14,14 @@ use Ddeboer\Imap\Search\Text\Body;
 use Ddeboer\Imap\Search\Email\FromAddress;
 use PHPHtmlParser\Dom;
 
-class CheckWCi
-{
+class CheckWCi {
+
     public $db_host = "";
     public $db_name = "";
     public $db_username = "";
     public $db_password = "";
     public $last_req_date = "";
     public $ipaddr = "";
-
     public $mail_host = "";
     public $mail_user = "";
     public $mail_password = "";
@@ -35,25 +34,21 @@ class CheckWCi
     private $index_coninfo_found = 0;
     private $pdo = null;
 
-    public function __construct()
-    {
+    public function __construct() {
+        
     }
 
-    public function initdb(){
-      $this->pdo = new PDO(
-              'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name,
-          $this->db_username,
-          $this->db_password,
-          array()
-      );
+    public function initdb() {
+        $this->pdo = new PDO(
+                'mysql:host=' . $this->db_host . ';dbname=' . $this->db_name, $this->db_username, $this->db_password, array()
+        );
 
-      $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-      $this->pdo->query('SET NAMES utf8mb4');
+        $this->pdo->query('SET NAMES utf8mb4');
     }
 
-    public function getLastRequestTime()
-    {
+    public function getLastRequestTime() {
         $sql = "select requested_at from  ins_inspection_requested order by requested_at desc limit 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
@@ -63,13 +58,12 @@ class CheckWCi
         }
     }
 
-    public function addTables($input, $action = "add",$reschedule_notice = false)
-    {
+    public function addTables($input, $action = "add", $reschedule_notice = false) {
         $ret = array();
-        $g_ins_admin = array("id","kind","email","first_name","last_name","address","password","cell_phone","other_phone","status","region","builder","allow_email","created_at","updated_at");
-        $g_ins_building = array("job_number","community","address","field_manager","builder","created_at","updated_at","unit_count");
-        $g_ins_inspection_requested = array("id","reinspection","epo_number","category","job_number","created_at","requested_at","assigned_at","completed_at","manager_id","inspector_id","time_stamp","ip_address","community_name","lot","address","status","city","area","volume","qn","wall_area","ceiling_area","design_location","is_building_unit","inspection_id","document_person");
-        $g_ins_community = array("id","community_id","community_name","city","region","builder","created_at","updated_at");
+        $g_ins_admin = array("id", "kind", "email", "first_name", "last_name", "address", "password", "cell_phone", "other_phone", "status", "region", "builder", "allow_email", "created_at", "updated_at");
+        $g_ins_building = array("job_number", "community", "address", "field_manager", "builder", "created_at", "updated_at", "unit_count");
+        $g_ins_inspection_requested = array("id", "reinspection", "epo_number", "category", "job_number", "created_at", "requested_at", "assigned_at", "completed_at", "manager_id", "inspector_id", "time_stamp", "ip_address", "community_name", "lot", "address", "status", "city", "area", "volume", "qn", "wall_area", "ceiling_area", "design_location", "is_building_unit", "inspection_id", "document_person");
+        $g_ins_community = array("id", "community_id", "community_name", "city", "region", "builder", "created_at", "updated_at");
 
         $sql = "";
         $ret['response'] = 400;
@@ -117,7 +111,7 @@ class CheckWCi
 
                         $message = $stmt->fetch(PDO::FETCH_ASSOC);
                         if ($message) {
-                            $ret['duplicate_building'] =  $job_number;
+                            $ret['duplicate_building'] = $job_number;
                         } else {
                             $insertData = extractAsArray($tdata, $params);
                             $sql = makeInsertDataSql($insertData, "ins_building");
@@ -126,7 +120,7 @@ class CheckWCi
 
                             $id = $this->pdo->lastInsertId();
                             $buildingid = $id;
-                            $ret['building_inserted'] =  $job_number;
+                            $ret['building_inserted'] = $job_number;
                         }
                         //$tdata['field_manager'] = $builderid . " WCI";
                     }
@@ -138,7 +132,7 @@ class CheckWCi
                         // check if community is inserted or Not
                         $community_id = $insertData['community_id'];
                         $community_name = $insertData['community_name'];
-                        $sql = "select * from ins_community where community_name = '".$community_name."'";
+                        $sql = "select * from ins_community where community_name = '" . $community_name . "'";
                         $stmt = $this->pdo->prepare($sql);
                         $stmt->execute();
                         $message = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -170,14 +164,14 @@ class CheckWCi
                         if ($message) {
                             $ret['duplicate_ins_req_job_number'] = $job_number;
                             if ($reschedule_notice) {
-                              // update
-                              $params = array("requested_at");
-                              $insertData = extractAsArray($tdata, $params);
-                              $sql = makeUpdateSql($insertData,"ins_inspection_requested",array("job_number"=>$job_number));
-                              $stmt = $this->pdo->prepare($sql);
-                              $stmt->execute();
+                                // update
+                                $params = array("requested_at");
+                                $insertData = extractAsArray($tdata, $params);
+                                $sql = makeUpdateSql($insertData, "ins_inspection_requested", array("job_number" => $job_number));
+                                $stmt = $this->pdo->prepare($sql);
+                                $stmt->execute();
 
-                              $ret['reschedule_notice_ins_req_job_number'] = $job_number;
+                                $ret['reschedule_notice_ins_req_job_number'] = $job_number;
                             }
                         } else {
                             $params = $g_ins_inspection_requested;
@@ -210,16 +204,12 @@ class CheckWCi
         return $ret;
     }
 
-
-
-    public function resetValues()
-    {
+    public function resetValues() {
         $this->index_jobinfo_found = 0;
         $this->index_coninfo_found = 0;
     }
 
-    public function start($count = 0,$ip = "")
-    {
+    public function start($count = 0, $ip = "") {
         $this->ipaddr = $ip;
         $ret = array();
         if (true) {
@@ -241,7 +231,11 @@ class CheckWCi
             $ret = $this->addTables($data);
             // var_dump($data);
         }
-
+        if (false) {
+            $data = $this->parseHtml($this->test_bodytext4);
+            $ret = $this->addTables($data);
+            // var_dump($data);
+        }
         if (false) {
             $outerHtml = '<table width="660" border="0" cellpadding="1" cellspacing="0">
         <tbody><tr><td><font face="arial" size="1">&nbsp;</font></td></tr>
@@ -256,8 +250,7 @@ class CheckWCi
         return $ret;
     }
 
-    public function filterFontTag($input, $printmode = false)
-    {
+    public function filterFontTag($input, $printmode = false) {
         $ret = array();
         foreach ($input as $key => $value) {
             $dom = new Dom;
@@ -279,16 +272,15 @@ class CheckWCi
         return $ret;
     }
 
-    public function filterArrayContent($input)
-    {
+    public function filterArrayContent($input) {
         $datas = array();
         $pattern = array('/\'/i', '<br>', '/\&nbsp;/i', '/lt;/i', '/\rt;/i');
         $replace = array('\\\'', '', '', '', '');
         $pattern = array('/\'/i', '<br>', '/\&nbsp;/i');
         $replace = array('\\\'', '', '');
 
-        $pattern = array('<br>', '/\&nbsp;/i','/\&nbsp/i');
-        $replace = array('', ' ',' ');
+        $pattern = array('<br>', '/\&nbsp;/i', '/\&nbsp/i');
+        $replace = array('', ' ', ' ');
         foreach ($input as $param => $value) {
             $tmp = trim($value);
             if (strlen($tmp) > 0) {
@@ -316,8 +308,7 @@ class CheckWCi
         return $datas;
     }
 
-    public function getInsertObjects($input)
-    {
+    public function getInsertObjects($input) {
         $ins_building = array();
         // $params = array("tp_id", "tu_id");
         // $datas = extractAsArray($input, $params);
@@ -327,7 +318,7 @@ class CheckWCi
         $ins_building['address'] = $input['jaddress'];
         $ins_building['created_at'] = $timestr;
         $ins_building['updated_at'] = $timestr;
-        $ins_building['field_manager'] = $input['fname']." ".$input['lname'];
+        $ins_building['field_manager'] = $input['fname'] . " " . $input['lname'];
         $ins_building['builder'] = '2';
 
 
@@ -379,8 +370,7 @@ class CheckWCi
         return $ret;
     }
 
-    public function extractParams($input, $fields1, $fields2)
-    {
+    public function extractParams($input, $fields1, $fields2) {
         $ret = array();
         for ($i = 0; $i < count($fields1); $i++) {
             $key = $fields1[$i];
@@ -392,8 +382,7 @@ class CheckWCi
         return $ret;
     }
 
-    public function generateData($input, $printmode = false)
-    {
+    public function generateData($input, $printmode = false) {
         $ret = array();
         $input = $this->filterFontTag($input);
 
@@ -412,7 +401,7 @@ class CheckWCi
         }
         if (isset($ret['manager'])) {
             $pieces = explode(" ", $ret['manager']);
-            if (is_array($pieces)&&count($pieces)>=2) {
+            if (is_array($pieces) && count($pieces) >= 2) {
                 $ret['fname'] = trim($pieces[0]);
                 $ret['lname'] = trim($pieces[1]);
             }
@@ -432,7 +421,7 @@ class CheckWCi
 
             $pos1 = stripos($ret['cfrom'], "-");
             if ($pos1) {
-                $ret['community_name'] = substr($ret['cfrom'], $pos1+1, -1);
+                $ret['community_name'] = substr($ret['cfrom'], $pos1 + 1, -1);
             }
         }
         if (isset($ret['jname'])) {
@@ -484,8 +473,7 @@ class CheckWCi
         return $ret;
     }
 
-    public function parseHtml($bodytext = "")
-    {
+    public function parseHtml($bodytext = "") {
         $this->resetValues();
         if ($this->printdetail) {
             echo $bodytext;
@@ -549,6 +537,7 @@ class CheckWCi
                         // $data['$text'] = $text;
                         // $data['$this->index_coninfo'] = $this->index_coninfo;
                     } else {
+                        
                     }
                 }
             }
@@ -573,28 +562,35 @@ class CheckWCi
         if ($this->index_coninfo_found == 0) {
             // contact INFORMATION
             $itable = $ptable1 = $bigtable->find('table')[$jobinfo_index - 3];
-            $isubtable = $itable->find('table')[0];
-            // echo $isubtable;
-            //$iterms = $this->parseTable($ihtml, ["FROM","ADDRESS"], 'TD', false, false);
-            $td_from = $isubtable->find('td')[0];
-            $td_addr = $isubtable->find('td')[2];
-            $iterms = array();
-            $iterms['FROM'] = $td_from->innerHtml();
-            $iterms['ADDRESS'] = $td_addr->innerHtml();
-            // echo $td_from;
-            // echo $td_addr;
-            $data = array_merge($data, $iterms);
+            if (!is_null($itable)) {
+                $isubtable = $itable->find('table')[0];
+                // echo $isubtable;
+                //$iterms = $this->parseTable($ihtml, ["FROM","ADDRESS"], 'TD', false, false);
+                $td_from = $isubtable->find('td')[0];
+                $td_addr = $isubtable->find('td')[2];
+                $iterms = array();
+                $iterms['FROM'] = $td_from->innerHtml();
+                $iterms['ADDRESS'] = $td_addr->innerHtml();
+                // echo $td_from;
+                // echo $td_addr;
+                $data = array_merge($data, $iterms);
 
-            $this->index_jobinfo_found = 1;
+                $this->index_jobinfo_found = 1;
+            }
         }
-        $this->outputResult($data, 1);
-        $data = $this->generateData($data);
-        $data = $this->getInsertObjects($data);
-        return $data;
+        if (count($data) > 0) {
+            $this->outputResult($data, 1);
+            $data = $this->generateData($data);
+            $data = $this->getInsertObjects($data);
+            return $data;
+        }else{
+            return null;
+        }
+
+        
     }
 
-    public function outputResult($content, $mode = 0)
-    {
+    public function outputResult($content, $mode = 0) {
         switch ($mode) {
 
             case 2: {
@@ -621,8 +617,7 @@ class CheckWCi
         }
     }
 
-    public function parseTable($html, $content_ary, $search, $testmode = false, $printmode = false)
-    {
+    public function parseTable($html, $content_ary, $search, $testmode = false, $printmode = false) {
         $endP = "<br/>parseTable Pagraph<br/>";
         if ($printmode) {
             echo $endP;
@@ -665,8 +660,7 @@ class CheckWCi
         return $data;
     }
 
-    public function checkHead($html, $content, $search, $testmode = false, $printmode = false)
-    {
+    public function checkHead($html, $content, $search, $testmode = false, $printmode = false) {
         $endP = "<br/>checkHead Pagraph<br/>";
         if ($printmode) {
             echo $endP;
@@ -707,8 +701,7 @@ class CheckWCi
         }
     }
 
-    public function fetchMessages($limit = 2)
-    {
+    public function fetchMessages($limit = 2) {
         set_time_limit(0);
         $host = "smtp.emailsrvr.com";
         $host = "secure.emailsrvr.com";
@@ -729,6 +722,7 @@ class CheckWCi
         $messages = $mailbox->getMessages($search);
         $cnt = 0;
         $ret = array();
+//        $limit = 26;
         foreach ($messages as $message) {
             $bodytext = $message->getBodyText();
             if (false) {
@@ -754,20 +748,25 @@ class CheckWCi
             }
             $subject = $message->getSubject();
             $reschedule_notice = true;
-            if (stripos($subject, "Reschedule Notice") !== false) {
-                $reschedule_notice = true;
-            } else {
-                $reschedule_notice = false;
-            }
-            $input = $this->parseHtml($bodytext);
-            if (is_array($input) && isset($input['ins_req'])) {
-                if ($this->fakeinsert == 1) {
-                    $ret[] = $input;
+            try {
+                if (stripos($subject, "Reschedule Notice") !== false) {
+                    $reschedule_notice = true;
                 } else {
-                    $r1 = $this->addTables($input,"add",$reschedule_notice);
-                    $ret[] = $r1;
+                    $reschedule_notice = false;
                 }
+                $input = $this->parseHtml($bodytext);
+                if (is_array($input) && isset($input['ins_req'])) {
+                     if ($this->fakeinsert == 1) {
+                         $ret[] = $input;
+                     } else {
+                         $r1 = $this->addTables($input,"add",$reschedule_notice);
+                         $ret[] = $r1;
+                     }
+                }
+            } catch (Exception $ex) {
+                
             }
+            $ret[] = $subject;
 
             $cnt++;
             if ($limit > 0 && $cnt >= $limit) {
@@ -777,6 +776,209 @@ class CheckWCi
         return $ret;
     }
 
+    private $test_bodytext4 = '<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tbody><tr>
+      <td valign="bottom">
+        <table cellspacing="0" cellpadding="0" width="100%" border="0">
+          <tbody><tr>
+            <td valign="top" align="middle">
+              <table cellspacing="0" cellpadding="0" width="600" border="0">
+                <tbody><tr>
+                  <td valign="top" align="middle">
+                    <font face="arial" color="black" size="2">
+                    <table cellspacing="1" cellpadding="1" width="500" border="0">
+                      <tbody><tr>
+                        <td>
+                          <table cellspacing="0" cellpadding="0" width="100%" border="0">
+                            <tbody><tr>
+                              <td valign="top" align="middle">
+                                <table cellspacing="1" cellpadding="3" width="500" border="0">
+                                  <tbody><tr>
+                                    <td valign="top" align="middle"><font size="5"><b>Delivery Receipt Notification</b></font></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" align="middle"><font size="3"><b>BuildPro Order Received Complete</b></font></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" align="middle"><b><font size="2" face="Arial">Billing Address:<br>Lennar Homes LLC</font><br></b>
+                                      <font face="arial" size="2"><b>10481 Ben C Pratt/Six Mile Cyp<br>Fort Myers, FL&nbsp;&nbsp;33966<br></b><br></font>
+                                    </td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="1" cellpadding="3" width="500" border="0">
+                                  <tbody><tr>
+                                    <td width="250"><font face="arial" size="2">from:</font></td>
+                                    <td width="250"><font face="arial" size="2">to:</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" width="250"><font face="arial" size="2">
+                                      <table cellspacing="0" cellpadding="1" width="240" border="1">
+                                        <tbody><tr>
+                                          <td colspan="2"><font size="2">Lennar Homes LLC</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td valign="top" align="right" colspan="2"><p align="left"><font size="2">Jack Turner</font></p></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font face="arial" size="2">phone:</font></td>
+                                          <td><font face="arial" size="2">&nbsp;239-872-1127&nbsp;</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font face="arial" size="2">fax:</font></td>
+                                          <td><font face="arial" size="2">&nbsp; &nbsp;</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font face="arial" size="2">email:</font></td>
+                                          <td><font face="arial" size="2">&nbsp;Jack.Turner@Lennar.com &nbsp;</font></td>
+                                        </tr>
+                                      </tbody></table></font>
+                                    </td>
+                                    <td valign="top" width="250"><font face="arial" size="2">
+                                      <table cellspacing="0" cellpadding="3" width="240" border="1"><tbody>
+                                        <tr>
+                                          <td colspan="2"><font face="arial" size="2">E3 Design Group Inc</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font face="arial" size="2">attn:</font></td>
+                                          <td><font face="arial" size="2">&nbsp;Order Processing&nbsp;</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font size="2">phone</font><font face="arial" size="2">:</font></td>
+                                          <td><font face="arial" size="2">&nbsp;2399492405&nbsp;</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font face="arial" size="2">fax:</font></td>
+                                          <td><font face="arial" size="2">&nbsp;5555555555&nbsp;</font></td>
+                                        </tr>
+                                        <tr>
+                                          <td align="right"><font face="arial" size="2">email:</font></td>
+                                          <td><font face="arial" size="2">&nbsp;MH2SQL@Lennar.com&nbsp;</font></td>
+                                        </tr>
+                                      </tbody></table></font>
+                                    </td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="1" cellpadding="0" width="500" border="0">
+                                  <tbody><tr>
+                                    <td align="middle" width="496" colspan="1"><p align="left">
+                                      <font face="Arial" size="2" color="black">* Please direct questions regarding the following order to the above contact.</font>
+                                      <br></p><hr>
+                                    </td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="1" cellpadding="2" width="500" border="0">
+                                  <tbody><tr>
+                                    <td align="right" width="106"><font face="arial" size="2"><b>Order Number : </b></font></td>
+                                    <td width="152"><font size="2" face="Arial">32373812-000</font></td>
+                                    <td align="right" width="63"><font face="arial" size="2"><b>Plan : </b></font></td>
+                                    <td width="208"><font face="arial" size="2">4163</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" align="right" width="96"><font face="arial" size="2"><b>Subdivision : </b></font></td>
+                                    <td width="152"><font face="Arial" size="2">PELICAN PRES - PRATO -GR VILLA - 966651</font></td>
+                                    <td valign="top" align="right" width="63"><font face="arial" size="2"><b>Elevation : </b></font></td>
+                                    <td valign="top" width="208"><font face="arial" size="2"></font></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" align="right" width="96" rowspan="2"><font face="arial" size="2"><b>&nbsp;Job Name : </b></font></td>
+                                    <td width="152" valign="top" rowspan="2"><font size="2" face="Arial">9666510604 - 10213 LIVORNO DR</font></td>
+                                    <td valign="top" align="right" width="63"><b><font face="arial" size="2">Lot : </font></b></td>
+                                      <td valign="top" width="208">
+                                      <font face="arial" size="2">0604</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" align="right" width="63"><b><font face="arial" size="2">Block : </font></b></td>
+                                      <td valign="top" width="208">
+                                      <font face="arial" size="2">ALERT WCI WARRANTY</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td align="right" width="96" valign="top"><font face="arial" size="2"><b>&nbsp;Task : </b></font></td>
+                                    <td valign="top" colspan="3"><font face="Arial" size="2">Duct Testing [9700185 - 32373812-000] [OS] [A]</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td align="right"><font face="arial" size="2">&nbsp;<b>Address : </b></font></td>
+                                    <td align="left" colspan="3"><font face="arial" size="2">10213 LIVORNO DR</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="4" height="5"></td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="0" cellpadding="2" width="500" border="1">
+                                  <tbody><tr>
+                                    <td colspan="4" align="center"><b><font face="arial" size="2">Item NO</font></b></td>
+                                    <td colspan="4" align="center"><b><font face="arial" size="2">Item</font></b></td>
+                                    <td colspan="4" align="center" nowrap=""><b><font face="arial" size="2">Qty Ordered</font></b></td>
+                                    <td colspan="4" align="center" nowrap=""><b><font face="arial" size="2">Qty Received</font></b></td>
+                                    <td colspan="4" align="center" nowrap=""><b><font face="arial" size="2">Unit Cost</font></b></td>
+                                    <td colspan="4" align="center"><b><font face="arial" size="2">Total</font></b></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="4" align="left"><font face="Arial" size="2"></font></td>
+                                    <td colspan="4" align="left"><font face="Arial" size="2">T-HVAC-Start Up/Test</font></td>
+                                    <td colspan="4" align="right"><font face="Arial" size="2">1.00</font></td>
+                                    <td colspan="4" align="right"><font face="Arial" size="2">1.00</font></td>
+                                    <td colspan="4" align="right"><font face="Arial" size="2">175.0000</font></td>
+                                    <td colspan="4" align="right"><font face="Arial" size="2">175.00</font></td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="0" cellpadding="0" width="500" border="0">
+                                  <tbody><tr>
+                                    <td colspan="3" height="10"></td>
+                                  </tr>
+                                  <tr>
+                                    <td width="400" align="right"><b><font face="arial" size="2">&nbsp;SUBTOTAL :</font></b></td>
+                                    <td align="right"><font face="Arial" size="2">$ 175.00</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td width="400" align="right"><b><font face="arial" size="2">&nbsp;ESTIMATED SALES TAX :</font></b></td>
+                                    <td align="right"><font face="Arial" size="2">$ 0.00</font></td>
+                                  </tr>
+                                  <tr>
+                                    <td width="400" align="right"><b><font face="arial" size="2">&nbsp;TOTAL DUE :</font></b></td>
+                                    <td align="right"><font face="Arial" size="2">$ 175.00</font></td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="4" cellpadding="0" width="500" border="0">
+                                  <tbody><tr>
+                                    <td valign="top" align="right" colspan="4"><p align="left"><b><font face="Arial" size="2">Task Start and End Dates : </font></b><font face="Arial" color="Black" size="2"> 09/05/2017 through 09/05/2017</font>
+                                    </p></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top" align="left" colspan="4"><font face="Arial" size="2"><b>Time Generated : </b> Sep  6 2017  5:26PM</font>
+                                    </td>
+                                  </tr>
+                                </tbody></table>
+                                <table cellspacing="4" cellpadding="0" width="500" border="0">
+                                  <tbody><tr>
+                                    <td width="10" valign="top" align="left">
+                                       <font face="Arial" size="2"><b>Note :</b></font>
+                                    </td>
+                                    <td width="400" valign="top" align="left"></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="2"><hr></td>
+                                  </tr>
+                                  <tr>
+                                    <td colspan="2" valign="top" align="left"><font face="Arial" size="1">If you have technical questions about this transmission, please call Customer Support at 1-877-508-2547 or email us at support@hyphensolutions.com. Powered by Hyphen Solutions - www.hyphensolutions.com</font>
+                                    </td>
+                                  </tr>
+                                </tbody></table>
+                              </td>
+                            </tr>
+                          </tbody></table>
+                        </td>
+                      </tr>
+                    </tbody></table>
+                    </font>
+                  </td>
+                </tr>
+              </tbody></table>
+            </td>
+          </tr>
+        </tbody></table>
+      </td>
+    </tr>
+  </tbody></table>';
     private $test_bodytext3 = '<table width="100%" border="0" cellpadding="0" cellspacing="0">
 <tbody><tr><td valign="top" align="center">
 <center><table width="330" border="0" cellpadding="1" cellspacing="0" bgcolor="black">
@@ -1410,4 +1612,5 @@ class CheckWCi
 </tbody></table>
 </td></tr>
 </tbody></table>';
+
 }

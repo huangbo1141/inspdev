@@ -2147,7 +2147,7 @@ class Inspection extends CI_Controller
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed to request!";
         $t = mdate('%Y%m%d%H%i%s', time());
-        
+
         if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
             $id = $this->input->get_post('id');
             $manager_id = $this->input->get_post('manager_id');
