@@ -35,7 +35,7 @@ class CheckWCi {
     private $pdo = null;
 
     public function __construct() {
-        
+
     }
 
     public function initdb() {
@@ -537,7 +537,7 @@ class CheckWCi {
                         // $data['$text'] = $text;
                         // $data['$this->index_coninfo'] = $this->index_coninfo;
                     } else {
-                        
+
                     }
                 }
             }
@@ -587,7 +587,7 @@ class CheckWCi {
             return null;
         }
 
-        
+
     }
 
     public function outputResult($content, $mode = 0) {
@@ -703,10 +703,9 @@ class CheckWCi {
 
     public function fetchMessages($limit = 2) {
         set_time_limit(0);
-        $host = "smtp.emailsrvr.com";
-        $host = "secure.emailsrvr.com";
-        $user = "inspect@e3bldg.com";
-        $password = "sN>8KM)=";
+        $host = $this->mail_host;
+        $user = $this->mail_user;
+        $password = $this->mail_password;
         $port = 110;
 
         $server = new Ddeboer\Imap\Server($host);
@@ -764,7 +763,7 @@ class CheckWCi {
                      }
                 }
             } catch (Exception $ex) {
-                
+
             }
             $ret[] = $subject;
 

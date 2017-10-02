@@ -64,7 +64,7 @@
                             <li>
                             </li>
                         </ul>
-                    </div>                    
+                    </div>
                     <!-- END PAGE HEADER-->
 
                     <!-- BEGIN PAGE CONTENT -->
@@ -80,7 +80,7 @@
                                     <?php
                                         echo "WCI Duct Leakage Inspection";
                                     ?>
-                                    
+
                                     <a href="" class="btn btn-danger" style="margin-left: 32px;" id="btn_report_duct" data-id="<?php echo $inspection['id']; ?>"><i class="fa fa-file-pdf-o"></i> Generate Report(Duct Leakage)</a>
                                     <a href="" class="btn btn-danger" style="margin-left: 32px;" id="btn_report_envelop" data-id="<?php echo $inspection['id']; ?>"><i class="fa fa-file-pdf-o"></i> Generate Report(Envelope Leakage)</a>
                                 </h3>
@@ -101,31 +101,37 @@
                                         </div>
                                         <div class="portlet-body">
                                             <form class="form-inline" action="#" method="post">
+                                              <div class="row margin-bottom-10">
+                                                  <label class="control-label text-right col-md-4">Permit Number :</label>
+                                                  <div class="col-md-6">
+                                                      <label class="control-label label-value"><?php echo $inspection['permit_number']; ?></label>
+                                                  </div>
+                                              </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Job Number :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['job_number']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Community :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['community']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">LOT# :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['lot']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Address :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['address']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">House Ready :</label>
                                                     <div class="col-md-6" style="padding-top: 3px;">
@@ -136,7 +142,7 @@
                                                             echo "<label class='label label-default'>No</label>";
                                                         }
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Location :</label>
@@ -150,7 +156,7 @@
                                                             }
                                                             ?>
                                                         </label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4"></label>
@@ -158,13 +164,13 @@
                                                             <?php
                                                             if ($inspection['latitude'] == '-1' && $inspection['longitude'] == '-1' && $inspection['accuracy'] == '-1') {
                                                             } else {
-                                                            ?>    
+                                                            ?>
                                                             <img class="img-responsive for-preview google-map" data-src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=15&scale=false&size=750x750&maptype=roadmap&format=jpg&visual_refresh=true"  src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map">
                                                             <?php
                                                             }
                                                             ?>
                                                         </label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Front Building :</label>
@@ -176,9 +182,9 @@
                                                             echo "<img src='" . $inspection['image_front_building'] . "' class='for-preview' style='max-width: 250px;'>";
                                                         }
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Duct Testing Setup Photo :</label>
                                                     <div class="col-md-6" <?php echo $inspection['image_testing_setup'] == "" ? "style='padding-top: 3px;'" : ""; ?>>
@@ -189,9 +195,9 @@
                                                             echo "<img src='" . $inspection['image_testing_setup'] . "' class='for-preview' style='max-width: 250px; max-height: 250px;'>";
                                                         }
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Manometer Photo :</label>
                                                     <div class="col-md-6" <?php echo $inspection['image_manometer'] == "" ? "style='padding-top: 3px;'" : ""; ?>>
@@ -202,12 +208,12 @@
                                                             echo "<img src='" . $inspection['image_manometer'] . "' class='for-preview' style='max-width: 250px; max-height: 250px;'>";
                                                         }
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                             </form>
                                         </div>
-                                    </div>                                        
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -229,8 +235,8 @@
                                                 <?php } ?>
                                             </ul>
                                         </div>
-                                    </div>                                        
-                                    
+                                    </div>
+
                                     <div class="portlet box blue-hoki">
                                         <div class="portlet-title">
                                             <div class="caption">
@@ -247,7 +253,7 @@
                                                     <label class="control-label text-right col-md-5">Overall Commments :</label>
                                                     <div class="col-md-6">
                                                         <p style="padding-top: 3px; font-weight: bold;"><?php echo $inspection['overall_comments']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Signature :</label>
@@ -255,51 +261,51 @@
                                                         <?php
                                                             echo "<img src='" . $inspection['image_signature'] . "' class='for-preview signature' style='max-width: 150px;'>";
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Cond. Floor Area(ft<sup>2</sup>) :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['area']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Cond. Volume(ft<sup>3</sup>) :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['volume']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Wall Area(ft<sup>2</sup>) :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['wall_area']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Ceiling Area(ft<sup>2</sup>) :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['ceiling_area']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
 
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">House Pressure :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['house_pressure']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Flow :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['flow']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Duct Leakage Result :</label>
                                                     <div class="col-md-6" style="padding-top: 3px;">
-                                                        <?php 
+                                                        <?php
                                                         $cls = "label-default";
                                                         if ($inspection['result_duct_leakage']=='1')
                                                             $cls = "label-success";
@@ -309,25 +315,25 @@
                                                             $cls = "label-danger";
                                                         ?>
                                                         <label class="label <?php echo $cls; ?>"><?php echo $inspection['result_duct_leakage_name']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Qn :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['qn']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Qn.Out :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['qn_out']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
 
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">Envelope Leakage Result :</label>
                                                     <div class="col-md-6" style="padding-top: 3px;">
-                                                        <?php 
+                                                        <?php
                                                         $cls = "label-default";
                                                         if ($inspection['result_envelop_leakage']=='1')
                                                             $cls = "label-success";
@@ -337,28 +343,28 @@
                                                             $cls = "label-danger";
                                                         ?>
                                                         <label class="label <?php echo $cls; ?>"><?php echo $inspection['result_envelop_leakage_name']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-5">ACH50 :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['ach50']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                             </form>
                                         </div>
-                                    </div>                                        
+                                    </div>
                                 </div>
 
                             </div>
-                            
+
                             <div class="row">
-                                
+
                             </div>
 
                         </div>
-                    </div>    
+                    </div>
                     <!-- END PAGE CONTENT -->
 
                 </div>

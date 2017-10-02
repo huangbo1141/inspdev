@@ -2318,7 +2318,7 @@ class Inspection extends CI_Controller
             default: {
                     $ip = $this->get_client_ip();
                     $this->m_checkwci->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
-                    $this->m_checkwci->setMailInfo(SMTP_HOST, SMTP_USER, SMTP_PASSWORD);
+                    $this->m_checkwci->setMailInfo(SMTP_HOST2, SMTP_USER, SMTP_PASSWORD);
                     $this->m_checkwci->initialize();
                     $this->m_checkwci->ipaddr = $ip;
                     $ret = $this->m_checkwci->wci->start(0,$ip);  //16

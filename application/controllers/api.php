@@ -36,7 +36,7 @@ class Api extends CI_Controller {
 
         $this->load->library('mailer/phpmailerex');
         $this->load->helper('csv');
-        
+
         $this->load->library('upload');
     }
 
@@ -425,28 +425,28 @@ class Api extends CI_Controller {
                                 );
 
                                 if ($edit_inspection_id != "") {
-                                    
+
                                 } else {
                                     $data['start_date'] = date('Y-m-d', time()); // $obj->start_date,
                                     $data['end_date'] = date('Y-m-d', time()); // $obj->start_date,
                                 }
 
                                 if ($edit_inspection_id != "") {
-                                    
+
                                 } else {
                                     if (isset($obj->is_building_unit)) {
                                         $data['is_building_unit'] = $obj->is_building_unit;
 
                                         $old_inspection = $this->utility_model->get('ins_inspection', array('type' => $type, 'job_number' => $obj->job_number, 'address' => $obj->address, 'is_building_unit' => 1));
                                         if ($old_inspection) {
-                                            
+
                                         } else {
                                             $data['first_submitted'] = 1;
                                         }
                                     } else {
                                         $old_inspection = $this->utility_model->get('ins_inspection', array('type' => $type, 'job_number' => $obj->job_number));
                                         if ($old_inspection) {
-                                            
+
                                         } else {
                                             $data['first_submitted'] = 1;
                                         }
@@ -540,7 +540,7 @@ class Api extends CI_Controller {
                     $user = $this->utility_model->get('ins_user', array('id' => $user_id));
                     if ($user) {
                         if ($param == 'check') {
-                            
+
                         } elseif ($param == 'submit') {
                             $req = $this->input->get_post('request');
                             $app_version = $this->input->get_post('version');
@@ -558,6 +558,7 @@ class Api extends CI_Controller {
                                 $requested_inspection_id = $obj->requested_id;
 
                                 $data = array(
+                                    'permit_number'=>$obj->permit_number,
                                     'user_id' => $user_id,
                                     'type' => $type,
                                     'job_number' => $obj->job_number,
@@ -605,14 +606,14 @@ class Api extends CI_Controller {
 
                                     $old_inspection = $this->utility_model->get('ins_inspection', array('type' => $type, 'job_number' => $obj->job_number, 'address' => $obj->address, 'is_building_unit' => 1));
                                     if ($old_inspection) {
-                                        
+
                                     } else {
                                         $data['first_submitted'] = 1;
                                     }
                                 } else {
                                     $old_inspection = $this->utility_model->get('ins_inspection', array('type' => $type, 'job_number' => $obj->job_number));
                                     if ($old_inspection) {
-                                        
+
                                     } else {
                                         $data['first_submitted'] = 1;
                                     }
@@ -663,7 +664,7 @@ class Api extends CI_Controller {
                     $user = $this->utility_model->get('ins_user', array('id' => $user_id));
                     if ($user) {
                         $table = " ins_inspection_requested a "
-                                . " left join ins_community c on c.community_id=substr(a.job_number,1,4) "
+                                . " left join ins_community c on c.community_name=a.community_name "
 //                               . " left join ins_region r on c.region=r.id "
                                 . " left join ins_admin m on a.manager_id=m.id "
                                 . " ";
@@ -680,17 +681,65 @@ class Api extends CI_Controller {
 //                                . " u.first_name, u.last_name "
                                 . " from ins_user u, " . $table . " where u.id=a.inspector_id and a.status=1 and a.inspector_id='" . $user_id . "' ";
 
-                        if ($requested_date != "") {
+                        if (false) {
                             $vartime = strtotime("$requested_date 00:00:00"); // 2016-05-12 16:43:30
                             $first = date('Y-m-d H:i:s', strtotime("7 day", $vartime));
                             $date_7days = substr($first, 0, 10);
                             $sql .= " and ( a.requested_at >= '$requested_date' and a.requested_at <= '$date_7days' )";
                         }
+                        if ($requested_date != "") {
+                            $vartime = strtotime("$requested_date 00:00:00"); // 2016-05-12 16:43:30
+                            $first = date('Y-m-d H:i:s', strtotime("7 day", $vartime));
+                            $date_7days = substr($first, 0, 10);
+                            $sql .= " and a.requested_at = '$requested_date'";
+                        }
 
                         $sql .= " order by a.requested_at asc, a.job_number asc ";
                         $response['sql'] = $sql;
                         $requested_list = $this->utility_model->get_list__by_sql($sql);
-                        $result_data = $requested_list;
+                        $requested_list2 = array();
+                        if(count($requested_list)>0 && $requested_date != ""){
+                            $community_ids = array();
+                            $in_sql = "(";
+                            foreach ($requested_list as $key => $value) {
+                              $community_ids[] = $value['community_id'];
+                              $in_sql = $in_sql."'".$value['community_id']."',";
+                            }
+                            $in_sql = substr($in_sql,0,strlen($in_sql)-1);
+                            $in_sql = $in_sql.")";
+                            $table = " ins_inspection_requested a "
+                                    . " left join ins_community c on c.community_name=a.community_name "
+    //                               . " left join ins_region r on c.region=r.id "
+                                    . " left join ins_admin m on a.manager_id=m.id "
+                                    . " ";
+
+                            $sql = " select a.id, a.category, a.reinspection, a.epo_number, a.job_number, a.lot, a.requested_at, "
+                                    . " a.assigned_at, a.completed_at, a.manager_id, a.inspector_id, "
+                                    . " a.time_stamp, a.ip_address, a.community_name, a.lot, a.address, a.status, a.area, a.volume, a.qn, a.is_building_unit, "
+                                    . " a.city as city_duct, a.wall_area, a.ceiling_area, a.design_location, "
+                                    . " a.inspection_id as edit_inspection_id, "
+    //                                . " concat(m.first_name, ' ', m.last_name) as field_managenoasr_name, "
+    //                                . " c1.name as category_name, "
+                                    . " c.community_id, c.city, m.region "
+    //                                . " r.region as region_name, "
+    //                                . " u.first_name, u.last_name "
+                                    . " from " . $table
+                                    . " where c.community_id in $in_sql";
+
+                            $vartime = strtotime("$requested_date 00:00:00"); // 2016-05-12 16:43:30
+                            $first = date('Y-m-d H:i:s', strtotime("7 day", $vartime));
+                            $date_7days = substr($first, 0, 10);
+                            $sql .= " and ( a.requested_at > '$requested_date' and a.requested_at <= '$date_7days' )";
+
+                            $sql .= " order by a.requested_at asc, a.job_number asc ";
+
+                            $response['sql2'] = $sql;
+                            $requested_list2 = $this->utility_model->get_list__by_sql($sql);
+                        }
+
+
+
+                        $result_data = array_merge($requested_list,$requested_list2);
 
                         $response['status'] = $this->status[0];
                     } else {
@@ -760,7 +809,7 @@ class Api extends CI_Controller {
                     foreach ($ids as $row) {
                         $region = $this->utility_model->get('ins_region', array('id' => $row));
                         if ($region) {
-                            
+
                         } else {
                             array_push($result_data['delete'], $row);
                         }
@@ -781,7 +830,7 @@ class Api extends CI_Controller {
                     foreach ($ids as $row) {
                         $fm = $this->utility_model->get('ins_admin', array('id' => $row));
                         if ($fm) {
-                            
+
                         } else {
                             array_push($result_data['delete'], $row);
                         }
@@ -865,7 +914,7 @@ class Api extends CI_Controller {
                     foreach ($ids as $row) {
                         $region = $this->utility_model->get('ins_region', array('id' => $row));
                         if ($region) {
-                            
+
                         } else {
                             array_push($result_data['delete'], $row);
                         }
@@ -885,7 +934,7 @@ class Api extends CI_Controller {
 
                     foreach ($ids as $row) {
                         if ($this->utility_model->get('ins_admin', array('id' => $row))) {
-                            
+
                         } else {
                             array_push($result_data['delete'], $row);
                         }
@@ -968,7 +1017,7 @@ class Api extends CI_Controller {
     }
 
     public function upload($kind = '', $type = '') {
-        
+
         $msg = array('code' => 1, 'message' => 'Failed!', 'url' => '', 'path' => '');
         $msg['kind'] = $kind;
         $msg['type'] = $type;
@@ -1573,7 +1622,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -1649,7 +1698,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -1723,7 +1772,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -1789,7 +1838,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -1855,7 +1904,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -1970,7 +2019,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -2057,7 +2106,7 @@ class Api extends CI_Controller {
                             $response['code'] = 0;
                             $response['message'] = "Successfully Sent!";
                         } else {
-                            
+
                         }
 
                         sleep(1);
@@ -2419,7 +2468,7 @@ class Api extends CI_Controller {
         }
 
         if ($inspection['latitude'] == '-1' && $inspection['longitude'] == '-1' && $inspection['accuracy'] == '-1') {
-            
+
         } else {
             $google_map = "<img width='300' src='http://maps.googleapis.com/maps/api/staticmap?center=" . $inspection['latitude'] . "+" . $inspection['longitude'] . "&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true' alt='Google Map'>";
             $html_body .="<tr><td colspan='2'>GPS Location : <span>Lat: " . $inspection['latitude'] . ", Lon: " . $inspection['longitude'] . ", Acc: " . $inspection['accuracy'] . "m</span></td></tr>";
@@ -2600,7 +2649,7 @@ class Api extends CI_Controller {
         $mail->AltBody = "";
 
         if ($mail->send()) {
-            
+
         } else {
             return $mail->ErrorInfo;
         }
@@ -2648,7 +2697,7 @@ class Api extends CI_Controller {
         //        $mail->addAttachment($file);
 
         if ($mail->send()) {
-            
+
         } else {
             return $mail->ErrorInfo;
         }
@@ -2698,7 +2747,7 @@ class Api extends CI_Controller {
         //        }
 
         if ($mail->send()) {
-            
+
         } else {
             return $mail->ErrorInfo;
         }
@@ -2727,7 +2776,7 @@ class Api extends CI_Controller {
                 }
             } else {
                 if ($c == 15 || $c == 13) {
-                    
+
                 } else {
                     $result['omit'] = 1;
                 }
@@ -3548,7 +3597,7 @@ class Api extends CI_Controller {
                 }
 
                 if ($is_array) {
-                    
+
                 } else {
                     $count_text .= '<span class="total-' . $row['status_code'] . '">';
                 }
@@ -3560,7 +3609,7 @@ class Api extends CI_Controller {
                 }
 
                 if ($is_array) {
-                    
+
                 } else {
                     $count_text .= '</span>';
                 }
@@ -4202,7 +4251,7 @@ class Api extends CI_Controller {
                 $inspections = $this->datatable_model->get_count($sql);
                 $row['inspections'] = $inspections;
             } else {
-                
+
             }
 
             if ($inspections == 0) {

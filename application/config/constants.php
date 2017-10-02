@@ -51,6 +51,7 @@ define("DB_DATABASE", 'inspdev');
 define("DB_PREFIX", 'ins_');
 
 // SMTP Configuration
+define('SMTP_HOST2', 'secure.emailsrvr.com');
 define('SMTP_HOST', 'smtp.emailsrvr.com');
 define('SMTP_USER', 'inspect@e3bldg.com');
 define('SMTP_PASSWORD', 'sN>8KM)=');
