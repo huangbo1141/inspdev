@@ -388,9 +388,6 @@ function submit_data(inspection_id) {
 function init() {
   hide_appendix();
 
-  // var permission = $("#user_permission").val();
-  // alert(permission);
-
   if ($("#msg_alert").html() != '') {
     setTimeout(hideAlert, 2000);
   }
@@ -492,6 +489,7 @@ function check_job_number() {
             }
 
             $("#reinspection").val('0');
+            $("#epo_number").val('');
 
             if (data.pass != null && data.pass > 0) {
               showAlert("It have already Passed Inspection!");
@@ -502,6 +500,9 @@ function check_job_number() {
               return false;
             } else if (data.fail != null && data.fail > 0) {
               $("#reinspection").val('1');
+              if (data.fail_epo != null && data.fail_epo > 0) {
+                $("#epo_number").val(data.fail_epo);
+              }
             }
 
             $("#reinspection").trigger('change');
@@ -520,8 +521,6 @@ function check_job_number() {
                   "</b>, Lot <b>" + v.substr(5, 3) + "</b> and Address <b>" + data.building.address +
                   "</b>.<br>If the details are correct, press <b>Continue</b>.<br>If you need to update the details fill all the fields after you click <b>Edit</b>.<br>If you want to enter a different job number click <b>Change</b>.");
                 $("#job_confirm_dialog .modal-footer .btn-primary").show();
-                // admin user
-
               } else {
                 $("#job_confirm_dialog .modal-body .bootbox-body").html("Please Confirm: <br>" +
                   "Job Number : <b>" + v + "</b><br>" +
@@ -728,18 +727,20 @@ jQuery(document).ready(function() {
         if (details == "") {
           showAlert("Enter the Details");
         } else {
-          var permission = $("#user_permission").val();
-          if (permission == "2") {
-            // when field manager
-            if (epo == "") {
-              showAlert("Enter the EPO Number");
-              return;
+          if ($("#reinspection").val() == "1") {
+            var permission = $("#user_permission").val();
+            if (permission == "2") {
+              // when field manager
+              if (epo == "") {
+                showAlert("Enter the EPO Number");
+                return;
+              }
             }
           }
-          //          showAlert("do_confirm_submit");
           confirm_submit('', '', $("#g_job_number").val(), details);
         }
       } else {
+
         var v = $("#job_number").val();
         v = v.replace(/_/g, ""); //.replace(/X/g, "");
 
@@ -776,15 +777,16 @@ jQuery(document).ready(function() {
 
               $('form').bootstrapValidator('resetForm', false);
             } else {
-              var permission = $("#user_permission").val();
-              if (permission == "2") {
-                // when field manager
-                if (epo == "") {
-                  showAlert("Enter the EPO Number");
-                  return;
+              if ($("#reinspection").val() == "1") {
+                var permission = $("#user_permission").val();
+                if (permission == "2") {
+                  // when field manager
+                  if (epo == "") {
+                    showAlert("Enter the EPO Number");
+                    return;
+                  }
                 }
               }
-              //              showAlert("do_confirm_submit");
               confirm_submit(lot, addr, v, '');
             }
 

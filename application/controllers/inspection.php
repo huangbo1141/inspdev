@@ -1243,6 +1243,19 @@ class Inspection extends CI_Controller
                 $t = $this->utility_model->get_count__by_sql($sql);
                 if ($t > 0) {
                     $res['fail'] = $t;
+                    $sql = "select * from ins_inspection_requested where job_number = '$job_number' order by requested_at desc";
+                    $list_temp = $this->utility_model->get_list__by_sql($sql);
+                    $epo = "";
+                    if (is_array($list_temp)&&count($list_temp)>0) {
+                        for ($ii=0; $ii <count($list_temp) ; $ii++) {
+                            $irow = $list_temp[$ii];
+                            if (isset($irow['epo_number'])&&$irow['epo_number']>0) {
+                                $epo = $irow['epo_number'];
+                                break;
+                            }
+                        }
+                    }
+                    $res['fail_epo'] = (string)$epo;
                 }
 
                 $fm_result = array('has' => 0);
