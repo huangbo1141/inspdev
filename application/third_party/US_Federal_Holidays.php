@@ -38,6 +38,26 @@ class US_Federal_Holidays {
         return $timestamp;
     }
 
+    public function filterList($list_temp){
+      if (is_array($list_temp)&&count($list_temp)>0) {
+          for ($ii=0; $ii <count($list_temp) ; $ii++) {
+              $irow = $list_temp[$ii];
+              $name = trim($irow['name']);
+              $valid = intval(trim($irow['valid']));
+              if ($valid == 0) {
+                foreach ($this->list as $key =>$holiday) {
+                    $m_name = trim($holiday['name']);
+                    $m_timestamp = trim($holiday['timestamp']);
+                    if ($name == $m_name) {
+                        // when found;
+                        unset($this->list[$key]);
+                    }
+                }
+              }
+
+          }
+      }
+    }
     private function set_list() {
         $this->list = array
             (

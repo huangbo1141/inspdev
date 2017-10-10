@@ -582,6 +582,9 @@ class Inspection extends CI_Controller
         date_default_timezone_set("America/New_York");
         $holidays = new Holiday();
 
+        $list_temp = $this->utility_model->get_list__by_sql("select * from sys_config_holiday");
+        $holidays->filterList($list_temp);
+
         $business_day = 0;
         $tm = time();
 
@@ -614,6 +617,8 @@ class Inspection extends CI_Controller
     {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed!";
+
+
 
         if ($this->session->userdata('user_id')) {
             $id = $this->input->get_post('id');
@@ -694,6 +699,8 @@ class Inspection extends CI_Controller
                 $data['manager_id'] = $this->session->userdata('user_id');
 
                 $holidays = new Holiday();
+                $list_temp = $this->utility_model->get_list__by_sql("select * from sys_config_holiday");
+                $holidays->filterList($list_temp);
                 $business_day = 0;
 
                 if (intval(date('H', $ttt)) >= 16) {
@@ -2225,9 +2232,15 @@ class Inspection extends CI_Controller
 
     public function test()
     {
-        echo $this->get_valid_requested_date();
-        echo "<br>";
-        echo "<br>";
+        $holidays = new Holiday();
+
+        $list_temp = $this->utility_model->get_list__by_sql("select * from sys_config_holiday");
+        $holidays->filterList($list_temp);
+
+        $list = $holidays->get_list();
+        echo "<pre>";
+        print_r($list);
+        echo "<pre/>";
     }
 
     public function testajax()

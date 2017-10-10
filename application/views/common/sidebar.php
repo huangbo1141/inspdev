@@ -450,7 +450,7 @@
     <?php if ($user_permission == 1) { ?>
 
     <?php if ($page_name == 'setting' || $page_name == 'recipient_email' || $page_name == 'report_template'
-    || $page_name == 'admin_configuration' || $page_name == 'admin_energy_inspection') { ?>
+    || $page_name == 'admin_configuration' || $page_name == 'admin_holidays' || $page_name == 'admin_energy_inspection') { ?>
         <li class="active open">
             <a href="#">
                 <i class="fa fa-cogs"></i>
@@ -464,6 +464,12 @@
                 <li class="active"><a href="<?php echo $basePath; ?>admin/configuration.html"> Configuration</a></li>
             <?php } else { ?>
                 <li><a href="<?php echo $basePath; ?>admin/configuration.html"> Configuration</a></li>
+            <?php } ?>
+
+            <?php if ($page_name == 'admin_holidays') { ?>
+                <li class="active"><a href="<?php echo $basePath; ?>admin/holidays.html"> Holidays</a></li>
+            <?php } else { ?>
+                <li><a href="<?php echo $basePath; ?>admin/holidays.html"> Holidays</a></li>
             <?php } ?>
 
             <?php if ($page_name == 'recipient_email') { ?>
@@ -496,6 +502,7 @@
             </a>
             <ul class="sub-menu">
                 <li><a href="<?php echo $basePath; ?>admin/configuration.html"> Configuration</a></li>
+                <li><a href="<?php echo $basePath; ?>admin/holidays.html"> Holidays</a></li>
                 <li><a href="<?php echo $basePath; ?>admin/recipient.html"> Recipient Email</a></li>
                 <li><a href="<?php echo $basePath; ?>admin/template.html"> Report Template</a></li>
                 <li><a href="<?php echo $basePath; ?>admin/energy_inspection.html"> Energy Inspection</a></li>

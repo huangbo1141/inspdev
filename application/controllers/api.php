@@ -732,7 +732,6 @@ class Api extends CI_Controller {
                             $sql .= " and ( a.requested_at > '$requested_date' and a.requested_at <= '$date_7days' )";
 
                             $sql .= " order by a.requested_at asc, a.job_number asc ";
-
                             $response['sql2'] = $sql;
                             $requested_list2 = $this->utility_model->get_list__by_sql($sql);
                         }
@@ -740,6 +739,15 @@ class Api extends CI_Controller {
 
 
                         $result_data = array_merge($requested_list,$requested_list2);
+                        $list_temp = array();
+                        foreach ($result_data as $key => $value) {
+                            $id = $value['id'];
+                            $list_temp[$id] = $value;
+                        }
+                        $result_data = array();
+                        foreach ($list_temp as $key => $value) {
+                          $result_data[] = $value;
+                        }
 
                         $response['status'] = $this->status[0];
                     } else {

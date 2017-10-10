@@ -15,5 +15,6 @@ class Holiday extends US_Federal_Holidays {
     public function __construct() {
         parent::__construct();
     }
+    
 }
 ?>

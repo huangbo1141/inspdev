@@ -33,6 +33,18 @@ class Admin extends CI_Controller {
 
         $this->load->view('admin_configuration', $page_data);
     }
+    public function holidays() {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
+            redirect(base_url() . "user/login.html");
+            exit(1);
+        }
+
+        $page_data['page_name'] = 'admin_holidays';
+        $list_temp = $this->utility_model->get_list__by_sql("select * from sys_config_holiday");
+        $page_data['holidays'] = $list_temp;
+
+        $this->load->view('admin_holidays', $page_data);
+    }
 
     public function update_configuration() {
         $res = array('code'=>-1, 'message'=>'Failed');
@@ -56,6 +68,35 @@ class Admin extends CI_Controller {
                     } else {
                         $res['message'] = "Failed to Update";
                     }
+                }
+            }
+        }
+
+        print_r(json_encode($res));
+    }
+    public function update_holidays() {
+        $res = array('code'=>-1, 'message'=>'Failed');
+
+        if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
+            $jsondata = $this->input->get_post('jsondata');
+            if ($jsondata=="") {
+                $res['message'] = "Fail to Update";
+            } else {
+                $myArray = json_decode($jsondata, true);
+                $res['message'] = "Success";
+                $res['code'] = 0;
+                $res['updates'] = array();
+                for ($i=0; $i < count($myArray); $i++) {
+                  $row = $myArray[$i];
+                  $id = $row['id'];
+                  $valid = $row['valid'];
+                  if ($this->utility_model->update('sys_config_holiday', array('valid'=>$valid), array('id'=>$id))) {
+                      $row['success'] = 1;
+                      $res['updates'][] = $row;
+                  } else {
+                    $row['success'] = 0;
+                      $res['updates'][] = $row;
+                  }
                 }
             }
         }
