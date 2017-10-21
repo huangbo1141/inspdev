@@ -51,6 +51,19 @@
             <!-- END PAGE HEADER-->
 
             <!-- BEGIN PAGE CONTENT -->
+            <?php
+              $check_flag1 = false;   //  when user is field manager of drain or lath and inspection requested is assigned status
+              $readonly_str1 = "";
+              if (isset($inspection['status']) && $user_permission == 2 && $user_builder == 1) {
+                $status = $inspection['status'];
+                if ($status == 1) { //  assigned one
+                  $check_flag1 = true;
+                }
+              }
+              if ($check_flag1) {
+                $readonly_str1 = 'readonly';
+              }
+             ?>
             <div class="row page_content profile-page">
                 <div class="col-md-8 col-sm-8">
                     <form action="#" method="post" data-toggle="validator" role="form" id="frm_inspection">
@@ -73,9 +86,9 @@
                         <div class="row margin-bottom-10 form-group">
                             <label class="control-label col-md-3" for="category">Inspection Category :</label>
                             <div class="col-md-5">
-                                <select class="form-control" id="category" name="category">
+                                <select class="form-control" id="category" name="category" <?php echo $check_flag1?'readonly':'' ?>>
                                     <?php foreach ($category as $row) { ?>
-                                            <option <?php echo $inspection['category'] == $row['code'] ? 'selected' : ''; ?> value="<?php echo $row['code']; ?>"><?php echo $row['name']; ?></option>
+                                            <option <?php echo $inspection['category'] == $row['code'] ? 'selected' : ''; ?> value="<?php echo $row['code']; ?>"  <?php echo $check_flag1?'disabled':'' ?> ><?php echo $row['name']; ?></option>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -83,7 +96,7 @@
                         <div class="row margin-bottom-10 form-group for-model-home-hidden">
                             <label class="control-label col-md-3" for="job_number">Job Number :</label>
                             <div class="col-md-5">
-                                <input type="text" placeholder="" data-mask="" id="job_number" name="job_number" class="form-control" maxlength="11" value="<?php echo $inspection['job_number'];?>">
+                                <input <?php echo $check_flag1?'readonly':'' ?> type="text" placeholder="" data-mask="" id="job_number" name="job_number" class="form-control" maxlength="11" value="<?php echo $inspection['job_number'];?>">
                             </div>
                         </div>
                         <div class="row margin-bottom-10 form-group">
@@ -132,7 +145,7 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group for-model-home-visible">
                             <label class="control-label col-md-3" for="community_id">Community :</label>
                             <div class="col-md-5">
@@ -155,11 +168,11 @@
                                 <input type="text" placeholder="" id="details" name="details" class="form-control" value="<?php echo $inspection['address']; ?>">
                             </div>
                         </div>
-                        
+
                         <div class="row margin-bottom-10 form-group for-edit-inspection-requested" style="display: none;">
                             <label class="control-label col-md-3" for="field_manager">Field Manager :</label>
                             <div class="col-md-5">
-                                <select class="form-control" id="field_manager">
+                                <select class="form-control" id="field_manager" <?php echo $check_flag1?'readonly':'' ?>>
                                 </select>
                             </div>
                         </div>
@@ -169,7 +182,7 @@
                             <div class="col-md-5">
                                 <button type="submit" class="btn btn-warning">Submit</button>
                             </div>
-                            
+
                             <input type="hidden" id="inspector_id" name="inspector_id" value="">
                             <input type="hidden" id="requested_id" name="requested_id" value="<?php echo $inspection['id']; ?>">
                         </div>

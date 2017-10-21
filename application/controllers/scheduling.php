@@ -4,7 +4,7 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
 class Scheduling extends CI_Controller {
-    
+
 
     public function __construct() {
         parent::__construct();
@@ -33,7 +33,7 @@ class Scheduling extends CI_Controller {
 //            $mail->isMail();                                      // Set mailer to use SMTP
 //        }
         $mail->isSMTP();                                      // Set mailer to use SMTP
-        
+
         $mail->Host = SMTP_HOST;  // Specify main and backup SMTP servers
         $mail->SMTPAuth = true;                               // Enable SMTP authentication
         $mail->Username = SMTP_USER;                // SMTP username
@@ -75,7 +75,7 @@ class Scheduling extends CI_Controller {
         $page_data['start_date'] = date('Y-m-d', $time-7*24*60*60);
         $page_data['end_date'] = date('Y-m-d', $time+30*24*60*60);
         $page_data['region'] = $this->utility_model->get_list('ins_region', array());
-        
+
         $page_data['page_name'] = 'scheduling_energy';
         $this->load->view('scheduling_energy', $page_data);
     }
@@ -108,7 +108,7 @@ class Scheduling extends CI_Controller {
 
         print_r(json_encode($res));
     }
-    
+
     public function assign_inspector() {
         $res = array('err_code'=>1);
         $res['err_msg'] = "Failed to assign!";
@@ -116,22 +116,22 @@ class Scheduling extends CI_Controller {
         if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
             $inspection_id = $this->input->get_post('inspection_id');
             $inspector_id = $this->input->get_post('inspector_id');
-            
+
             if ($inspection_id!==false && $inspector_id!==false && $inspection_id!="" && $inspector_id!="") {
                 $today = mdate('%Y-%m-%d', time());
-                
+
                 $data = array(
                     'inspector_id'=>$inspector_id,
                     'assigned_at'=>$today,
                     'status'=>1,
                     'time_stamp'=>mdate('%Y%m%d%H%i%s', time()),
                 );
-                
+
                 if ($inspector_id=="0") {
                     $data['assigned_at'] = null;
                     $data['status'] = 0;
                 }
-                
+
                 if ($this->utility_model->update('ins_inspection_requested', $data, array('id'=>$inspection_id))) {
                     $res['err_msg'] = "Successfully Assigned!";
                     $res['err_code'] = 0;
@@ -145,11 +145,11 @@ class Scheduling extends CI_Controller {
 
         print_r(json_encode($res));
     }
-    
+
     public function load(){
 
         $cols = array( "a.requested_at", "a.community_name", "a.job_number", "a.address", "c.city", "m.first_name", "a.category", "a.time_stamp", "u.first_name", );
-        
+
         $table = " ins_inspection_requested a "
                . " left join ins_community c on c.community_id=substr(a.job_number,1,4)"
                . " left join ins_region r on c.region=r.id "
@@ -168,7 +168,7 @@ class Scheduling extends CI_Controller {
             $table .= " and ( a.category=3 )";
         } else {
         }
-        
+
         $result = array();
 
         $amount = 10;
@@ -183,28 +183,28 @@ class Scheduling extends CI_Controller {
         $end_date = $this->input->get_post('end_date');
 
         $common_sql = "";
-        
+
         if ($start_date!==false && $start_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.requested_at>='$start_date' ";
         }
-        
+
         if ($end_date!==false && $end_date!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " a.requested_at<='$end_date' ";
         }
-        
+
         if ($region!==false && $region!="") {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " c.region='$region' ";
         }
 
@@ -212,10 +212,10 @@ class Scheduling extends CI_Controller {
             if ($common_sql!="") {
                 $common_sql .= " and ";
             }
-            
+
             $common_sql .= " substr(a.job_number,1,4)='$community' ";
         }
-        
+
         $sStart = $this->input->get_post('start');
         $sAmount = $this->input->get_post('length');
 
@@ -225,17 +225,17 @@ class Scheduling extends CI_Controller {
             foreach ($order as $row) {
                 $col = intval($row['column']);
                 $dir = $row['dir'];
-                
+
                 if ($col<0 || $col>8){
                     $col=0;
                 }
-                
+
                 if ($order_sql!="") {
                     $order_sql .= ", ";
                 }
                 $order_sql .= $cols[$col] . " " . $dir . " ";
             }
-            
+
             if ($order_sql!="") {
                 $order_sql = " order by " . $order_sql;
             }
@@ -269,7 +269,7 @@ class Scheduling extends CI_Controller {
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $total = $this->datatable_model->get_count($sql);
         $totalAfterFilter = $total;
 
@@ -279,11 +279,11 @@ class Scheduling extends CI_Controller {
                 . " m.first_name, m.last_name, concat(u.first_name, ' ', u.last_name) as inspector_name, "
                 . " c1.name as category_name, c.community_id, c.region, r.region as region_name, c.city "
                 . " from ins_code c1, " . $table . " and c1.kind='ins' and c1.code=a.category ";
-        
+
         if ($common_sql!="") {
             $sql .= " and " . $common_sql;
         }
-        
+
         $searchSQL = "";
         $globalSearch = " ( "
             . " replace(a.job_number,'-','') like '%" . str_replace('-','',$searchTerm) . "%' or "
@@ -304,16 +304,54 @@ class Scheduling extends CI_Controller {
 
         $sql .= $searchSQL;
         $sql .= $order_sql;
-        
+
         $sql .= " limit " . $start . ", " . $amount . " ";
         $data = $this->datatable_model->get_content($sql);
+        $result["sql"] = $sql;
+        if (is_array($data)) {
+            $mtable = " ins_region r, ins_code c1, ins_code c2,  "
+                    . " ( SELECT p1.inspection_id, p2.* "
+                    . "   FROM "
+                    . "    ( SELECT MAX(t.id) AS inspection_id, t.job_number, bbb.address, t.type FROM ins_inspection t LEFT JOIN ins_building_unit bbb ON REPLACE(t.job_number,'-','')=REPLACE(bbb.job_number, '-', '') AND bbb.address=t.address AND bbb.address=t.address and t.is_building_unit=1 GROUP BY t.job_number, bbb.address, t.type ) p1, "
+                    . "    ( SELECT t.type, t.job_number, bbb.address, MAX(t.start_date) AS inspection_date, COUNT(*) AS inspection_count  FROM ins_inspection t  LEFT JOIN ins_building_unit bbb ON REPLACE(t.job_number,'-','')=REPLACE(bbb.job_number, '-', '') AND bbb.address=t.address and t.is_building_unit=1 GROUP BY t.job_number, bbb.address, t.type ) p2 "
+                    . "   WHERE p1.type=p2.type AND p1.job_number=p2.job_number AND ((p1.address IS NULL AND p2.address IS NULL) OR p1.address=p2.address) "
+                    . " ) g "
+                    . " LEFT JOIN ins_inspection a ON g.inspection_id=a.id "
+                    . " LEFT JOIN ins_inspection_requested q ON a.requested_id=q.id "
+                    . " LEFT JOIN ins_admin u ON a.field_manager=u.id AND u.kind=2 "
+                    . " LEFT JOIN ins_community tt ON tt.community_id=a.community "
+                    . " WHERE a.region=r.id AND c1.kind='ins' AND c1.code=a.type AND c2.kind='rst' "
+                    . " AND c2.code=a.result_code "
+                    . " ";
+            $base_sql = " select  a.*, "
+                    . " (g.inspection_count-1) as inspection_count, q.epo_number as requested_epo_number, "
+                    . " c1.name as inspection_type, c2.name as result_name, "
+                    . " r.region as region_name, tt.community_name, "
+                    . " u.first_name, u.last_name, '' as additional "
+                    . " from " . $mtable . " ";
+            foreach ($data as $key => $value) {
+
+              $id = $value['id'];
+              $job_number = $value['job_number'];
+              $category = $value['category'];
+              $msql = $base_sql." and q.job_number = '$job_number' and q.category = $category";
+              $mdata = $this->datatable_model->get_content($msql);
+              if (is_array($mdata)) {
+                $value['re_inspection'] = $mdata[0]['inspection_count'];
+              }else{
+                $value['re_inspection'] = '0';
+              }
+              $result["sql".$key] = $msql;
+              $data[$key] = $value;
+            }
+        }
 
         $sql = " select count(*) from ins_code c1 , " . $table . " and c1.kind='ins' and c1.code=a.category  ";
         if (strlen($searchSQL)>0){
             if ($common_sql!="") {
                 $sql .= " and " . $common_sql;
             }
-            
+
             $sql .= $searchSQL;
             $totalAfterFilter = $this->datatable_model->get_count($sql);
         }
@@ -328,5 +366,5 @@ class Scheduling extends CI_Controller {
 
         print_r(json_encode($result));
     }
-    
+
 }

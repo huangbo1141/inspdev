@@ -280,8 +280,16 @@ jQuery(document).ready(function() {
           var data = "";
 
           var p = $("#user_permission").val();
-          if (row.status == '2') {} else {
-            if (p == '1' || (row.status == 0 && p == '2')) {
+          //  2 = Field Manager
+          //                      Pulte kind 2 builder 1
+          //                      wci   kind 2 builder 2
+          //  1  = ADMIN kind 1 builder 0
+          if (row.status == '2') {
+            // status completed
+          } else {
+            // 1 =  assigned
+            // 0 =  unassigned
+            if (p == '1' || (row.status == 0 && p == '2') || (row.status == 1 && p == '2')) {
               data += '<a href="javascript:edit(\'' + row.id + '\', \'' + row.category + '\')" title="Edit" class="btn"><i class="fa fa-pencil"></i></a>';
             }
             if (p == '1' || (row.status == 0 && p == '2')) {

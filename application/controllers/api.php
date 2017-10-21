@@ -412,6 +412,9 @@ class Api extends CI_Controller {
                                     'longitude' => $obj->longitude,
                                     'accuracy' => $obj->accuracy,
                                     'image_front_building' => $obj->front_building,
+                                    'image_right_building' => $obj->right_building,
+                                    'image_left_building' => $obj->left_building,
+                                    'image_back_building' => $obj->back_building,
                                     'house_ready' => $obj->house_ready,
                                     'overall_comments' => $obj->overall_comments,
                                     'result_code' => $obj->result_code,
@@ -574,6 +577,9 @@ class Api extends CI_Controller {
                                     'longitude' => $obj->longitude,
                                     'accuracy' => $obj->accuracy,
                                     'image_front_building' => $obj->front_building,
+                                    'image_right_building' => '',
+                                    'image_left_building' => '',
+                                    'image_back_building' => '',
                                     'house_ready' => $obj->house_ready,
                                     'overall_comments' => $obj->overall_comments,
 //                                    'result_code' => $obj->result_code,
@@ -679,7 +685,7 @@ class Api extends CI_Controller {
                                 . " c.community_id, c.city, m.region "
 //                                . " r.region as region_name, "
 //                                . " u.first_name, u.last_name "
-                                . " from ins_user u, " . $table . " where u.id=a.inspector_id and a.status=1 and a.inspector_id='" . $user_id . "' ";
+                                . " from ins_user u, " . $table . " where u.id=a.inspector_id and a.inspector_id='" . $user_id . "' ";
 
                         if (false) {
                             $vartime = strtotime("$requested_date 00:00:00"); // 2016-05-12 16:43:30
@@ -734,6 +740,14 @@ class Api extends CI_Controller {
                             $sql .= " order by a.requested_at asc, a.job_number asc ";
                             $response['sql2'] = $sql;
                             $requested_list2 = $this->utility_model->get_list__by_sql($sql);
+                        }
+
+                        $temp_list_temp = $requested_list;
+                        $requested_list = array();
+                        foreach ($temp_list_temp as $key => $value) {
+                          if ($value['status'] == 1) {
+                            $requested_list[] = $value;
+                          }
                         }
 
 
@@ -1064,30 +1078,37 @@ class Api extends CI_Controller {
 
             $inspection_id = $this->input->get_post('id');
             //            $inspection_id = $this->utility_model->decode($inspection_id);
+            $sql = "select type from ins_inspection where id = '$inspection_id'";
+            $inspection = $this->utility_model->get__by_sql($sql);
+            if ($inspection) {
+                $inspection_type = $inspection['type'];
 
-            $type = $this->input->get_post('type');
-            if ($type === false) {
-                $type = "full";
+                $type = $this->input->get_post('type');
+                if ($type === false) {
+                    $type = "full";
+                }
+
+                if ($type == 'duct' || $type == 'envelop') {
+                    $this->m_pdf->initialize("B4-C", "P");
+                } else {
+                    $this->m_pdf->initialize();
+                }
+
+
+                $html = "";
+                if ($type == 'duct') {
+                    $html = $this->get_report_html__for_duct_leakage($inspection_id);
+                } elseif ($type == 'envelop') {
+                    $html = $this->get_report_html__for_envelop_leakage($inspection_id);
+                } else {
+                    $html = $this->get_report_html($inspection_id, $type);
+                }
+
+                $this->m_pdf->pdf->WriteHTML($html);
+                $this->m_pdf->pdf->Output("report.pdf", "D");
             }
 
-            if ($type == 'duct' || $type == 'envelop') {
-                $this->m_pdf->initialize("B4-C", "P");
-            } else {
-                $this->m_pdf->initialize();
-            }
 
-
-            $html = "";
-            if ($type == 'duct') {
-                $html = $this->get_report_html__for_duct_leakage($inspection_id);
-            } elseif ($type == 'envelop') {
-                $html = $this->get_report_html__for_envelop_leakage($inspection_id);
-            } else {
-                $html = $this->get_report_html($inspection_id, $type);
-            }
-
-            $this->m_pdf->pdf->WriteHTML($html);
-            $this->m_pdf->pdf->Output("report.pdf", "D");
         }
 
         if ($kind == 'statistics') {

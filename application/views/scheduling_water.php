@@ -66,11 +66,11 @@
                                     <option value="">All</option>
 <?php
     foreach ($region as $row) {
-?>                          
+?>
                                         <option value="<?php echo $row['id']; ?>"><?php echo $row['region']; ?></option>
 <?php
     }
-?>                                        
+?>
                                 </select>
                             </div>
                         </div>
@@ -107,7 +107,7 @@
                             <a href="#" class="btn blue" id="btn_export">Export</a>
                         </div>
                     </div>
-                    
+
                     <div class="row table-responsive">
                         <table id="table_content" class="display" cellspacing="0" cellpadding="0" width="100%">
                             <thead>
@@ -116,7 +116,7 @@
                                     <th>Community</th>
                                     <th>Job Number</th>
                                     <th>Address</th>
-                                    <th>City</th>
+                                    <th>Re-inspection</th>
                                     <th>Field Manager</th>
                                     <th>Inspection Type</th>
                                     <th>Requested Time</th>

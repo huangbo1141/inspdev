@@ -296,7 +296,7 @@ class Inspection extends CI_Controller
         $page_data['page_name'] = 'requested_inspection';
         $page_data['start_date'] = date('Y-m-d', $time - 7 * 24 * 60 * 60);
         $page_data['end_date'] = date('Y-m-d', $time + 30 * 24 * 60 * 60);
-
+        // $this->output->delete_cache();
         $this->load->view('inspection_list_request', $page_data);
     }
 
@@ -2240,6 +2240,48 @@ class Inspection extends CI_Controller
         $list = $holidays->get_list();
         echo "<pre>";
         print_r($list);
+        echo "<pre/>";
+    }
+    public function test1()
+    {
+        $ret = array();
+        date_default_timezone_set("America/New_York");
+        $holidays = new Holiday();
+
+        $list_temp = $this->utility_model->get_list__by_sql("select * from sys_config_holiday");
+        $holidays->filterList($list_temp);
+
+        $business_day = 0;
+        $tm = time();
+        $ret['hour'] = intval(date('H', $tm));
+        if (intval(date('H', $tm)) >= 16) {
+            $business_day = 2;
+        } else {
+            $business_day = 1;
+        }
+
+        $tm = strtotime(date('Y-m-d', $tm) . " 00:00:00");
+
+        $ret['day1'] = $tm;
+        if ($holidays->is_holiday($tm)) {
+            $business_day = 2;
+        }
+
+        while ($business_day > 0) {
+            $tm += 86400;
+
+            while ($holidays->is_holiday($tm)) {
+                $tm += 86400;
+            }
+
+            $business_day = $business_day - 1;
+        }
+
+        $date = date('Y-m-d', $tm);
+        $ret['date'] = $date;
+
+        echo "<pre>";
+        print_r($ret);
         echo "<pre/>";
     }
 

@@ -64,7 +64,7 @@
                             <li>
                             </li>
                         </ul>
-                    </div>                    
+                    </div>
                     <!-- END PAGE HEADER-->
 
                     <!-- BEGIN PAGE CONTENT -->
@@ -83,7 +83,7 @@
                                     if ($inspection['type'] == '2')
                                         echo "Lath Inspection";
                                     ?>
-                                    
+
                                     <a href="" class="btn btn-danger" style="margin-left: 32px;" id="btn_report" data-id="<?php echo $inspection['id']; ?>"><i class="fa fa-file-pdf-o"></i> Generate Report(Full)</a>
                                     <a href="" class="btn btn-danger" style="margin-left: 32px;" id="btn_report_pass" data-id="<?php echo $inspection['id']; ?>"><i class="fa fa-file-pdf-o"></i> Generate Report(Without Pass)</a>
                                 </h3>
@@ -108,57 +108,57 @@
                                                     <label class="control-label text-right col-md-4">Job Number :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['job_number']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Community :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['community']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">LOT# :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['lot']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Address :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['address']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Date of Inspection :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['start_date']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Inspector Initials :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['initials']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
+
                                                 <?php if (isset($region)) { ?>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Region :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $region; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <?php } ?>
-                                                
+
                                                 <?php if (isset($field_manager)) { ?>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Field Manager :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $field_manager['first_name'] . " " . $field_manager['last_name']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <?php } ?>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">House Ready :</label>
                                                     <div class="col-md-6" style="padding-top: 3px;">
@@ -169,7 +169,7 @@
                                                             echo "<label class='label label-default'>No</label>";
                                                         }
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Location :</label>
@@ -183,7 +183,7 @@
                                                             }
                                                             ?>
                                                         </label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4"></label>
@@ -191,13 +191,13 @@
                                                             <?php
                                                             if ($inspection['latitude'] == '-1' && $inspection['longitude'] == '-1' && $inspection['accuracy'] == '-1') {
                                                             } else {
-                                                            ?>    
+                                                            ?>
                                                             <img class="img-responsive for-preview google-map" data-src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=15&scale=false&size=750x750&maptype=roadmap&format=jpg&visual_refresh=true"  src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map">
                                                             <?php
                                                             }
                                                             ?>
                                                         </label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Front Building :</label>
@@ -209,11 +209,48 @@
                                                             echo "<img src='" . $inspection['image_front_building'] . "' class='for-preview' style='max-width: 250px;'>";
                                                         }
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
+                                                <div class="row margin-bottom-10">
+                                                    <label class="control-label text-right col-md-4">Right Building :</label>
+                                                    <div class="col-md-6" <?php echo trim($inspection['image_right_building']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
+                                                        <?php
+                                                        if (trim($inspection['image_right_building']) == '') {
+                                                            echo "<label class='label label-warning'>No Image</label>";
+                                                        } else {
+                                                            echo "<img src='" . trim($inspection['image_right_building']) . "' class='for-preview' style='max-width: 250px;'>";
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                                <div class="row margin-bottom-10">
+                                                    <label class="control-label text-right col-md-4">Left Building :</label>
+                                                    <div class="col-md-6" <?php echo trim($inspection['image_left_building']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
+                                                        <?php
+                                                        if (trim($inspection['image_left_building']) == '') {
+                                                            echo "<label class='label label-warning'>No Image</label>";
+                                                        } else {
+                                                            echo "<img src='" . trim($inspection['image_left_building']) . "' class='for-preview' style='max-width: 250px;'>";
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                                <div class="row margin-bottom-10">
+                                                    <label class="control-label text-right col-md-4">Back Building :</label>
+                                                    <div class="col-md-6" <?php echo trim($inspection['image_back_building']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
+                                                        <?php
+                                                        if (trim($inspection['image_back_building']) == '') {
+                                                            echo "<label class='label label-warning'>No Image</label>";
+                                                        } else {
+                                                            echo "<img src='" . trim($inspection['image_back_building']) . "' class='for-preview' style='max-width: 250px;'>";
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+
                                             </form>
                                         </div>
-                                    </div>                                        
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -233,12 +270,12 @@
                                                     <label class="control-label text-right col-md-4">Overall Commments :</label>
                                                     <div class="col-md-6">
                                                         <p style="padding-top: 3px; font-weight: bold;"><?php echo $inspection['overall_comments']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Result :</label>
                                                     <div class="col-md-6" style="padding-top: 3px;">
-                                                        <?php 
+                                                        <?php
                                                         $cls = "label-default";
                                                         if ($inspection['result_code']=='1')
                                                             $cls = "label-primary";
@@ -248,25 +285,25 @@
                                                             $cls = "label-danger";
                                                         ?>
                                                         <label class="label <?php echo $cls; ?>"><?php echo $inspection['result_name']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
-                                                
-                                                <?php if (isset($images) && is_array($images)) { 
+
+                                                <?php if (isset($images) && is_array($images)) {
                                                     foreach ($images as $row) {     ?>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4"></label>
                                                     <div class="col-md-6">
                                                         <img src="<?php echo $row['image']; ?>" class="img-responsive for-preview">
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <?php   }
                                                 } ?>
-                                                
+
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Date of Inspection :</label>
                                                     <div class="col-md-6">
                                                         <label class="control-label label-value"><?php echo $inspection['end_date']; ?></label>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Signature :</label>
@@ -274,7 +311,7 @@
                                                         <?php
                                                             echo "<img src='" . $inspection['image_signature'] . "' class='for-preview signature' style='max-width: 150px;'>";
                                                         ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
                                                     <label class="control-label text-right col-md-4">Recipient Emails :</label>
@@ -282,12 +319,12 @@
                                                         <?php foreach ($emails as $row) { ?>
                                                         <label class="control-label label-value"><?php echo $row['email']; ?></label><br>
                                                         <?php } ?>
-                                                    </div>                                
+                                                    </div>
                                                 </div>
                                             </form>
                                         </div>
-                                    </div>                                        
-                                    
+                                    </div>
+
                                     <?php if (isset($comments) && is_array($comments) && count($comments)>0) { ?>
                                     <div class="portlet box blue-hoki">
                                         <div class="portlet-title">
@@ -306,19 +343,19 @@
                                                 <?php } ?>
                                             </ul>
                                         </div>
-                                    </div>                                        
+                                    </div>
                                     <?php } ?>
-                                    
+
                                 </div>
 
                             </div>
-                            
+
                             <div class="row">
-                                
-                                <?php 
+
+                                <?php
                                     foreach ($locations as $location) {
                                 ?>
-                                
+
                                 <div class="col-md-12">
                                     <div class="portlet box green-jungle">
                                         <div class="portlet-title">
@@ -339,14 +376,14 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                            <?php 
+                                            <?php
                                                 foreach ($location['checklist'] as $checklist) {
                                             ?>
-                                                
+
                                                 <tr>
                                                     <td class="title"><?php echo $checklist['name'] ?></td>
                                                     <td class="status text-center">
-                                                        <?php 
+                                                        <?php
                                                         $cls = "label-default";
                                                         if ($checklist['status']=='1')
                                                             $cls = "label-primary";
@@ -358,10 +395,10 @@
                                                             $cls = "label-info";
                                                         if ($checklist['status']=='5')
                                                             $cls = "label-info";
-                                                        
+
                                                         ?>
                                                         <label class="label <?php echo $cls; ?>" style="font-size: 20px;"><?php echo $checklist['status_name'] ?></label> <br>
-                                                        
+
                                                         <?php if ($checklist['status']==2 && $checklist['primary_photo']!="") { ?>
                                                         <br>
                                                         <img class="for-preview" src="<?php echo $checklist['primary_photo']; ?>" alt="" style="max-width: 200px;">
@@ -371,30 +408,30 @@
                                                         <br>
                                                         <img class="for-preview" src="<?php echo $checklist['secondary_photo']; ?>" alt="" style="max-width: 200px;">
                                                         <?php } ?>
-                                                        
+
                                                         <?php if ($checklist['status']==2 || $checklist['status']==3) { ?>
                                                         <p style="padding-top: 10px; "><?php echo $checklist['description']; ?></label>
                                                         <?php } ?>
                                                     </td>
                                                 </tr>
-                                                
-                                            <?php 
+
+                                            <?php
                                                 }
                                             ?>
                                                 </tbody>
                                             </table>
                                         </div>
-                                    </div>                                        
+                                    </div>
                                 </div>
 
-                                <?php 
+                                <?php
                                     }
                                 ?>
-                                
+
                             </div>
 
                         </div>
-                    </div>    
+                    </div>
                     <!-- END PAGE CONTENT -->
 
                 </div>
