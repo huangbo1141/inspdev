@@ -91,6 +91,37 @@ jQuery(document).ready(function () {
 
         update('add', '');
     });
+    $(document).on('change', '.chk_testflag', function() {
+        // Does some stuff and logs the event to the console
+    
+        
+        var id = $(this)[0].value;
+
+        var checked = $(this)[0].checked;
+        showLoading();
+        $.ajax({
+            type: "POST",
+            url: 'updateTestFlag',
+            data: {
+                id: id,
+                testflag:checked?1:0
+            },
+            dataType: 'json',
+            success: function (data) {
+                hideLoading();
+                if (data.err_code == 0) {
+                    //showAlert("Successfully deleted!");
+                    //$('#table_content').dataTable().api().ajax.reload();
+                } else {
+                    //showAlert("Failed!");
+                }
+            },
+            error: function () {
+                hideLoading();
+                //showAlert(Message.SERVER_ERROR);
+            }
+        });
+    });
 
     var datatable_options = {
         "processing": true,
@@ -163,6 +194,24 @@ jQuery(document).ready(function () {
             },
             {
                 "data": "region_name",
+            },
+            {
+                "data": "testflag",
+                "render": function (data, type, row, meta) {
+                    var data = "";
+                    var checked = "";
+                    if(row.testflag == '1'){
+                        checked = "checked";
+                    }
+
+                    if ($("#user_permission").val() == '0' || $("#user_permission").val() == '4') {
+                        data += '<div class="btn-group">    <input type="checkbox" value="'+row.id+'" disabled '+checked+'></div>';
+                    } else {
+                        data += '<div class="btn-group">    <input type="checkbox"  class="chk_testflag" value="'+row.id+'" '+checked+'></div>';
+                    }
+
+                    return data;
+                }
             },
             {
                 "data": "builder_name",

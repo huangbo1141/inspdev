@@ -366,6 +366,25 @@ class Manager extends CI_Controller {
         
         print_r(json_encode($res));
     }    
+    public function updateTestFlag(){
+        $res = array('err_code'=>1, 'err_msg'=>'Failed!');
+        if ($this->session->userdata('user_id')) {
+            $id = $this->input->get_post('id');
+            $testflag = $this->input->get_post('testflag');
+
+            $t = mdate('%Y%m%d%H%i%s', time());
+            $data = array('updated_at'=>$t,'testflag'=>$testflag);
+
+            if ($this->utility_model->update('ins_admin', $data, array('id'=>$id))) {
+                $res['err_code'] = 0;
+                $res['err_msg'] = "Successfully Updated!";
+            }
+        }
+        
+        //$res['data'] = $data;
+        
+        print_r(json_encode($res));
+    }
     
     public function update_user() {
         $res = array('err_code'=>1, 'err_msg'=>'Failed!');

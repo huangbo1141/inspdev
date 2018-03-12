@@ -73,6 +73,7 @@
                                             <th>Community ID</th>
                                             <th>Community Name</th>
                                             <th>City</th>
+                                            <th>Re-Inspection Restriction</th>
                                             <th>Region</th>                                            
                                             <th>Builder</th>                                            
                                             <th width="10%" style="text-align: center;"></th>

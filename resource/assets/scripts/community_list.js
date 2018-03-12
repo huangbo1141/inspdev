@@ -14,7 +14,7 @@ function update(k, id) {
         bootbox.confirm("Are you sure to delete?", function (result) {
             if (result) {
                 showLoading();
-                
+
                 $.ajax({
                     type: "POST",
                     url: 'delete',
@@ -50,6 +50,38 @@ jQuery(document).ready(function () {
         update('add', '');
     });
 
+    $(document).on('change', '.chk_reinspection', function() {
+        // Does some stuff and logs the event to the console
+    
+        
+        var id = $(this)[0].value;
+
+        var checked = $(this)[0].checked;
+        showLoading();
+        $.ajax({
+            type: "POST",
+            url: 'updateReInspection',
+            data: {
+                community_id: id,
+                reinspection:checked?1:0
+            },
+            dataType: 'json',
+            success: function (data) {
+                hideLoading();
+                if (data.err_code == 0) {
+                    //showAlert("Successfully deleted!");
+                    //$('#table_content').dataTable().api().ajax.reload();
+                } else {
+                    showAlert("Failed!");
+                }
+            },
+            error: function () {
+                hideLoading();
+                showAlert(Message.SERVER_ERROR);
+            }
+        });
+    });
+
     $('#table_content').dataTable({
         "processing": true,
         "serverSide": true,
@@ -81,6 +113,24 @@ jQuery(document).ready(function () {
                 "data": "city",
             },
             {
+                "data": "reinspection",
+                "render": function (data, type, row, meta) {
+                    var data = "";
+                    var checked = "";
+                    if(row.reinspection == '1'){
+                        checked = "checked";
+                    }
+
+                    if ($("#user_permission").val() == '0' || $("#user_permission").val() == '4') {
+                        data += '<div class="btn-group">    <input type="checkbox" value="'+row.community_id+'" disabled '+checked+'></div>';
+                    } else {
+                        data += '<div class="btn-group">    <input type="checkbox"  class="chk_reinspection" value="'+row.community_id+'" '+checked+'></div>';
+                    }
+
+                    return data;
+                }
+            },
+            {
                 "data": "region_name",
             },
             {
@@ -90,16 +140,16 @@ jQuery(document).ready(function () {
                 "data": "additional",
                 "render": function (data, type, row, meta) {
                     var data = "";
-                    
-                    if ($("#user_permission").val()=='0' || $("#user_permission").val()=='4') {
-                        
+
+                    if ($("#user_permission").val() == '0' || $("#user_permission").val() == '4') {
+
                     } else {
                         data += '<div class="btn-group"> ' +
                                 '<button type="button" class="btn default dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true"> Action<i class="fa fa-angle-down"></i> </button>' +
                                 '<ul class="dropdown-menu bottom-up pull-right" role="menu">' +
                                 '<li class="divider"></li>';
 
-                        if ($("#user_permission").val()=='1') {
+                        if ($("#user_permission").val() == '1') {
                             data += '<li><a href="javascript:update(\'edit\', \'' + row.id + '\')"><i class="fa fa-edit"></i> Edit</a></li>';
                             data += '<li><a href="javascript:update(\'delete\', \'' + row.id + '\')"><i class="fa fa-trash-o"></i> Delete</a></li>';
                         } else {

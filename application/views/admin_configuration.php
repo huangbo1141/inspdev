@@ -67,7 +67,12 @@
                                 <input type="number" placeholder="" id="report_keep_day" name="report_keep_day" class="form-control" maxlength="5" value="<?php echo $report_keep_day;?>">
                                 </div>
                             </div>
-                            
+                            <div class="row margin-bottom-10 form-group">
+                                <label class="control-label col-md-3" for="report_keep_day">Number of Re-Inspections Allowed</label>
+                                <div class="col-md-5">
+                                <input type="number" placeholder="" id="reinspection_allowed" name="reinspection_allowed" class="form-control" maxlength="5" value="<?php echo $reinspection_allowed;?>">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!-- END PAGE CONTENT -->

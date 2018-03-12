@@ -730,7 +730,8 @@ class Api extends CI_Controller {
     //                                . " r.region as region_name, "
     //                                . " u.first_name, u.last_name "
                                     . " from " . $table
-                                    . " where c.community_id in $in_sql";
+                                    . " where c.community_id in $in_sql"
+                                    . " and a.category = 3";
 
                             $vartime = strtotime("$requested_date 00:00:00"); // 2016-05-12 16:43:30
                             $first = date('Y-m-d H:i:s', strtotime("7 day", $vartime));

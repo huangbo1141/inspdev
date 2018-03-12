@@ -77,6 +77,7 @@
                                             <th>Phone</th>
 <?php if ($page_type==2 || $page_type==3 || $page_type==4) { ?>                                            
                                             <th>Region</th>
+                                            <th>Test Flag</th>
                                             <th>Builder</th>
 <?php } ?>                                            
                                             <th>Status</th>

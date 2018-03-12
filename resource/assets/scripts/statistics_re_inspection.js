@@ -28,7 +28,7 @@ function get_community() {
   //    showLoading();
 
   $("#community").html('');
-  $("#community").append('<option value="">All</option>');
+  //$("#community").append('<option value="">All</option>');
 
   $.ajax({
     type: "POST",
@@ -143,6 +143,7 @@ jQuery(document).ready(function() {
 
   $('.select-picker').selectpicker({
     liveSearch: true,
+    actionsBox:true
   });
 
   $("#region").change(function(e) {

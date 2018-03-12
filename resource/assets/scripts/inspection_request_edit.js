@@ -159,7 +159,6 @@ function generate_job_number() {
   $("#g_job_number").val(jn);
 }
 
-
 function confirm_submit(lot, addr, job_number, detail) {
   var type = $("#category").val();
 
@@ -190,7 +189,10 @@ function confirm_submit(lot, addr, job_number, detail) {
         bootbox.alert("Both Drainage Plane and Lath Inspection have already passed for this lot. Please select a different Job Number");
         $('form').bootstrapValidator('resetForm', false);
 
-      } else if (data.err_code == 0) {
+      }else if (data.err_code == 5) {
+        bootbox.alert(data.err_msg);
+        $('form').bootstrapValidator('resetForm', false);
+      }else if (data.err_code == 0) {
         bootbox.confirm({
           title: '<span style="color:#e00;">Warning!!</span>',
           message: 'This Job number has not Passed a Drainage Plane Inspection.<br>Do you wish to request a Lath Inspection anyway?<br>This action will be noted on the report.',

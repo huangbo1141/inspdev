@@ -30,6 +30,13 @@ class Admin extends CI_Controller {
         } else {
             $page_data['report_keep_day'] = 30;
         }
+        
+        $reinspection_allowed = $this->utility_model->get('sys_config', array('code'=>'reinspection_allowed'));
+        if ($reinspection_allowed) {
+            $page_data['reinspection_allowed'] = $reinspection_allowed['value'];
+        } else {
+            $page_data['reinspection_allowed'] = 5;
+        }
 
         $this->load->view('admin_configuration', $page_data);
     }
@@ -63,6 +70,27 @@ class Admin extends CI_Controller {
                     }
                 } else {
                     if ($this->utility_model->insert('sys_config', array('code'=>'report_keep_day', 'value'=>$report_keep_day))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $reinspection_allowed = $this->input->get_post('reinspection_allowed');
+            if ($reinspection_allowed=="" || !is_numeric($reinspection_allowed)) {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'reinspection_allowed'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$reinspection_allowed), array('code'=>'reinspection_allowed'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'reinspection_allowed', 'value'=>$reinspection_allowed))) {
                         $res['message'] = "Success";
                         $res['code'] = 0;
                     } else {

@@ -8,6 +8,8 @@ function init() {
 function get_formatted_date() {
 
     var today = new Date();
+    
+    
     var dd = today.getDate();
     var mm = today.getMonth() + 1; //January is 0!
     var yyyy = today.getFullYear();
@@ -28,7 +30,7 @@ function get_community() {
 //    showLoading();
 
     $("#community").html('');
-    $("#community").append('<option value="">All</option>');
+    //$("#community").append('<option value="">All</option>');
     
     $.ajax({
         type: "POST",
@@ -146,6 +148,7 @@ jQuery(document).ready(function () {
     
     $('.select-picker').selectpicker({    
         liveSearch: true,
+        actionsBox:true
     });
     
     $("#region").change(function(e) {

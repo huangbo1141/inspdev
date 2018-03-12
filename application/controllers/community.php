@@ -195,6 +195,26 @@ class Community extends CI_Controller {
 
         $this->load->view('community_edit', $page_data);
     }
+    
+    public function updateReInspection(){
+        $res = array('err_code'=>1, 'err_msg'=>'Failed!');
+        if ($this->session->userdata('user_id')) {
+            $community_id = $this->input->get_post('community_id');
+            $reinspection = $this->input->get_post('reinspection');
+
+            $t = mdate('%Y%m%d%H%i%s', time());
+            $data = array('updated_at'=>$t,'reinspection'=>$reinspection);
+
+            if ($this->utility_model->update('ins_community', $data, array('community_id'=>$community_id))) {
+                $res['err_code'] = 0;
+                $res['err_msg'] = "Successfully Updated!";
+            }
+        }
+        
+        //$res['data'] = $data;
+        
+        print_r(json_encode($res));
+    }
 
     public function update() {
         $res = array('err_code'=>1, 'err_msg'=>'Failed!');

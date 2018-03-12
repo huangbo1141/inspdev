@@ -311,9 +311,9 @@
             <?php } ?>
 
             <?php if ($page_name == 'statistics_fieldmanager') { ?>
-                <li class="active"><a href="<?php echo $basePath; ?>statistics/fieldmanager.html"> Field Manager</a></li>
+                <li class="active"><a href="<?php echo $basePath; ?>statistics/fieldmanager.html"> Field Manager PULTE</a></li>
             <?php } else { ?>
-                <li><a href="<?php echo $basePath; ?>statistics/fieldmanager.html"> Field Manager</a></li>
+                <li><a href="<?php echo $basePath; ?>statistics/fieldmanager.html"> Field Manager PULTE</a></li>
             <?php } ?>
 
             <?php if ($page_name == 'statistics_inspector') { ?>
@@ -342,7 +342,7 @@
                 <li><a href="<?php echo $basePath; ?>statistics/inspection.html"> Inspection</a></li>
                 <li><a href="<?php echo $basePath; ?>statistics/re_inspection.html"> Re-Inspection</a></li>
                 <li><a href="<?php echo $basePath; ?>statistics/checklist.html"> CheckList</a></li>
-                <li><a href="<?php echo $basePath; ?>statistics/fieldmanager.html"> Field Manager</a></li>
+                <li><a href="<?php echo $basePath; ?>statistics/fieldmanager.html"> Field Manager Pulte</a></li>
                 <li><a href="<?php echo $basePath; ?>statistics/inspector.html"> Inspector</a></li>
                 <li><a href="<?php echo $basePath; ?>inspection/pending_building.html"> Pending Building Inspection</a></li>
             </ul>

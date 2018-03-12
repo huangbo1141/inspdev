@@ -11,13 +11,25 @@ function submit_data() {
         return false;
     }
     
+    var reinspection_allowed = $('#reinspection_allowed').val();
+    if (reinspection_allowed=='') {
+        showAlert("Please Enter Number of Re-Inspections Allowed");
+        return false;
+    }
+    
+    if (isNaN(reinspection_allowed)) {
+        showAlert("Please Enter Correct Re-Inspections Allowed");
+        return false;
+    }
+    
     showLoading();
 
     $.ajax({
         type: "POST",
         url: 'update_configuration',
         data: {
-            report_keep_day: report_keep_day
+            report_keep_day: report_keep_day,
+            reinspection_allowed:reinspection_allowed,
         },
         dataType: 'json',
         success: function (data) {

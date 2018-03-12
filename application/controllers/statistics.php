@@ -13,7 +13,7 @@ class Statistics extends CI_Controller {
     }
 
     public function inspection() {
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
             redirect(base_url() . "user/login.html");
             exit(1);
         }
@@ -24,24 +24,34 @@ class Statistics extends CI_Controller {
     }
 
     public function get_community() {
-        $res = array('err_code'=>1);
-        if ($this->session->userdata('user_id') && $this->session->userdata('permission')==1) {
+        $res = array('err_code' => 1);
+        if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
             $region = $this->input->get_post('region');
 
-            if ($region===false || $region=="") {
+            if ($region === false || $region == "") {
                 $res['community'] = $this->utility_model->get_list('ins_community', array());
                 $res['err_code'] = 0;
             } else {
-                $res['community'] = $this->utility_model->get_list('ins_community', array('region'=>$region));
-                $res['err_code'] = 0;
+                if (gettype($region) == 'string') {
+                    $res['community'] = $this->utility_model->get_list('ins_community', array('region' => $region));
+                    $res['err_code'] = 0;
+                } else if (gettype($region) == 'array') {
+                    $list_community = array();
+                    foreach ($region as $id) {
+                        $list_temp = $this->utility_model->get_list('ins_community', array('region' => $id));
+                        $list_community = array_merge($list_community, $list_temp);
+                    }
+                    $res['community'] = $list_community;
+                    $res['err_code'] = 0;
+                }
             }
         }
 
         print_r(json_encode($res));
     }
 
-    public function load_inspection(){
-        $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "a.result_code", "a.house_ready" );
+    public function load_inspection() {
+        $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "a.result_code", "a.house_ready");
         $table = " ins_region r, ins_code c1, ins_code c2, ins_inspection a "
                 . " left join ins_admin u on a.field_manager=u.id and u.kind=2 "
                 . " left join ins_community tt on tt.community_id=a.community "
@@ -53,7 +63,7 @@ class Statistics extends CI_Controller {
         $start = 0;
         $col = 7;
 
-	$dir = "asc";
+        $dir = "asc";
 
         $region = $this->input->get_post('region');
         $community = $this->input->get_post('community');
@@ -64,48 +74,82 @@ class Statistics extends CI_Controller {
 
         $common_sql = "";
 
-        if ($start_date!==false && $start_date!="") {
-            if ($common_sql!="") {
+        if ($start_date !== false && $start_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.start_date>='$start_date' ";
         }
 
-        if ($end_date!==false && $end_date!="") {
-            if ($common_sql!="") {
+        if ($end_date !== false && $end_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.end_date<='$end_date' ";
         }
 
-        if ($region!==false && $region!="") {
-            if ($common_sql!="") {
-                $common_sql .= " and ";
+        if ($region !== false && $region != "") {
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.region='$region' ";
         }
 
-        if ($community!==false && $community!="") {
-            if ($common_sql!="") {
-                $common_sql .= " and ";
+        if ($community !== false && $community != "") {
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.community='$community' ";
         }
 
-        if ($status!==false && $status!="") {
-            if ($common_sql!="") {
+        if ($status !== false && $status != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.result_code='$status' ";
         }
 
-        if ($type!==false && $type!="") {
-            if ($common_sql!="") {
+        if ($type !== false && $type != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
@@ -123,9 +167,9 @@ class Statistics extends CI_Controller {
         $sCol = $this->input->get_post("order");
         foreach ($sCol as $row) {
             foreach ($row as $key => $value) {
-                if ($key=='column')
+                if ($key == 'column')
                     $sCol = $value;
-                if ($key=='dir')
+                if ($key == 'dir')
                     $sdir = $value;
             }
         }
@@ -133,34 +177,34 @@ class Statistics extends CI_Controller {
         $searchTerm = "";
         $search = $this->input->get_post("search");
         foreach ($search as $key => $value) {
-            if ($key=='value')
+            if ($key == 'value')
                 $searchTerm = $value;
         }
 
-        if ($sStart!==false && strlen($sStart)>0){
+        if ($sStart !== false && strlen($sStart) > 0) {
             $start = intval($sStart);
-            if ($start<0){
-                $start=0;
+            if ($start < 0) {
+                $start = 0;
             }
         }
 
-        if ($sAmount!==false && strlen($sAmount)>0){
+        if ($sAmount !== false && strlen($sAmount) > 0) {
             $amount = intval($sAmount);
-            if ($amount<10 || $amount>100){
+            if ($amount < 10 || $amount > 100) {
                 $amount = 10;
             }
         }
 
-        if ($sCol!==false && strlen($sCol)>0){
+        if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col<0 || $col>8){
-                $col=7;
+            if ($col < 0 || $col > 8) {
+                $col = 7;
             }
         }
 
-        if ($sdir && strlen($sdir)>0){
-            if ($sdir!="asc"){
-                $dir="desc";
+        if ($sdir && strlen($sdir) > 0) {
+            if ($sdir != "asc") {
+                $dir = "desc";
             }
         }
 
@@ -169,7 +213,7 @@ class Statistics extends CI_Controller {
         $totalAfterFilter = 0;
 
         $sql = " select count(*) from " . $table . " ";
-        if ($common_sql!="") {
+        if ($common_sql != "") {
             $sql .= " and " . $common_sql;
         }
 
@@ -185,7 +229,7 @@ class Statistics extends CI_Controller {
         $searchSQL = "";
 
         $globalSearch = " ( "
-                . " replace(a.job_number,'-','') like '%" . str_replace('-','',$searchTerm) . "%' or "
+                . " replace(a.job_number,'-','') like '%" . str_replace('-', '', $searchTerm) . "%' or "
                 . " a.start_date like '%" . $searchTerm . "%' or  "
                 . " a.community like '%" . $searchTerm . "%' or  "
                 . " a.address like '%" . $searchTerm . "%' or  "
@@ -196,13 +240,13 @@ class Statistics extends CI_Controller {
                 . " c2.name like '%" . $searchTerm . "%' "
                 . " ) ";
 
-        if ($searchTerm && strlen($searchTerm)>0){
+        if ($searchTerm && strlen($searchTerm) > 0) {
             $searchSQL .= " and " . $globalSearch;
         }
 
         $sql .= $searchSQL;
 
-        if ($common_sql!="") {
+        if ($common_sql != "") {
             $sql .= " and " . $common_sql;
         }
 
@@ -213,18 +257,18 @@ class Statistics extends CI_Controller {
 
         $sql = " select count(*) from " . $table . " ";
 
-        if (strlen($searchSQL)>0){
+        if (strlen($searchSQL) > 0) {
             $sql .= $searchSQL;
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $sql .= " and " . $common_sql;
             }
 
             $totalAfterFilter = $this->datatable_model->get_count($sql);
         }
 
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
-
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
+            
         } else {
             $result["recordsTotal"] = $total;
             $result["recordsFiltered"] = $totalAfterFilter;
@@ -234,9 +278,8 @@ class Statistics extends CI_Controller {
         print_r(json_encode($result));
     }
 
-
     public function re_inspection() {
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
             redirect(base_url() . "user/login.html");
             exit(1);
         }
@@ -246,8 +289,8 @@ class Statistics extends CI_Controller {
         $this->load->view('statistics_re_inspection', $page_data);
     }
 
-    public function load_re_inspection(){
-        $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "a.epo_number", "g.inspection_count", "a.result_code" );
+    public function load_re_inspection() {
+        $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "a.epo_number", "g.inspection_count", "a.result_code");
         $table = " ins_region r, ins_code c1, ins_code c2,  "
                 . " ( SELECT p1.inspection_id, p2.* "
                 . "   FROM "
@@ -269,7 +312,7 @@ class Statistics extends CI_Controller {
         $start = 0;
         $col = 9;
 
-	$dir = "desc";
+        $dir = "desc";
 
         $region = $this->input->get_post('region');
         $community = $this->input->get_post('community');
@@ -280,48 +323,82 @@ class Statistics extends CI_Controller {
 
         $common_sql = "";
 
-        if ($start_date!==false && $start_date!="") {
-            if ($common_sql!="") {
+        if ($start_date !== false && $start_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.start_date>='$start_date' ";
         }
 
-        if ($end_date!==false && $end_date!="") {
-            if ($common_sql!="") {
+        if ($end_date !== false && $end_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.end_date<='$end_date' ";
         }
 
-        if ($region!==false && $region!="") {
-            if ($common_sql!="") {
-                $common_sql .= " and ";
+        if ($region !== false && $region != "") {
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.region='$region' ";
         }
 
-        if ($community!==false && $community!="") {
-            if ($common_sql!="") {
-                $common_sql .= " and ";
+        if ($community !== false && $community != "") {
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.community='$community' ";
         }
 
-        if ($status!==false && $status!="") {
-            if ($common_sql!="") {
+        if ($status !== false && $status != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.result_code='$status' ";
         }
 
-        if ($type!==false && $type!="") {
-            if ($common_sql!="") {
+        if ($type !== false && $type != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
@@ -339,9 +416,9 @@ class Statistics extends CI_Controller {
         $sCol = $this->input->get_post("order");
         foreach ($sCol as $row) {
             foreach ($row as $key => $value) {
-                if ($key=='column')
+                if ($key == 'column')
                     $sCol = $value;
-                if ($key=='dir')
+                if ($key == 'dir')
                     $sdir = $value;
             }
         }
@@ -349,34 +426,34 @@ class Statistics extends CI_Controller {
         $searchTerm = "";
         $search = $this->input->get_post("search");
         foreach ($search as $key => $value) {
-            if ($key=='value')
+            if ($key == 'value')
                 $searchTerm = $value;
         }
 
-        if ($sStart!==false && strlen($sStart)>0){
+        if ($sStart !== false && strlen($sStart) > 0) {
             $start = intval($sStart);
-            if ($start<0){
-                $start=0;
+            if ($start < 0) {
+                $start = 0;
             }
         }
 
-        if ($sAmount!==false && strlen($sAmount)>0){
+        if ($sAmount !== false && strlen($sAmount) > 0) {
             $amount = intval($sAmount);
-            if ($amount<10 || $amount>100){
+            if ($amount < 10 || $amount > 100) {
                 $amount = 10;
             }
         }
 
-        if ($sCol!==false && strlen($sCol)>0){
+        if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col<0 || $col>10){
-                $col=9;
+            if ($col < 0 || $col > 10) {
+                $col = 9;
             }
         }
 
-        if ($sdir && strlen($sdir)>0){
-            if ($sdir!="asc"){
-                $dir="desc";
+        if ($sdir && strlen($sdir) > 0) {
+            if ($sdir != "asc") {
+                $dir = "desc";
             }
         }
 
@@ -385,7 +462,7 @@ class Statistics extends CI_Controller {
         $totalAfterFilter = 0;
 
         $sql = " select count(*) from " . $table . " ";
-        if ($common_sql!="") {
+        if ($common_sql != "") {
             $sql .= " and " . $common_sql;
         }
 
@@ -402,7 +479,7 @@ class Statistics extends CI_Controller {
         $searchSQL = "";
 
         $globalSearch = " ( "
-                . " replace(a.job_number,'-','') like '%" . str_replace('-','',$searchTerm) . "%' or "
+                . " replace(a.job_number,'-','') like '%" . str_replace('-', '', $searchTerm) . "%' or "
                 . " a.start_date like '%" . $searchTerm . "%' or  "
                 . " a.community like '%" . $searchTerm . "%' or  "
                 . " a.address like '%" . $searchTerm . "%' or  "
@@ -413,13 +490,13 @@ class Statistics extends CI_Controller {
                 . " c2.name like '%" . $searchTerm . "%' "
                 . " ) ";
 
-        if ($searchTerm && strlen($searchTerm)>0){
+        if ($searchTerm && strlen($searchTerm) > 0) {
             $searchSQL .= " and " . $globalSearch;
         }
 
         $sql .= $searchSQL;
 
-        if ($common_sql!="") {
+        if ($common_sql != "") {
             $sql .= " and " . $common_sql;
         }
 
@@ -429,31 +506,29 @@ class Statistics extends CI_Controller {
         $data = $this->datatable_model->get_content($sql);
         $result["sql"] = $sql;
         $sql = " select count(*) from " . $table . " ";
-        if (strlen($searchSQL)>0){
+        if (strlen($searchSQL) > 0) {
             $sql .= $searchSQL;
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $sql .= " and " . $common_sql;
             }
 
             $totalAfterFilter = $this->datatable_model->get_count($sql);
         }
 
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
-
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
+            
         } else {
             $result["recordsTotal"] = $total;
             $result["recordsFiltered"] = $totalAfterFilter;
             $result["data"] = $data;
-
         }
 
         print_r(json_encode($result));
     }
 
-
     public function checklist() {
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
             redirect(base_url() . "user/login.html");
             exit(1);
         }
@@ -463,8 +538,8 @@ class Statistics extends CI_Controller {
         $this->load->view('statistics_checklist', $page_data);
     }
 
-    public function load_checklist(){
-        $cols = array("a.type", "a.region", "a.community", "a.start_date", "loc.name", "ch.no", "ch.status" );
+    public function load_checklist() {
+        $cols = array("a.type", "a.region", "a.community", "a.start_date", "loc.name", "ch.no", "ch.status");
         $table = ""
                 . " ins_region r, ins_code c1, ins_code c2, ins_code c3, ins_location loc, ins_checklist ch, ins_inspection a"
                 . " left join ins_admin u on a.field_manager=u.id and u.kind=2 "
@@ -477,7 +552,7 @@ class Statistics extends CI_Controller {
         $start = 0;
         $col = 3;
 
-	$dir = "asc";
+        $dir = "asc";
 
         $region = $this->input->get_post('region');
         $community = $this->input->get_post('community');
@@ -488,48 +563,48 @@ class Statistics extends CI_Controller {
 
         $common_sql = "";
 
-        if ($start_date!==false && $start_date!="") {
-            if ($common_sql!="") {
+        if ($start_date !== false && $start_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.start_date>='$start_date' ";
         }
 
-        if ($end_date!==false && $end_date!="") {
-            if ($common_sql!="") {
+        if ($end_date !== false && $end_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.end_date<='$end_date' ";
         }
 
-        if ($region!==false && $region!="") {
-            if ($common_sql!="") {
+        if ($region !== false && $region != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.region='$region' ";
         }
 
-        if ($community!==false && $community!="") {
-            if ($common_sql!="") {
+        if ($community !== false && $community != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.community='$community' ";
         }
 
-        if ($status!==false && $status!="") {
-            if ($common_sql!="") {
+        if ($status !== false && $status != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " ch.status='$status' ";
         }
 
-        if ($type!==false && $type!="") {
-            if ($common_sql!="") {
+        if ($type !== false && $type != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
@@ -546,9 +621,9 @@ class Statistics extends CI_Controller {
         $sCol = $this->input->get_post("order");
         foreach ($sCol as $row) {
             foreach ($row as $key => $value) {
-                if ($key=='column')
+                if ($key == 'column')
                     $sCol = $value;
-                if ($key=='dir')
+                if ($key == 'dir')
                     $sdir = $value;
             }
         }
@@ -556,34 +631,34 @@ class Statistics extends CI_Controller {
         $searchTerm = "";
         $search = $this->input->get_post("search");
         foreach ($search as $key => $value) {
-            if ($key=='value')
+            if ($key == 'value')
                 $searchTerm = $value;
         }
 
-        if ($sStart!==false && strlen($sStart)>0){
+        if ($sStart !== false && strlen($sStart) > 0) {
             $start = intval($sStart);
-            if ($start<0){
-                $start=0;
+            if ($start < 0) {
+                $start = 0;
             }
         }
 
-        if ($sAmount!==false && strlen($sAmount)>0){
+        if ($sAmount !== false && strlen($sAmount) > 0) {
             $amount = intval($sAmount);
-            if ($amount<10 || $amount>100){
+            if ($amount < 10 || $amount > 100) {
                 $amount = 10;
             }
         }
 
-        if ($sCol!==false && strlen($sCol)>0){
+        if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col<0 || $col>6){
-                $col=3;
+            if ($col < 0 || $col > 6) {
+                $col = 3;
             }
         }
 
-        if ($sdir && strlen($sdir)>0){
-            if ($sdir!="asc"){
-                $dir="desc";
+        if ($sdir && strlen($sdir) > 0) {
+            if ($sdir != "asc") {
+                $dir = "desc";
             }
         }
 
@@ -592,7 +667,7 @@ class Statistics extends CI_Controller {
         $totalAfterFilter = 0;
 
         $sql = " select count(*) from " . $table . " ";
-        if ($common_sql!="") {
+        if ($common_sql != "") {
             $sql .= " and " . $common_sql;
         }
 
@@ -609,7 +684,7 @@ class Statistics extends CI_Controller {
         $searchSQL = "";
 
         $globalSearch = " ( "
-                . " replace(a.job_number,'-','') like '%" . str_replace('-','',$searchTerm) . "%' or "
+                . " replace(a.job_number,'-','') like '%" . str_replace('-', '', $searchTerm) . "%' or "
                 . " a.start_date like '%" . $searchTerm . "%' or  "
                 . " a.community like '%" . $searchTerm . "%' or  "
                 . " a.address like '%" . $searchTerm . "%' or  "
@@ -620,13 +695,13 @@ class Statistics extends CI_Controller {
                 . " c2.name like '%" . $searchTerm . "%' "
                 . " ) ";
 
-        if ($searchTerm && strlen($searchTerm)>0){
+        if ($searchTerm && strlen($searchTerm) > 0) {
             $searchSQL .= " and " . $globalSearch;
         }
 
         $sql .= $searchSQL;
 
-        if ($common_sql!="") {
+        if ($common_sql != "") {
             $sql .= " and " . $common_sql;
         }
 
@@ -638,18 +713,18 @@ class Statistics extends CI_Controller {
                 . " from " . $table . " "
                 . "";
 
-        if (strlen($searchSQL)>0){
+        if (strlen($searchSQL) > 0) {
             $sql .= $searchSQL;
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $sql .= " and " . $common_sql;
             }
 
             $totalAfterFilter = $this->datatable_model->get_count($sql);
         }
 
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
-
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
+            
         } else {
             $result["recordsTotal"] = $total;
             $result["recordsFiltered"] = $totalAfterFilter;
@@ -659,9 +734,8 @@ class Statistics extends CI_Controller {
         print_r(json_encode($result));
     }
 
-
     public function get_count() {
-        $res = array('code'=>1);
+        $res = array('code' => 1);
 
         $kind = $this->input->get_post('kind');
 
@@ -675,48 +749,82 @@ class Statistics extends CI_Controller {
 
             $common_sql = "";
 
-            if ($start_date!==false && $start_date!="") {
-                if ($common_sql!="") {
+            if ($start_date !== false && $start_date != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.start_date>='$start_date' ";
             }
 
-            if ($end_date!==false && $end_date!="") {
-                if ($common_sql!="") {
+            if ($end_date !== false && $end_date != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.end_date<='$end_date' ";
             }
 
-            if ($region!==false && $region!="") {
-                if ($common_sql!="") {
-                    $common_sql .= " and ";
+            if ($region !== false && $region != "") {
+                $param = $region;
+                if (gettype($param) == 'string') {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region='$param' ";
+                } else if (gettype($param) == 'array') {
+                    $ids_str = "";
+                    foreach ($param as $id) {
+                        $ids_str = $ids_str . $id . ",";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                        $ids_str = "(" . $ids_str . ")";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        if ($common_sql != "") {
+                            $common_sql .= " and ";
+                        }
+                        $common_sql .= " a.region in $ids_str ";
+                    }
                 }
-
-                $common_sql .= " a.region='$region' ";
             }
 
-            if ($community!==false && $community!="") {
-                if ($common_sql!="") {
-                    $common_sql .= " and ";
+            if ($community !== false && $community != "") {
+                $param = $community;
+                if (gettype($param) == 'string') {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community='$param' ";
+                } else if (gettype($param) == 'array') {
+                    $ids_str = "";
+                    foreach ($param as $id) {
+                        $ids_str = $ids_str . $id . ",";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                        $ids_str = "(" . $ids_str . ")";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        if ($common_sql != "") {
+                            $common_sql .= " and ";
+                        }
+                        $common_sql .= " a.community in $ids_str ";
+                    }
                 }
-
-                $common_sql .= " a.community='$community' ";
             }
 
-            if ($status!==false && $status!="") {
-                if ($common_sql!="") {
+            if ($status !== false && $status != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " ch.status='$status' ";
             }
 
-            if ($type!==false && $type!="") {
-                if ($common_sql!="") {
+            if ($type !== false && $type != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
@@ -733,7 +841,7 @@ class Statistics extends CI_Controller {
                     . " where a.region=r.id and c1.kind='ins' and c1.code=a.type and c2.kind='sts' and c2.code=ch.status "
                     . " and loc.inspection_id=a.id and ch.inspection_id=a.id and ch.location_id=loc.id and c3.value=a.type and (c3.kind='drg' or c3.kind='lth') and c3.code=ch.no ";
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $sql .= " and " . $common_sql;
             }
 
@@ -744,28 +852,28 @@ class Statistics extends CI_Controller {
 
             $count_text = "<h4 class='total-checklist'>Total: " . $total . "";
 
-    //        if ($status=="") {
-                $count_sql = " SELECT c.name AS status_name, t.status_code, t.tnt "
-                        . " FROM ins_code c, ( select a.status_code, count(*) as tnt from ( $sql ) a group by a.status_code ) t "
-                        . " WHERE c.kind='sts' AND c.code=t.status_code ORDER BY c.code ";
+            //        if ($status=="") {
+            $count_sql = " SELECT c.name AS status_name, t.status_code, t.tnt "
+                    . " FROM ins_code c, ( select a.status_code, count(*) as tnt from ( $sql ) a group by a.status_code ) t "
+                    . " WHERE c.kind='sts' AND c.code=t.status_code ORDER BY c.code ";
 
-                $tnt = $this->utility_model->get_list__by_sql($count_sql);
-                if ($tnt && is_array($tnt)) {
-                    foreach ($tnt as $row) {
-                        if ($count_text!="") {
-                            $count_text .= ", ";
-                        }
-
-                        $count_text .= '<span class="total-' . $row['status_code'] . '">';
-                        $count_text .= $row['status_name'] . ": " . $row['tnt'];
-                        if ($total!=0) {
-                            $tnt = intval($row['tnt']);
-                            $count_text .= "(" . round($tnt*1.0/$total * 100, 2) . "%)";
-                        }
-                        $count_text .= '</span>';
+            $tnt = $this->utility_model->get_list__by_sql($count_sql);
+            if ($tnt && is_array($tnt)) {
+                foreach ($tnt as $row) {
+                    if ($count_text != "") {
+                        $count_text .= ", ";
                     }
+
+                    $count_text .= '<span class="total-' . $row['status_code'] . '">';
+                    $count_text .= $row['status_name'] . ": " . $row['tnt'];
+                    if ($total != 0) {
+                        $tnt = intval($row['tnt']);
+                        $count_text .= "(" . round($tnt * 1.0 / $total * 100, 2) . "%)";
+                    }
+                    $count_text .= '</span>';
                 }
-    //        }
+            }
+            //        }
             $count_text .= "</h4>";
             $html_body = "";
 
@@ -777,20 +885,20 @@ class Statistics extends CI_Controller {
                     . " where a.region=r.id and c1.kind='ins' and c1.code=a.type and c2.kind='sts' and c2.code=ch.status "
                     . " and loc.inspection_id=a.id and ch.inspection_id=a.id and ch.location_id=loc.id and c3.value=a.type and c3.code=ch.no and (ch.status=1 or ch.status=2 or ch.status=3) ";
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $top_sql .= " and " . $common_sql;
             }
 
             $top_content = $this->get_top_item($top_sql, 'drg', 1);
-            if ($top_content!="") {
+            if ($top_content != "") {
                 $html_body .= '<div class="row margin-bottom-10">';
 
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                         '<thead>' .
-                            '<tr>' .
-                                '<th colspan="2">Most Passed in Drainage Plane Inspection</th>' .
-                            '</tr>' .
+                        '<tr>' .
+                        '<th colspan="2">Most Passed in Drainage Plane Inspection</th>' .
+                        '</tr>' .
                         '</thead>' .
                         '';
                 $html_body .= '<tbody>';
@@ -802,15 +910,15 @@ class Statistics extends CI_Controller {
             }
 
             $top_content = $this->get_top_item($top_sql, 'drg', 2);
-            if ($top_content!="") {
+            if ($top_content != "") {
                 $html_body .= '<div class="row margin-bottom-10">';
 
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                         '<thead>' .
-                            '<tr>' .
-                                '<th colspan="2">Most Failed in Drainage Plane Inspection</th>' .
-                            '</tr>' .
+                        '<tr>' .
+                        '<th colspan="2">Most Failed in Drainage Plane Inspection</th>' .
+                        '</tr>' .
                         '</thead>' .
                         '';
                 $html_body .= '<tbody>';
@@ -822,15 +930,15 @@ class Statistics extends CI_Controller {
             }
 
             $top_content = $this->get_top_item($top_sql, 'drg', 3);
-            if ($top_content!="") {
+            if ($top_content != "") {
                 $html_body .= '<div class="row margin-bottom-10">';
 
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                         '<thead>' .
-                            '<tr>' .
-                                '<th colspan="2">Most Not Ready in Drainage Plane Inspection</th>' .
-                            '</tr>' .
+                        '<tr>' .
+                        '<th colspan="2">Most Not Ready in Drainage Plane Inspection</th>' .
+                        '</tr>' .
                         '</thead>' .
                         '';
                 $html_body .= '<tbody>';
@@ -843,15 +951,15 @@ class Statistics extends CI_Controller {
 
 
             $top_content = $this->get_top_item($top_sql, 'lth', 1);
-            if ($top_content!="") {
+            if ($top_content != "") {
                 $html_body .= '<div class="row margin-bottom-10">';
 
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                         '<thead>' .
-                            '<tr>' .
-                                '<th colspan="2">Most Passed in Lath Inspection</th>' .
-                            '</tr>' .
+                        '<tr>' .
+                        '<th colspan="2">Most Passed in Lath Inspection</th>' .
+                        '</tr>' .
                         '</thead>' .
                         '';
                 $html_body .= '<tbody>';
@@ -863,15 +971,15 @@ class Statistics extends CI_Controller {
             }
 
             $top_content = $this->get_top_item($top_sql, 'lth', 2);
-            if ($top_content!="") {
+            if ($top_content != "") {
                 $html_body .= '<div class="row margin-bottom-10">';
 
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                         '<thead>' .
-                            '<tr>' .
-                                '<th colspan="2">Most Failed in Lath Inspection</th>' .
-                            '</tr>' .
+                        '<tr>' .
+                        '<th colspan="2">Most Failed in Lath Inspection</th>' .
+                        '</tr>' .
                         '</thead>' .
                         '';
                 $html_body .= '<tbody>';
@@ -883,15 +991,15 @@ class Statistics extends CI_Controller {
             }
 
             $top_content = $this->get_top_item($top_sql, 'lth', 3);
-            if ($top_content!="") {
+            if ($top_content != "") {
                 $html_body .= '<div class="row margin-bottom-10">';
 
                 $html_body .= '<table class="data-table table-bordered">';
                 $html_body .= '' .
                         '<thead>' .
-                            '<tr>' .
-                                '<th colspan="2">Most Not Ready in Lath Inspection</th>' .
-                            '</tr>' .
+                        '<tr>' .
+                        '<th colspan="2">Most Not Ready in Lath Inspection</th>' .
+                        '</tr>' .
                         '</thead>' .
                         '';
                 $html_body .= '<tbody>';
@@ -918,48 +1026,48 @@ class Statistics extends CI_Controller {
 
             $common_sql = "";
 
-            if ($start_date!==false && $start_date!="") {
-                if ($common_sql!="") {
+            if ($start_date !== false && $start_date != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.start_date>='$start_date' ";
             }
 
-            if ($end_date!==false && $end_date!="") {
-                if ($common_sql!="") {
+            if ($end_date !== false && $end_date != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.end_date<='$end_date' ";
             }
 
-            if ($region!==false && $region!="") {
-                if ($common_sql!="") {
+            if ($region !== false && $region != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.region='$region' ";
             }
 
-            if ($community!==false && $community!="") {
-                if ($common_sql!="") {
+            if ($community !== false && $community != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.community='$community' ";
             }
 
-            if ($status!==false && $status!="") {
-                if ($common_sql!="") {
+            if ($status !== false && $status != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.result_code='$status' ";
             }
 
-            if ($type!==false && $type!="") {
-                if ($common_sql!="") {
+            if ($type !== false && $type != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
@@ -973,7 +1081,7 @@ class Statistics extends CI_Controller {
                     . " from ins_region r, ins_code c1, ins_code c2, ins_inspection a left join ins_admin u on a.field_manager=u.id and u.kind=2 "
                     . " where a.region=r.id and c1.kind='ins' and c1.code=a.type and c2.kind='rst' and c2.code=a.result_code  ";
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $sql .= " and " . $common_sql;
             }
 
@@ -989,15 +1097,15 @@ class Statistics extends CI_Controller {
             $tnt = $this->utility_model->get_list__by_sql($count_sql);
             if ($tnt && is_array($tnt)) {
                 foreach ($tnt as $row) {
-                    if ($count_text!="") {
+                    if ($count_text != "") {
                         $count_text .= ", ";
                     }
 
                     $count_text .= '<span class="total-' . $row['result_code'] . '">';
                     $count_text .= $row['result_name'] . ": " . $row['tnt'];
-                    if ($total!=0) {
+                    if ($total != 0) {
                         $tnt = intval($row['tnt']);
-                        $count_text .= "(" . round($tnt*1.0/$total * 100, 2) . "%)";
+                        $count_text .= "(" . round($tnt * 1.0 / $total * 100, 2) . "%)";
                     }
                     $count_text .= "</span>";
                 }
@@ -1005,12 +1113,12 @@ class Statistics extends CI_Controller {
 
             $count_sql = " select count(*) from ( " . $sql . " and a.house_ready=0 ) t ";
             $house_not_ready = $this->datatable_model->get_count($count_sql);
-            if ($count_text!="") {
+            if ($count_text != "") {
                 $count_text .= ", ";
             }
             $count_text .= '<span class="lbl-house-not-ready">';
             $count_text .= "House Not Ready: " . $house_not_ready;
-            $count_text .= "(" . round($house_not_ready*1.0/$total * 100, 2) . "%)";
+            $count_text .= "(" . round($house_not_ready * 1.0 / $total * 100, 2) . "%)";
 
             $count_text .= "</h4>";
 
@@ -1028,48 +1136,48 @@ class Statistics extends CI_Controller {
 
             $common_sql = "";
 
-            if ($start_date!==false && $start_date!="") {
-                if ($common_sql!="") {
+            if ($start_date !== false && $start_date != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.start_date>='$start_date' ";
             }
 
-            if ($end_date!==false && $end_date!="") {
-                if ($common_sql!="") {
+            if ($end_date !== false && $end_date != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.end_date<='$end_date' ";
             }
 
-            if ($region!==false && $region!="") {
-                if ($common_sql!="") {
+            if ($region !== false && $region != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.region='$region' ";
             }
 
-            if ($community!==false && $community!="") {
-                if ($common_sql!="") {
+            if ($community !== false && $community != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.community='$community' ";
             }
 
-            if ($status!==false && $status!="") {
-                if ($common_sql!="") {
+            if ($status !== false && $status != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
                 $common_sql .= " a.result_code='$status' ";
             }
 
-            if ($type!==false && $type!="") {
-                if ($common_sql!="") {
+            if ($type !== false && $type != "") {
+                if ($common_sql != "") {
                     $common_sql .= " and ";
                 }
 
@@ -1098,7 +1206,7 @@ class Statistics extends CI_Controller {
                     . " u.first_name, u.last_name, '' as additional "
                     . " from " . $table . " ";
 
-            if ($common_sql!="") {
+            if ($common_sql != "") {
                 $sql .= " and " . $common_sql;
             }
 
@@ -1116,15 +1224,15 @@ class Statistics extends CI_Controller {
             $res['tnt_sql'] = $count_sql;
             if ($tnt && is_array($tnt)) {
                 foreach ($tnt as $row) {
-                    if ($count_text!="") {
+                    if ($count_text != "") {
                         $count_text .= ", ";
                     }
 
                     $count_text .= '<span class="total-' . $row['result_code'] . '">';
                     $count_text .= $row['result_name'] . ": " . $row['tnt'];
-                    if ($total!=0) {
+                    if ($total != 0) {
                         $tnt = intval($row['tnt']);
-                        $count_text .= "(" . round($tnt*1.0/$total * 100, 2) . "%)";
+                        $count_text .= "(" . round($tnt * 1.0 / $total * 100, 2) . "%)";
                     }
                     $count_text .= "</span>";
                 }
@@ -1132,12 +1240,12 @@ class Statistics extends CI_Controller {
 
             $count_sql = " select count(*) from ( " . $sql . " and a.house_ready=0 ) t ";
             $house_not_ready = $this->datatable_model->get_count($count_sql);
-            if ($count_text!="") {
+            if ($count_text != "") {
                 $count_text .= ", ";
             }
             $count_text .= '<span class="lbl-house-not-ready">';
             $count_text .= "House Not Ready: " . $house_not_ready;
-            $count_text .= "(" . round($house_not_ready*1.0/$total * 100, 2) . "%)";
+            $count_text .= "(" . round($house_not_ready * 1.0 / $total * 100, 2) . "%)";
 
             $count_text .= "</h4>";
 
@@ -1149,7 +1257,6 @@ class Statistics extends CI_Controller {
 
         print_r(json_encode($res));
     }
-
 
     private function get_top_item($sql, $inspection_type, $status) {
         $result = "";
@@ -1175,7 +1282,7 @@ class Statistics extends CI_Controller {
     }
 
     public function fieldmanager() {
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
             redirect(base_url() . "user/login.html");
             exit(1);
         }
@@ -1185,10 +1292,14 @@ class Statistics extends CI_Controller {
         $this->load->view('statistics_fieldmanager', $page_data);
     }
 
-    public function load_fieldmanager(){
-        $cols = array( "a.first_name" );
+    public function load_fieldmanager() {
+        $cols = array("a.first_name");
         $table = " ins_admin a "
+                . " left join ins_builder b on a.builder=b.id"
                 . " where a.kind=2 "
+                . " and a.builder = 1"  // only field manager
+                . " and a.status = 1"   //  only activated user
+                . " and a.testflag = 0" //  only non test user
                 . " ";
 
         $result = array();
@@ -1197,42 +1308,85 @@ class Statistics extends CI_Controller {
         $start = 0;
         $col = 0;
 
-	$dir = "asc";
+        $dir = "asc";
 
         $region = $this->input->get_post('region');
+        $community = $this->input->get_post('community');
         $start_date = $this->input->get_post('start_date');
         $end_date = $this->input->get_post('end_date');
         $type = $this->input->get_post('type');
 
         $common_sql = "";
 
-        if ($start_date!==false && $start_date!="") {
-            if ($common_sql!="") {
+        if ($start_date !== false && $start_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.start_date>='$start_date' ";
         }
 
-        if ($end_date!==false && $end_date!="") {
-            if ($common_sql!="") {
+        if ($end_date !== false && $end_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.end_date<='$end_date' ";
         }
 
-        if ($region!==false && $region!="") {
-            if ($common_sql!="") {
-                $common_sql .= " and ";
+        if ($region !== false && $region != "") {
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region='$param' ";
+                $table .= " and a.id in ( select manager_id from ins_admin_region where region='$param' ) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                    $table .= " and a.id in ( select manager_id from ins_admin_region where region in $ids_str ) ";
+                }
             }
-
-            $common_sql .= "  a.region='$region' ";
-            $table .= " and a.id in ( select manager_id from ins_admin_region where region='$region' ) ";
+        }
+        if ($community !== false && $community != "") {
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
+            }
         }
 
-        if ($type!==false && $type!="") {
-            if ($common_sql!="") {
+        if ($type !== false && $type != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
@@ -1250,9 +1404,9 @@ class Statistics extends CI_Controller {
         $sCol = $this->input->get_post("order");
         foreach ($sCol as $row) {
             foreach ($row as $key => $value) {
-                if ($key=='column')
+                if ($key == 'column')
                     $sCol = $value;
-                if ($key=='dir')
+                if ($key == 'dir')
                     $sdir = $value;
             }
         }
@@ -1260,34 +1414,34 @@ class Statistics extends CI_Controller {
         $searchTerm = "";
         $search = $this->input->get_post("search");
         foreach ($search as $key => $value) {
-            if ($key=='value')
+            if ($key == 'value')
                 $searchTerm = $value;
         }
 
-        if ($sStart!==false && strlen($sStart)>0){
+        if ($sStart !== false && strlen($sStart) > 0) {
             $start = intval($sStart);
-            if ($start<0){
-                $start=0;
+            if ($start < 0) {
+                $start = 0;
             }
         }
 
-        if ($sAmount!==false && strlen($sAmount)>0){
+        if ($sAmount !== false && strlen($sAmount) > 0) {
             $amount = intval($sAmount);
-            if ($amount<10 || $amount>100){
+            if ($amount < 10 || $amount > 100) {
                 $amount = 10;
             }
         }
 
-        if ($sCol!==false && strlen($sCol)>0){
+        if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col<0 || $col>1){
-                $col=0;
+            if ($col < 0 || $col > 1) {
+                $col = 0;
             }
         }
 
-        if ($sdir && strlen($sdir)>0){
-            if ($sdir!="asc"){
-                $dir="desc";
+        if ($sdir && strlen($sdir) > 0) {
+            if ($sdir != "asc") {
+                $dir = "desc";
             }
         }
 
@@ -1323,7 +1477,7 @@ class Statistics extends CI_Controller {
 //                . " c2.name like '%" . $searchTerm . "%' "
                 . " ) ";
 
-        if ($searchTerm && strlen($searchTerm)>0){
+        if ($searchTerm && strlen($searchTerm) > 0) {
             $searchSQL .= " and " . $globalSearch;
         }
 
@@ -1337,7 +1491,7 @@ class Statistics extends CI_Controller {
                 . " from " . $table . " "
                 . " ";
 
-        if (strlen($searchSQL)>0){
+        if (strlen($searchSQL) > 0) {
             $sql .= $searchSQL;
 
 //            if ($common_sql!="") {
@@ -1347,8 +1501,8 @@ class Statistics extends CI_Controller {
             $totalAfterFilter = $this->datatable_model->get_count($sql);
         }
 
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
-
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
+            
         } else {
             $table_data = array();
 
@@ -1358,7 +1512,7 @@ class Statistics extends CI_Controller {
                 $regions = $this->utility_model->get_list__by_sql($sql);
                 if ($regions) {
                     foreach ($regions as $rrr) {
-                        if ($region_name!="") {
+                        if ($region_name != "") {
                             $region_name .= ", ";
                         }
                         $region_name .= $rrr['region'];
@@ -1367,64 +1521,63 @@ class Statistics extends CI_Controller {
                 $row['region_name'] = $region_name;
 
                 $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' ";
-                if ($common_sql!="") {
+                if ($common_sql != "") {
                     $sql .= " and " . $common_sql;
                 }
 
                 $inspections = $this->datatable_model->get_count($sql);
                 $row['inspections'] = $inspections;
 
-                if ($inspections==0) {
+                if ($inspections == 0) {
                     $row['not_ready'] = 0;
                     $row['pass'] = 0;
                     $row['pass_with_exception'] = 0;
                     $row['fail'] = 0;
                     $row['reinspection'] = 0;
-
                 } else {
                     $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' and a.house_ready='0' ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $not_ready = $this->datatable_model->get_count($sql);
-                    $row['not_ready'] = round($not_ready*1.0 / $inspections * 100.0, 2);
+                    $row['not_ready'] = round($not_ready * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' and a.result_code=1 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $pass = $this->datatable_model->get_count($sql);
-                    $row['pass'] = round($pass*1.0 / $inspections * 100.0, 2);
+                    $row['pass'] = round($pass * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' and a.result_code=2 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $pass_with_exception = $this->datatable_model->get_count($sql);
-                    $row['pass_with_exception'] = round($pass_with_exception*1.0 / $inspections * 100.0, 2);
+                    $row['pass_with_exception'] = round($pass_with_exception * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' and a.result_code=3 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $fail = $this->datatable_model->get_count($sql);
-                    $row['fail'] = round($fail*1.0 / $inspections * 100.0, 2);
+                    $row['fail'] = round($fail * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a left join ins_inspection_requested r on a.requested_id=r.id where a.field_manager='" . $row['id'] . "' and r.reinspection=1 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $reinspection = $this->datatable_model->get_count($sql);
-                    $row['reinspection'] = round($reinspection*1.0 / $inspections * 100.0, 2);
+                    $row['reinspection'] = round($reinspection * 1.0 / $inspections * 100.0, 2);
                 }
 
                 array_push($table_data, $row);
@@ -1438,9 +1591,8 @@ class Statistics extends CI_Controller {
         print_r(json_encode($result));
     }
 
-
     public function inspector() {
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
             redirect(base_url() . "user/login.html");
             exit(1);
         }
@@ -1450,8 +1602,8 @@ class Statistics extends CI_Controller {
         $this->load->view('statistics_inspector', $page_data);
     }
 
-    public function load_inspector(){
-        $cols = array( "a.first_name" );
+    public function load_inspector() {
+        $cols = array("a.first_name");
         $table = " ins_user a ";
 
         $result = array();
@@ -1460,41 +1612,84 @@ class Statistics extends CI_Controller {
         $start = 0;
         $col = 0;
 
-	$dir = "asc";
+        $dir = "asc";
 
         $region = $this->input->get_post('region');
+        $community = $this->input->get_post('community');
         $start_date = $this->input->get_post('start_date');
         $end_date = $this->input->get_post('end_date');
         $type = $this->input->get_post('type');
 
         $common_sql = "";
 
-        if ($start_date!==false && $start_date!="") {
-            if ($common_sql!="") {
+        if ($start_date !== false && $start_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.start_date>='$start_date' ";
         }
 
-        if ($end_date!==false && $end_date!="") {
-            if ($common_sql!="") {
+        if ($end_date !== false && $end_date != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
             $common_sql .= " a.end_date<='$end_date' ";
         }
 
-        if ($region!==false && $region!="") {
-            if ($common_sql!="") {
-                $common_sql .= " and ";
+        if ($region !== false && $region != "") {
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.region='$region' ";
+        }
+        
+        if ($community !== false && $community != "") {
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community='$param' ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
+            }
         }
 
-        if ($type!==false && $type!="") {
-            if ($common_sql!="") {
+        if ($type !== false && $type != "") {
+            if ($common_sql != "") {
                 $common_sql .= " and ";
             }
 
@@ -1512,9 +1707,9 @@ class Statistics extends CI_Controller {
         $sCol = $this->input->get_post("order");
         foreach ($sCol as $row) {
             foreach ($row as $key => $value) {
-                if ($key=='column')
+                if ($key == 'column')
                     $sCol = $value;
-                if ($key=='dir')
+                if ($key == 'dir')
                     $sdir = $value;
             }
         }
@@ -1522,34 +1717,34 @@ class Statistics extends CI_Controller {
         $searchTerm = "";
         $search = $this->input->get_post("search");
         foreach ($search as $key => $value) {
-            if ($key=='value')
+            if ($key == 'value')
                 $searchTerm = $value;
         }
 
-        if ($sStart!==false && strlen($sStart)>0){
+        if ($sStart !== false && strlen($sStart) > 0) {
             $start = intval($sStart);
-            if ($start<0){
-                $start=0;
+            if ($start < 0) {
+                $start = 0;
             }
         }
 
-        if ($sAmount!==false && strlen($sAmount)>0){
+        if ($sAmount !== false && strlen($sAmount) > 0) {
             $amount = intval($sAmount);
-            if ($amount<10 || $amount>100){
+            if ($amount < 10 || $amount > 100) {
                 $amount = 10;
             }
         }
 
-        if ($sCol!==false && strlen($sCol)>0){
+        if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col<0 || $col>0){
-                $col=0;
+            if ($col < 0 || $col > 0) {
+                $col = 0;
             }
         }
 
-        if ($sdir && strlen($sdir)>0){
-            if ($sdir!="asc"){
-                $dir="desc";
+        if ($sdir && strlen($sdir) > 0) {
+            if ($sdir != "asc") {
+                $dir = "desc";
             }
         }
 
@@ -1580,7 +1775,7 @@ class Statistics extends CI_Controller {
 //                . " c2.name like '%" . $searchTerm . "%' "
                 . " ) ";
 
-        if ($searchTerm && strlen($searchTerm)>0){
+        if ($searchTerm && strlen($searchTerm) > 0) {
             $searchSQL .= " where " . $globalSearch;
         }
 
@@ -1594,77 +1789,76 @@ class Statistics extends CI_Controller {
                 . " from " . $table . " "
                 . " ";
 
-        if (strlen($searchSQL)>0){
+        if (strlen($searchSQL) > 0) {
             $sql .= $searchSQL;
 
             $totalAfterFilter = $this->datatable_model->get_count($sql);
         }
 
-        if (!$this->session->userdata('user_id') || $this->session->userdata('permission')!='1') {
-
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
+            
         } else {
             $table_data = array();
 
             foreach ($data as $row) {
                 $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' ";
-                if ($common_sql!="") {
+                if ($common_sql != "") {
                     $sql .= " and " . $common_sql;
                 }
                 $inspections = $this->datatable_model->get_count($sql);
                 $row['inspections'] = $inspections;
                 $row['fee'] = number_format($row['fee'] * $inspections, 2);
 
-                if ($inspections==0) {
+                if ($inspections == 0) {
                     $row['not_ready'] = 0;
                     $row['pass'] = 0;
                     $row['pass_with_exception'] = 0;
                     $row['fail'] = 0;
                     $row['reinspection'] = 0;
-
                 } else {
                     $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' and a.house_ready='0' ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $not_ready = $this->datatable_model->get_count($sql);
-                    $row['not_ready'] = round($not_ready*1.0 / $inspections * 100.0, 2);
+                    $row['not_ready'] = round($not_ready * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' and a.result_code=1 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $pass = $this->datatable_model->get_count($sql);
-                    $row['pass'] = round($pass*1.0 / $inspections * 100.0, 2);
+                    $row['pass'] = round($pass * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' and a.result_code=2 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $pass_with_exception = $this->datatable_model->get_count($sql);
-                    $row['pass_with_exception'] = round($pass_with_exception*1.0 / $inspections * 100.0, 2);
+                    $row['pass_with_exception'] = round($pass_with_exception * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' and a.result_code=3 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $fail = $this->datatable_model->get_count($sql);
-                    $row['fail'] = round($fail*1.0 / $inspections * 100.0, 2);
+                    $row['fail'] = round($fail * 1.0 / $inspections * 100.0, 2);
 
 
                     $sql = " select count(*) from ins_inspection a left join ins_inspection_requested r on a.requested_id=r.id where a.user_id='" . $row['id'] . "' and r.reinspection=1 ";
-                    if ($common_sql!="") {
+                    if ($common_sql != "") {
                         $sql .= " and " . $common_sql;
                     }
 
                     $reinspection = $this->datatable_model->get_count($sql);
-                    $row['reinspection'] = round($reinspection*1.0 / $inspections * 100.0, 2);
+                    $row['reinspection'] = round($reinspection * 1.0 / $inspections * 100.0, 2);
                 }
 
                 array_push($table_data, $row);
@@ -1677,4 +1871,5 @@ class Statistics extends CI_Controller {
 
         print_r(json_encode($result));
     }
+
 }

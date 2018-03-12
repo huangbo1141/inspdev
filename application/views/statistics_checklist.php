@@ -62,8 +62,7 @@
                                 <div class="col-md-6">
                                     <label class="control-label col-md-4" for="region">Region : </label>
                                     <div class="col-md-8">
-                                        <select class="form-control select-picker" id="region">
-                                            <option value="">All</option>
+                                        <select class="form-control select-picker" id="region" multiple>
         <?php
             foreach ($region as $row) {
         ?>                          
@@ -78,7 +77,7 @@
                                 <div class="col-md-6">
                                     <label class="control-label col-md-4" for="community">Community : </label>
                                     <div class="col-md-8">
-                                        <select class="form-control select-picker" id="community">
+                                        <select class="form-control select-picker" id="community" multiple>
                                             <option value="">All</option>
                                         </select>
                                     </div>

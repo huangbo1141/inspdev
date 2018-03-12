@@ -62,8 +62,7 @@
                                 <div class="col-md-6">
                                     <label class="control-label col-md-4" for="region">Region : </label>
                                     <div class="col-md-8">
-                                        <select class="form-control select-picker" id="region">
-                                            <option value="">All</option>
+                                        <select class="form-control select-picker" id="region" multiple>
         <?php
             foreach ($region as $row) {
         ?>                          
@@ -76,15 +75,14 @@
                                 </div>
                                 
                                 <div class="col-md-6">
-                                    <label class="control-label col-md-4" for="inspection_type">Inspection Type : </label>
+                                    <label class="control-label col-md-4" for="community">Community : </label>
                                     <div class="col-md-8">
-                                        <select class="form-control select-picker" id="inspection_type">
-                                            <option value="">All</option>
-                                            <option value="1">Drainage Plane Inspection</option>
-                                            <option value="2">Lath Inspection</option>
+                                        <select class="form-control select-picker" id="community" multiple>
                                         </select>
                                     </div>
                                 </div>
+                                
+                                
                             </div>
                             
                             <div class="row margin-bottom-10">
@@ -102,6 +100,20 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row margin-bottom-10">
+                                <div class="col-md-6">
+                                    <label class="control-label col-md-4" for="inspection_type">Inspection Type : </label>
+                                    <div class="col-md-8">
+                                        <select class="form-control select-picker" id="inspection_type">
+                                            <option value="">All</option>
+                                            <option value="1">Drainage Plane Inspection</option>
+                                            <option value="2">Lath Inspection</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
                             
                             <div class="row margin-bottom-10">
                                 <div class="col-md-12 text-right">

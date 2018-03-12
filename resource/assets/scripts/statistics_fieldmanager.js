@@ -20,7 +20,42 @@ function get_formatted_date() {
     today = yyyy + '-' + mm + '-' + dd;
     return today;
 }
+function get_community() {
+//    showLoading();
 
+    $("#community").html('');
+    //$("#community").append('<option value="">All</option>');
+    
+    $.ajax({
+        type: "POST",
+        url: 'get_community',
+        data: {
+            region: $("#region").val(),
+        },
+        dataType: 'json',
+        success: function (data) {
+//            hideLoading();
+            
+            if (data.err_code==0) {
+                
+                var html = "";
+                $.each(data.community, function(index, row) {
+                   html += '<option value="'+row.community_id+'">'+row.community_id + ' - ' + row.community_name+'</option>'; 
+                });
+                
+                $("#community").append(html);
+            }else {
+                showAlert("Failed to load community!");
+            }            
+            
+            $("#community").selectpicker('refresh');
+        },
+        error: function () {
+//            hideLoading();
+            showAlert(Message.SERVER_ERROR);
+        }
+    });
+}
 function send_report() {
     $("#recipients").val("");
     $("#email_confirm_dialog").modal('show');
@@ -71,6 +106,11 @@ jQuery(document).ready(function () {
     
     $('.select-picker').selectpicker({    
         liveSearch: true,
+        actionsBox:true
+    });
+    
+    $("#region").change(function(e) {
+        get_community();
     });
     
     $('#table_content').dataTable({
@@ -85,6 +125,7 @@ jQuery(document).ready(function () {
                 d.start_date = $("#start_date").val();
                 d.end_date = $("#end_date").val();
                 d.type = $("#inspection_type").val();
+                d.community = $("#community").val();
             }
         },
         "order": [[0, "asc"]],
