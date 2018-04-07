@@ -415,6 +415,7 @@ class Api extends CI_Controller {
                                     'image_right_building' => $obj->right_building,
                                     'image_left_building' => $obj->left_building,
                                     'image_back_building' => $obj->back_building,
+                                    'image_front_building_2' => $obj->front_building_2,
                                     'house_ready' => $obj->house_ready,
                                     'overall_comments' => $obj->overall_comments,
                                     'result_code' => $obj->result_code,

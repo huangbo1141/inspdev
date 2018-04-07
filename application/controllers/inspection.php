@@ -1416,7 +1416,7 @@ ORDER BY g.inspection_count DESC"
             $res['reinspection_allowed'] = $page_data['reinspection_allowed'];
             $res['$inspection_count'] = $inspection_count;
 
-            if ($inspection_count > $page_data['reinspection_allowed']) {
+            if ($inspection_count >= $page_data['reinspection_allowed']) {
                 // get community to check if limit is checked or not
                 $community = $this->utility_model->get('ins_community', array('community_id' => $community_id));
                 //$res['community'] = $community;
@@ -1448,47 +1448,51 @@ ORDER BY g.inspection_count DESC"
             }
 
             if ($job_number !== false) {
+
+
                 //check reinspection and community
-                $chk_ret = $this->check_inspection_limit($job_number);
-                if ($chk_ret['err_code'] == 1) {
-                    // exceed the limit
-                    $res['err_msg'] = $chk_ret["err_msg"];
-                    $res['err_code'] = 5;
+                $res['user_permission'] = $this->session->userdata('permission');
+                if ($this->session->userdata('permission') == 2) {
+                    $chk_ret = $this->check_inspection_limit($job_number);
+                    if ($chk_ret['err_code'] == 1) {
+                        // exceed the limit
+                        $res['err_msg'] = $chk_ret["err_msg"];
+                        $res['err_code'] = 5;
 
-                    // before this we send email to field manager and admin
+                        // before this we send email to field manager and admin
 
-                    $sender = array();
-                    $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
-                    if ($emails) {
-                        foreach ($emails as $row) {
-                            array_push($sender, $row);
+                        $sender = array();
+                        $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
+                        if ($emails) {
+                            foreach ($emails as $row) {
+                                array_push($sender, $row);
+                            }
                         }
-                    }
 
-                    $emails = $this->utility_model->get_list('ins_admin', array('kind' => '2','id' => $this->session->userdata('user_id')));
-                    if ($emails) {
-                        foreach ($emails as $row) {
-                            //$row['email'] = 'huangbo1117@gmail.com';
-                            array_push($sender, $row);
+                        $emails = $this->utility_model->get_list('ins_admin', array('kind' => '2', 'id' => $this->session->userdata('user_id')));
+                        if ($emails) {
+                            foreach ($emails as $row) {
+                                //$row['email'] = 'huangbo1117@gmail.com';
+                                array_push($sender, $row);
+                            }
                         }
+
+                        $mail_subject = "ReInspection";
+
+                        $mail_body .= "FM has exceeded maximum attempts to schedule an inspection per E3 guidelines.\n"
+                                . " Please contact the E3 office at (239)949-2405 in order to schedule any remaining inspections.";
+
+
+                        if (count($sender) > 0) {
+                            $this->send_mail($mail_subject, $mail_body, $sender, false);
+                        }
+
+                        $res['sender'] = $sender;
+
+                        print_r(json_encode($res));
+                        return;
                     }
-
-                    $mail_subject = "ReInspection";
-                    
-                    $mail_body .= "FM has exceeded maximum attempts to schedule an inspection per E3 guidelines.\n"
-                            . " Please contact the E3 office at (239)949-2405 in order to schedule any remaining inspections.";
-                            
-
-                    if (count($sender) > 0) {
-                        $this->send_mail($mail_subject, $mail_body, $sender, false);
-                    }
-
-                    $res['sender'] = $sender;
-
-                    print_r(json_encode($res));
-                    return;
                 }
-
 
                 $ret = false;
                 if ($this->session->userdata('permission') == 2) {
@@ -1999,36 +2003,50 @@ ORDER BY g.inspection_count DESC"
         $ret['cnt1'] = 0;
         $ret['cnt2'] = 0;
 
-        $list_building = $this->utility_model->get_list('ins_building', array());
-        foreach ($list_building as $row) {
-            $job_number = $row['job_number'];
-            $job_pin = str_replace("-", "", $job_number);
-            if ($this->utility_model->update('ins_building', array('job_pin' => 'aa'), array('job_number' => $job_number))) {
-                // updated
-                $ret['cnt1'] = $ret['cnt1'] + 1;
+        $mode = $this->input->get('mode');
+        $ret['mode'] = $mode;
+        if ($mode == 1) {
+            $list_building = $this->utility_model->get_list('ins_building', array());
+            foreach ($list_building as $row) {
+                $job_number = $row['job_number'];
+                $job_pin = str_replace("-", "", $job_number);
+                if ($this->utility_model->update('ins_building', array('job_pin' => $job_pin), array('job_number' => $job_number))) {
+                    // updated
+                    $ret['cnt1'] = $ret['cnt1'] + 1;
+                }
             }
         }
 
-//        $list_inspection = $this->utility_model->get_list('ins_inspection', array());
-//        foreach ($list_inspection as $row) {
-//            $job_number = $row['job_number'];
-//            $job_pin = str_replace("-", "", $job_number);
-//            if ($this->utility_model->update('ins_inspection', array('job_pin' => $job_pin), array('job_number' => $job_number))) {
-//                // updated
-//                $ret['cnt2'] = $ret['cnt2'] + 1;
-//            }
-//        }
-//        $list_row = $this->utility_model->get_list('ins_admin', array());
-//        foreach ($list_row as $row) {
-//            $fname = $row['first_name'];
-//            $lname = $row['last_name'];
-//            $full = $fname . " " . $lname;
-//            if ($this->utility_model->update('ins_admin', array('fullname' => $full), array('id' => $row['id']))) {
-//                // updated
-//                $ret['cnt2'] = $ret['cnt2'] + 1;
-//            }
-//        }
+        if($mode == 2){
+            $list_inspection = $this->utility_model->get_list__by_sql("select job_number from ins_inspection where job_pin = ''");
+            
+            echo count($list_inspection);
+//            foreach ($list_inspection as $row) {
+//                $job_number = $row['job_number'];
+//                $job_pin = str_replace("-", "", $job_number);
+//                if ($this->utility_model->update('ins_inspection', array('job_pin' => $job_pin), array('job_number' => $job_number))) {
+//                    // updated
+//                    $ret['cnt2'] = $ret['cnt2'] + 1;
+//                    if($ret['cnt2']>10){
+//                        break;
+//                    }
+//                }
+//            }     
+        }
 
+
+        if($mode == 3){
+            $list_row = $this->utility_model->get_list('ins_admin', array());
+            foreach ($list_row as $row) {
+                $fname = $row['first_name'];
+                $lname = $row['last_name'];
+                $full = $fname . " " . $lname;
+                if ($this->utility_model->update('ins_admin', array('fullname' => $full), array('id' => $row['id']))) {
+                    // updated
+                    $ret['cnt2'] = $ret['cnt2'] + 1;
+                }
+            }        
+        }
         print_r(json_encode($ret));
     }
 
@@ -2038,35 +2056,15 @@ ORDER BY g.inspection_count DESC"
         $status1 = $this->input->get_post('status1');
         $status2 = $this->input->get_post('status2');
 
-        $cols = array("a.job_number", "a.community", "a.address", "", "", "u.first_name", "a.created_at");
+        $cols = array("a.job_number", "a.community", "a.address", "g1.cnt1", "g2.cnt2", "u.first_name", "a.created_at");
         $table = " ins_building a "
-                . " left join ins_building_unit m on m.job_number=a.job_number "
+                //. " left join ins_building_unit m on m.job_number=a.job_number "
                 . " left join ins_admin u on u.kind=2 and concat(u.first_name, ' ', u.last_name)=a.field_manager ";
         //. " left join ins_inspection ii on ii.job_pin = a.job_pin";
 
         $community = $this->input->get_post('community');
         $region = $this->input->get_post('region');
-//        if ($status1!==false && $status1!="") {
-//            $table .= "LEFT JOIN 
-//                    (SELECT bb.job_number,1 as cnt1
-//                    FROM ins_building bb
-//                    LEFT JOIN ins_inspection pp ON pp.job_pin = bb.job_pin
-//                    WHERE pp.type=1
-//                      AND (pp.result_code=1
-//                           OR pp.result_code=2)) g1 ON g1.job_number = a.job_number";
-//            $cols[] = "g1.cnt1";
-//        }
-//        
-//        if ($status2!==false && $status2!="") {
-//            $table .= "LEFT JOIN 
-//                    (SELECT bb.job_number,1 as cnt2
-//                    FROM ins_building bb
-//                    LEFT JOIN ins_inspection pp ON pp.job_pin = bb.job_pin
-//                    WHERE pp.type=2
-//                      AND (pp.result_code=1
-//                           OR pp.result_code=2)) g2 ON g2.job_number = a.job_number";
-//            $cols[] = "g2.cnt2";
-//        }
+
 
         $result = array();
 
@@ -2139,11 +2137,33 @@ ORDER BY g.inspection_count DESC"
         $total = 0;
         $totalAfterFilter = 0;
 
-        $sql = " select count(*) from " . $table;
-        $total = $this->datatable_model->get_count($sql);
-        $totalAfterFilter = $total;
+        if (($status1 !== false && $status1 != "") || $colName == "g1.cnt1") {
+            $table .= " LEFT JOIN 
+                    (SELECT bb.job_number as job_number1,1 as cnt1
+                    FROM ins_building bb
+                    LEFT JOIN ins_inspection pp ON pp.job_pin = bb.job_pin
+                    WHERE pp.type=1
+                      AND (pp.result_code=1
+                           OR pp.result_code=2)
+                           group by bb.job_number
+                           ) g1 ON g1.job_number1 = a.job_number";
+            $cols[] = "g1.cnt1";
+        }
 
-        $sql = " select  a.*, u.first_name, u.last_name, m.address as unit_address, '' as additional from " . $table . "  ";
+        if (($status2 !== false && $status2 != "") || $colName == "g2.cnt2") {
+            $table .= " LEFT JOIN 
+                    (SELECT bb.job_number as job_number2,1 as cnt2
+                    FROM ins_building bb
+                    LEFT JOIN ins_inspection pp ON pp.job_pin = bb.job_pin
+                    WHERE pp.type=2
+                      AND (pp.result_code=1
+                           OR pp.result_code=2)
+                           group by bb.job_number
+                           ) g2 ON g2.job_number2 = a.job_number";
+            $cols[] = "g2.cnt2";
+        }
+
+        $sql = "";
         $searchSQL = "";
         $globalSearch = " ( "
                 . " replace(a.job_number,'-','') like '%" . str_replace('-', '', $searchTerm) . "%' or "
@@ -2222,22 +2242,26 @@ ORDER BY g.inspection_count DESC"
                 }
             }
         }
-//        if ($status1!==false && $status1!="") {
-//            if ($common_sql!="") {
-//                $common_sql .= " and ";
-//            }
-//
-//            $common_sql .= " g1.cnt1 = '$status1' ";
-//        }
-//        if ($status2!==false && $status2!="") {
-//            if ($common_sql!="") {
-//                $common_sql .= " and ";
-//            }
-//
-//            $common_sql .= " g2.cnt2 = '$status2' ";
-//        }
-
-
+        if ($status1 !== false && $status1 != "") {
+            if ($common_sql != "") {
+                $common_sql .= " and ";
+            }
+            if ($status1 == '1') {
+                $common_sql .= " g1.cnt1 = '$status1' ";
+            } else {
+                $common_sql .= " g1.cnt1 is NULL ";
+            }
+        }
+        if ($status2 !== false && $status2 != "") {
+            if ($common_sql != "") {
+                $common_sql .= " and ";
+            }
+            if ($status2 == '1') {
+                $common_sql .= " g2.cnt2 = '$status2' ";
+            } else {
+                $common_sql .= " g2.cnt2 is NULL ";
+            }
+        }
 
         if ($searchTerm && strlen($searchTerm) > 0) {
             $searchSQL .= " where " . $globalSearch;
@@ -2247,163 +2271,32 @@ ORDER BY g.inspection_count DESC"
             if (strlen($common_sql) > 0)
                 $searchSQL .= " where " . $common_sql;
         }
-
-        $sql .= $searchSQL;
-        $sql .= " order by " . $colName . " " . $dir . " ";
-        $sql .= " limit " . $start . ", " . $amount . " ";
         //print $sql;
+        switch (2) {
+            case 1:
 
-
-        $sql = " select count(*) from " . $table;
-        $list_counted = array();
-        $data = array();
-        $status_cond = "";
-        if ($status1 !== false && $status1 != "") {
-            $status_cond .= "A";
-        }
-        if ($status2 !== false && $status2 != "") {
-            $status_cond .= "B";
-        }
-        if (strlen($searchSQL) > 0 && strlen($status_cond) > 0) {
-
-            if (strlen($status_cond) == 2) {
-                // first condition
-                // $cols = array("a.job_number", "a.community", "a.address", "", "", "u.first_name", "a.created_at");
-                $tmp_cnt1 = 0;
-                $tmp_sql1 = "SELECT pp.job_pin
-                            FROM 
-                            ins_inspection pp 
-                            WHERE pp.type=1  AND (pp.result_code=1 OR pp.result_code=2)
-                            GROUP BY pp.job_pin";
-                $list_temp1 = $this->utility_model->get_list__by_sql($tmp_sql1);
-
-                $tmp_sql1 = "SELECT pp.job_pin
-                            FROM 
-                            ins_inspection pp 
-                            WHERE pp.type=2  AND (pp.result_code=1 OR pp.result_code=2)
-                            GROUP BY pp.job_pin";
-                $list_temp2 = $this->utility_model->get_list__by_sql($tmp_sql1);
-
-                $list_temp1_key = array();
-
-                foreach ($list_temp1 as $irow) {
-                    $list_temp1_key[] = $irow['job_pin'];
+                break;
+            case 2:
+                $sql = " select count(*) from " . $table;
+                if (strlen($searchSQL) > 0) {
+                    $sql .= $searchSQL;
+                    $totalAfterFilter = $this->datatable_model->get_count($sql);
+                } else {
+                    $sql = " select count(*) from " . $table;
+                    $total = $this->datatable_model->get_count($sql);
+                    $totalAfterFilter = $total;
                 }
-                $list_temp = array();
-                foreach ($list_temp2 as $irow) {
-                    if (in_array($irow['job_pin'], $list_temp1_key)) {
-                        $list_temp[] = $irow['job_pin'];
-                    }
-                }
-
-
-                $list_counted = array();
-                foreach ($list_temp as $irow) {
-                    $job_pin = $irow;
-                    $tmp_sql2 = "SELECT* FROM ins_building as a
-                            LEFT JOIN ins_admin u ON u.kind=2 AND concat(u.first_name, ' ', u.last_name)=a.field_manager"
-                            //. " left join ins_inspection ii on ii.job_pin = a.job_pin"
-                            . $searchSQL
-                            . "and a.job_pin = '$job_pin'";
-                    $tmp_pass = $this->utility_model->get_count__by_sql($tmp_sql2);
-                    if ($tmp_pass > 0) {
-                        $tmp_cnt1 ++;
-                        $tmp_sql2 = "SELECT a.job_number,a.community,a.address,u.first_name,a.created_at,a.job_pin "
-                                . " FROM ins_building as a "
-                                . " LEFT JOIN ins_admin u ON u.kind=2 AND concat(u.first_name, ' ', u.last_name)=a.field_manager"
-                                . " where a.job_pin = '$job_pin'";
-                        $tmp_row = $this->utility_model->get__by_sql($tmp_sql2);
-
-                        $list_counted[] = $tmp_row;
-                    }
-                }
-                $totalAfterFilter = $tmp_cnt1;
-            } else {
-                if (strpos($status_cond, 'A') !== false) {
-                    // first condition
-                    // $cols = array("a.job_number", "a.community", "a.address", "", "", "u.first_name", "a.created_at");
-                    $tmp_cnt1 = 0;
-                    $tmp_sql1 = "SELECT pp.job_pin
-                            FROM 
-                            ins_inspection pp 
-                            WHERE pp.type=1  AND (pp.result_code=1 OR pp.result_code=2)
-                            GROUP BY pp.job_pin";
-                    $list_temp1 = $this->utility_model->get_list__by_sql($tmp_sql1);
-                    $list_counted = array();
-                    foreach ($list_temp1 as $irow) {
-                        $job_pin = $irow['job_pin'];
-                        $tmp_sql2 = "SELECT* FROM ins_building as a
-                            LEFT JOIN ins_admin u ON u.kind=2 AND concat(u.first_name, ' ', u.last_name)=a.field_manager"
-                                //. " left join ins_inspection ii on ii.job_pin = a.job_pin"
-                                . $searchSQL
-                                . "and a.job_pin = '$job_pin'";
-                        $tmp_pass = $this->utility_model->get_count__by_sql($tmp_sql2);
-                        if ($tmp_pass > 0) {
-                            $tmp_cnt1 ++;
-                            $tmp_sql2 = "SELECT a.job_number,a.community,a.address,u.first_name,a.created_at,a.job_pin "
-                                    . " FROM ins_building as a "
-                                    . " LEFT JOIN ins_admin u ON u.kind=2 AND concat(u.first_name, ' ', u.last_name)=a.field_manager"
-                                    . " where a.job_pin = '$job_pin'";
-                            $tmp_row = $this->utility_model->get__by_sql($tmp_sql2);
-
-                            $list_counted[] = $tmp_row;
-                        }
-                    }
-                    //$result['list_counted'] = $list_counted;
-                    //$result['total'] = $tmp_cnt1;
-                    $totalAfterFilter = $tmp_cnt1;
-                }
-
-                if (strpos($status_cond, 'B') !== false) {
-                    $tmp_cnt1 = 0;
-                    $tmp_sql1 = "SELECT pp.job_pin
-                            FROM 
-                            ins_inspection pp 
-                            WHERE pp.type=2  AND (pp.result_code=1 OR pp.result_code=2)
-                            GROUP BY pp.job_pin";
-                    $list_temp1 = $this->utility_model->get_list__by_sql($tmp_sql1);
-                    $list_counted = array();
-                    foreach ($list_temp1 as $irow) {
-                        $job_pin = $irow['job_pin'];
-                        $tmp_sql2 = "SELECT* FROM ins_building as a
-                            LEFT JOIN ins_admin u ON u.kind=2 AND concat(u.first_name, ' ', u.last_name)=a.field_manager"
-                                //. " left join ins_inspection ii on ii.job_pin = a.job_pin"
-                                . $searchSQL
-                                . "and a.job_pin = '$job_pin'";
-                        $tmp_pass = $this->utility_model->get_count__by_sql($tmp_sql2);
-                        if ($tmp_pass > 0) {
-                            $tmp_cnt1 ++;
-                            $tmp_sql2 = "SELECT a.job_number,a.community,a.address,u.first_name,a.created_at,a.job_pin "
-                                    . " FROM ins_building as a "
-                                    . " LEFT JOIN ins_admin u ON u.kind=2 AND concat(u.first_name, ' ', u.last_name)=a.field_manager"
-                                    . " where a.job_pin = '$job_pin'";
-                            $tmp_row = $this->utility_model->get__by_sql($tmp_sql2);
-
-                            $list_counted[] = $tmp_row;
-                        }
-                    }
-                    $totalAfterFilter = $tmp_cnt1;
-                }
-            }
-            for ($i = $start; $i < $start + $amount; $i++) {
-                if ($i < count($list_counted)) {
-                    $data[] = $list_counted[$i];
-                }
-            }
-        } else {
-            $sql = " select count(*) from " . $table;
-            if (strlen($searchSQL) > 0) {
+                $result["total_sql"] = $sql;
+                $sql = " select  a.*, u.first_name, u.last_name, '' as additional from " . $table . "  ";
                 $sql .= $searchSQL;
-                $totalAfterFilter = $this->datatable_model->get_count($sql);
-            }
-
-            $sql = " select  a.*, u.first_name, u.last_name, m.address as unit_address, '' as additional from " . $table . "  ";
-            $sql .= $searchSQL;
-            $sql .= " order by " . $colName . " " . $dir . " ";
-            $sql .= " limit " . $start . ", " . $amount . " ";
-            $data = $this->datatable_model->get_content($sql);
+                $sql .= " order by " . $colName . " " . $dir . " ";
+                $sql .= " limit " . $start . ", " . $amount . " ";
+                $data = $this->datatable_model->get_content($sql);
+                $result["total_query_sql"] = $sql;
+                break;
+            default:
+                break;
         }
-
 
         if (!$this->session->userdata('user_id')) {
             
@@ -2438,17 +2331,17 @@ ORDER BY g.inspection_count DESC"
 
                 $row['days'] = floor($date_diff / (60 * 60 * 24));
 
-                if ($status1 !== false && $status1 != "") {
-                    if ($row['dp_status'] != $status1) {
-                        continue;
-                    }
-                }
-
-                if ($status2 !== false && $status2 != "") {
-                    if ($row['lath_status'] != $status2) {
-                        continue;
-                    }
-                }
+//                if ($status1 !== false && $status1 != "") {
+//                    if ($row['dp_status'] != $status1) {
+//                        continue;
+//                    }
+//                }
+//
+//                if ($status2 !== false && $status2 != "") {
+//                    if ($row['lath_status'] != $status2) {
+//                        continue;
+//                    }
+//                }
 
 
                 array_push($new_data, $row);
@@ -2811,6 +2704,115 @@ ORDER BY g.inspection_count DESC"
         $ret['response'] = 400;
         header('Content-Type: application/json');
         echo json_encode($ret);
+    }
+
+    public function test_pending_building_sql1() {
+        $sql1 = "SELECT a.job_number
+FROM ins_building a
+LEFT JOIN ins_admin u ON u.kind=2
+AND concat(u.first_name, ' ', u.last_name)=a.field_manager
+WHERE a.created_at>='20100203000000'
+  AND a.created_at<='20180312235959'";
+        $sql2 = "SELECT a.job_number
+FROM ins_building a
+LEFT JOIN ins_admin u ON u.kind=2
+AND concat(u.first_name, ' ', u.last_name)=a.field_manager
+LEFT JOIN
+  (SELECT bb.job_number AS job_number2,
+          1 AS cnt2
+   FROM ins_building bb
+   LEFT JOIN ins_inspection pp ON pp.job_pin = bb.job_pin
+   WHERE pp.type=2
+     AND (pp.result_code=1
+          OR pp.result_code=2)) g2 ON g2.job_number2 = a.job_number
+WHERE a.created_at>='20100203000000'
+  AND a.created_at<='20180312235959'
+  AND g2.cnt2 = '1'";
+        $sql3 = "SELECT a.job_number
+FROM ins_building a
+LEFT JOIN ins_admin u ON u.kind=2
+AND concat(u.first_name, ' ', u.last_name)=a.field_manager
+LEFT JOIN
+  (SELECT bb.job_number AS job_number2,
+          1 AS cnt2
+   FROM ins_building bb
+   LEFT JOIN ins_inspection pp ON pp.job_pin = bb.job_pin
+   WHERE pp.type=2
+     AND (pp.result_code=1
+          OR pp.result_code=2)) g2 ON g2.job_number2 = a.job_number
+WHERE a.created_at>='20100203000000'
+  AND a.created_at<='20180312235959'
+  AND g2.cnt2 IS NULL";
+        $list1 = $data = $this->datatable_model->get_content($sql1);
+        $list2 = $data = $this->datatable_model->get_content($sql2);
+        $list3 = $data = $this->datatable_model->get_content($sql3);
+        $list_jb1 = array();
+        $list_jo1_dup = array();
+        foreach ($list1 as $value) {
+            $job_number = $value['job_number'];
+            if (isset($list_jb1[$job_number])) {
+                if (isset($list_jo1_dup[$job_number])) {
+                    $list_jo1_dup[$job_number] = $list_jo1_dup[$job_number] + 1;
+                } else {
+                    $list_jo1_dup[$job_number] = 1;
+                }
+            } else {
+                $list_jb1[$job_number] = $job_number;
+            }
+        }
+
+        $list_jb2 = array();
+        $list_jb2['16020150175'] = '16020150175';
+        $list_jb2['0000-000gh'] = '0000-000gh';
+
+        $list_jb2 = array();
+        $list_jo2_dup = array();
+        foreach ($list2 as $value) {
+            $job_number = $value['job_number'];
+            if (isset($list_jb2[$job_number])) {
+                if (isset($list_jo2_dup[$job_number])) {
+                    $list_jo2_dup[$job_number] = $list_jo2_dup[$job_number] + 1;
+                } else {
+                    $list_jo2_dup[$job_number] = 1;
+                }
+            } else {
+                $list_jb2[$job_number] = $job_number;
+            }
+        }
+
+        $list_jb3 = array();
+        $list_jo3_dup = array();
+        foreach ($list3 as $value) {
+            $job_number = $value['job_number'];
+            if (isset($list_jb3[$job_number])) {
+                if (isset($list_jo3_dup[$job_number])) {
+                    $list_jo3_dup[$job_number] = $list_jo3_dup[$job_number] + 1;
+                } else {
+                    $list_jo3_dup[$job_number] = 1;
+                }
+            } else {
+                $list_jb3[$job_number] = $job_number;
+            }
+        }
+
+
+
+        $result = array_merge($list_jb2, $list_jb3);
+        $result1 = array_diff($result, $list_jb1);
+
+
+
+        var_dump($result1);
+
+        echo count($list_jb1);
+        echo "<br/>";
+        echo count($list_jb2);
+        echo "<br/>";
+        echo count($list_jb3);
+        echo "<br/>";
+
+//        var_dump($list_jo1_dup);
+//        var_dump($list_jb1);
     }
 
     public function update_community() {

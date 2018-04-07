@@ -212,7 +212,19 @@
                                                     </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
-                                                    <label class="control-label text-right col-md-4">Right Building :</label>
+                                                    <label class="control-label text-right col-md-4">Front Side :</label>
+                                                    <div class="col-md-6" <?php echo trim($inspection['image_front_building_2']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
+                                                        <?php
+                                                        if (trim($inspection['image_front_building_2']) == '') {
+                                                            echo "<label class='label label-warning'>No Image</label>";
+                                                        } else {
+                                                            echo "<img src='" . trim($inspection['image_front_building_2']) . "' class='for-preview' style='max-width: 250px;'>";
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                                <div class="row margin-bottom-10">
+                                                    <label class="control-label text-right col-md-4">Right Side :</label>
                                                     <div class="col-md-6" <?php echo trim($inspection['image_right_building']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
                                                         <?php
                                                         if (trim($inspection['image_right_building']) == '') {
@@ -224,7 +236,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
-                                                    <label class="control-label text-right col-md-4">Left Building :</label>
+                                                    <label class="control-label text-right col-md-4">Left Side :</label>
                                                     <div class="col-md-6" <?php echo trim($inspection['image_left_building']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
                                                         <?php
                                                         if (trim($inspection['image_left_building']) == '') {
@@ -236,7 +248,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="row margin-bottom-10">
-                                                    <label class="control-label text-right col-md-4">Back Building :</label>
+                                                    <label class="control-label text-right col-md-4">Back Side :</label>
                                                     <div class="col-md-6" <?php echo trim($inspection['image_back_building']) == "" ? "style='padding-top: 3px;'" : ""; ?>>
                                                         <?php
                                                         if (trim($inspection['image_back_building']) == '') {

@@ -108,10 +108,10 @@ jQuery(document).ready(function () {
 //        'searching' : false,
         "order": [[0, "asc"]],
         "columnDefs": [
-            {
-                "targets": [-3, -4],
-                "orderable": false
-            },
+//            {
+//                "targets": [-3, -4],
+//                "orderable": false
+//            },
             {
                 "targets": "_all",
                 "searchable": false
