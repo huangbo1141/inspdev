@@ -189,22 +189,45 @@
     <?php } ?>
 
 
+        
     <?php if ($user_permission == 1) { ?>
 
-    <?php if ($page_name == 'duct_leakage_inspection') { ?>
+    <?php if ($page_name == 'duct_leakage_inspection' || $page_name == 'duct_leakage_inspection_pulte') { ?>
         <li class="active open">
-            <a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection.html">
+            <a href="#">
                 <i class="fa fa-database"></i>
                 <span class="title">Duct Leakage Inspection</span>
                 <span class="selected"></span>
+                <span class="arrow open"></span>
             </a>
+            <ul class="sub-menu">
+
+            <?php if ($page_name == 'duct_leakage_inspection_pulte') { ?>
+                <li class="active"><a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection_pulte.html"> Pulte</a></li>
+            <?php } else { ?>
+                <li><a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection_pulte.html"> Pulte</a></li>
+            <?php } ?>
+
+            <?php if ($page_name == 'duct_leakage_inspection') { ?>
+                <li class="active"><a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection.html"> WCI</a></li>
+            <?php } else { ?>
+                <li><a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection.html"> WCI</a></li>
+            <?php } ?>
+
+            </ul>
         </li>
     <?php } else { ?>
         <li class="">
-            <a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection.html">
+            <a href="#">
                 <i class="fa fa-database"></i>
                 <span class="title">Duct Leakage Inspection</span>
+                <span class="selected"></span>
+                <span class="arrow"></span>
             </a>
+            <ul class="sub-menu">
+                <li><a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection_pulte.html"> Pulte</a></li>
+                <li><a href="<?php echo $basePath; ?>inspection/duct_leakage_inspection.html"> WCI</a></li>
+            </ul>
         </li>
     <?php } ?>
 

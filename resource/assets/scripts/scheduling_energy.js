@@ -100,7 +100,7 @@ function init_table() {
             "url": "load",
             "type": "POST",
             "data": function (d){
-                d.category = "3";
+                d.category = "3_4";
                 d.region = $("#region").val();
                 d.community = $("#community").val();
                 d.start_date = $("#start_date").val();

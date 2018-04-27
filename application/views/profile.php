@@ -40,7 +40,7 @@
                     <div class="row inspection-page-header">
                         <div class="col-md-8 col-sm-7 col-xs-6 inspection-title">
                             <h3 class="page-title">
-                                Profile <small>account information</small>
+                                Profile <small>account information test</small>
                             </h3>
                         </div>
                         <div class="col-md-4 col-sm-5 col-xs-6 inspection-logo">

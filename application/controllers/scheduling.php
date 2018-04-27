@@ -166,7 +166,9 @@ class Scheduling extends CI_Controller {
             $table .= " and ( a.category=1 or a.category=2 )";
         } else if ($category=='3') {
             $table .= " and ( a.category=3 )";
-        } else {
+        } else if ($category=='3_4') {
+            $table .= " and ( a.category=3 or a.category=4 )";
+        }else {
         }
 
         $result = array();
@@ -341,7 +343,7 @@ class Scheduling extends CI_Controller {
               }else{
                 $value['re_inspection'] = '0';
               }
-              $result["sql".$key] = $msql;
+//              $result["sql".$key] = $msql;
               $data[$key] = $value;
             }
         }

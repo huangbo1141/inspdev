@@ -1424,7 +1424,7 @@ ORDER BY g.inspection_count DESC"
 
                 if ($community && $community['reinspection'] == '1') {
                     $res['err_code'] = 1;
-                    $res['err_msg'] = "Re-Inspection count $inspection_count is exceed the limit " . $page_data['reinspection_allowed'];
+                    $res['err_msg'] = "Your scheduling limit has been reached.\nPlease contact the E3 Building Sciences Office."; 
                 }
             }
         }
@@ -2002,6 +2002,7 @@ ORDER BY g.inspection_count DESC"
         $ret = array();
         $ret['cnt1'] = 0;
         $ret['cnt2'] = 0;
+        $ret['cnt3'] = 0;
 
         $mode = $this->input->get('mode');
         $ret['mode'] = $mode;
@@ -2017,25 +2018,38 @@ ORDER BY g.inspection_count DESC"
             }
         }
 
-        if($mode == 2){
-            $list_inspection = $this->utility_model->get_list__by_sql("select job_number from ins_inspection where job_pin = ''");
-            
-            echo count($list_inspection);
-//            foreach ($list_inspection as $row) {
-//                $job_number = $row['job_number'];
-//                $job_pin = str_replace("-", "", $job_number);
-//                if ($this->utility_model->update('ins_inspection', array('job_pin' => $job_pin), array('job_number' => $job_number))) {
-//                    // updated
-//                    $ret['cnt2'] = $ret['cnt2'] + 1;
-//                    if($ret['cnt2']>10){
-//                        break;
-//                    }
-//                }
-//            }     
+        if ($mode == 2) {
+            $list_inspection = $this->utility_model->get_list__by_sql("select job_number from ins_inspection");
+
+            foreach ($list_inspection as $row) {
+                $job_number = $row['job_number'];
+                $job_pin = str_replace("-", "", $job_number);
+                if ($this->utility_model->update('ins_inspection', array('job_pin' => $job_pin), array('job_number' => $job_number))) {
+                    $ret['cnt2'] = $ret['cnt2'] + 1;
+                }
+            }
+        }
+
+        if ($mode == 3) {
+            $list_building = $this->utility_model->get_list__by_sql("select job_pin,job_number from ins_building");
+
+            foreach ($list_building as $row) {
+                $job_pin = $row['job_pin'];
+                $sql = "select region,community from ins_inspection where job_pin = '$job_pin'";
+                $inspection = $this->utility_model->get__by_sql($sql);
+                if ($inspection) {
+                    $region = $inspection['region'];
+                    $community = $inspection['community'];
+                    if ($this->utility_model->update('ins_building', array('region' => $region, 'community_id' => $community), array('job_pin' => $job_pin))) {
+                        // updated
+                        $ret['cnt3'] = $ret['cnt3'] + 1;
+                    }
+                }
+            }
         }
 
 
-        if($mode == 3){
+        if ($mode == 4) {
             $list_row = $this->utility_model->get_list('ins_admin', array());
             foreach ($list_row as $row) {
                 $fname = $row['first_name'];
@@ -2045,7 +2059,7 @@ ORDER BY g.inspection_count DESC"
                     // updated
                     $ret['cnt2'] = $ret['cnt2'] + 1;
                 }
-            }        
+            }
         }
         print_r(json_encode($ret));
     }
@@ -2408,6 +2422,106 @@ ORDER BY g.inspection_count DESC"
         $this->load->view('duct_leakage_inspection', $page_data);
     }
 
+    public function duct_leakage_inspection_pulte() {
+        if (!$this->session->userdata('user_id') || $this->session->userdata('permission') != '1') {
+            redirect(base_url() . "user/login.html");
+            exit(1);
+        }
+
+        $date = date('Y-m-d', time());
+        $id = $this->input->get_post('id');
+
+        $page_data = array();
+        $page_data['page_name'] = 'duct_leakage_inspection_pulte';
+        $page_data['page_title'] = "Pulte Duct Leakage Inspection";
+
+        $page_data['field_managers'] = array();
+
+        if ($id === false || $id == "") {
+            $page_data['inspection'] = array('id' => '', 'requested_at' => $date, 'job_number' => '', 'lot' => '', 'community_name' => '',
+                'address' => '', 'city' => '', 'area' => '', 'volume' => '', 'qn' => '', 'wall_area' => '', 'ceiling_area' => '', 'design_location' => '',
+                'manager_id' => '', 'manager_email' => '', 'document_person' => '');
+        } else {
+            $inspection = $this->utility_model->get('ins_inspection_requested', array('id' => $id));
+            if ($inspection) {
+                $fm = $this->utility_model->get('ins_admin', array('id' => $inspection['manager_id'], 'kind' => 2));
+                if ($fm) {
+                    $inspection['manager_email'] = $fm['email'];
+                } else {
+                    $inspection['manager_id'] = "";
+                    $inspection['manager_email'] = "";
+                }
+
+                $page_data['inspection'] = $inspection;
+            } else {
+                $page_data['inspection'] = array('id' => '', 'requested_at' => $date, 'job_number' => '', 'lot' => '', 'community_name' => '',
+                    'address' => '', 'city' => '', 'area' => '', 'volume' => '', 'qn' => '', 'wall_area' => '', 'ceiling_area' => '', 'design_location' => '',
+                    'manager_id' => '', 'manager_email' => '', 'document_person' => '');
+            }
+        }
+
+        $this->load->view('duct_leakage_inspection_pulte', $page_data);
+    }
+
+    public function get_field_manager_list_for_job_number() {
+        //hgc
+        $res = array('err_code' => -1);
+        $res['err_msg'] = "Failed!";
+        $fm_result['has'] = 0;
+        
+        if ($this->session->userdata('user_id')) {
+            $job_number = $this->input->get_post('job_number');
+            $order_id = $this->input->get_post('order_id');
+            $job_pin = str_replace("-", "", $job_number);
+            $sql = "select * from ins_inspection where job_pin = $job_pin order by id desc limit 1";
+            $inspection = $this->utility_model->get__by_sql($sql);
+            if ($inspection) {
+                $region = $inspection['region'];
+                $sql = "select * from ins_admin where (region = 0 || region = $region) and builder = 1";
+                $fms = $this->utility_model->get_list__by_sql($sql);
+                if ($fms) {
+                    $fm_result['list'] = $fms;
+                    $fm_result['has'] = 1;
+                } else {
+                    $fm_result['list'] = array();
+                }
+
+                $res['fm'] = $fm_result;
+                $res['inspection'] = $inspection;
+                $res['err_code'] = 0;
+            } else {
+                
+            }
+            $res['order_id'] = $order_id;
+        }
+        print_r(json_encode($res));
+    }
+    public function check_job_number_for_pulte_duct() {
+        //hgc
+        $res = array('err_code' => -1);
+        $res['err_msg'] = "Failed!";
+        if ($this->session->userdata('user_id')) {
+            $job_number = $this->input->get_post('job_number');
+            $job_pin = str_replace("-", "", $job_number);
+            $sql = "select region from ins_inspection where job_pin = $job_pin";
+            $tmp_row = $this->utility_model->get__by_sql($sql);
+            if ($tmp_row) {
+                $res['exist_ins_inspection'] = 1;
+            } else {
+                $res['exist_ins_inspection'] = 0;
+            }
+            
+            $sql = "select region from ins_building where job_pin = $job_pin";
+            $tmp_row = $this->utility_model->get__by_sql($sql);
+            if ($tmp_row) {
+                $res['exist_ins_building'] = 1;
+            } else {
+                $res['exist_ins_building'] = 0;
+            }
+        }
+        print_r(json_encode($res));
+    }
+
     public function update_duct_leakage_inspection_requested() {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed to request!";
@@ -2508,8 +2622,14 @@ ORDER BY g.inspection_count DESC"
                             $this->utility_model->insert('ins_building', array('job_number' => $job_number, 'community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'created_at' => $t, 'updated_at' => $t));
                         }
 
+                        $tmp_category = $this->input->get_post('category');
+                        if ($tmp_category == false) {
+                            $tmp_category = 3;
+                        }
+
+
                         $data = array(
-                            'category' => 3,
+                            'category' => $tmp_category,
                             'manager_id' => $field_manager_id, //$this->session->userdata('user_id'),
                             'job_number' => $job_number,
                             'lot' => $lot,
@@ -2609,8 +2729,12 @@ ORDER BY g.inspection_count DESC"
             }
             if (is_string($id) && strlen($id) > 0) {
                 $this->utility_model->start();
+                $tmp_category = $this->input->get_post('category');
+                if ($tmp_category == false) {
+                    $tmp_category = 3;
+                }
                 $data = array(
-                    'category' => 3,
+                    'category' => $tmp_category,
                     'manager_id' => $manager_id, //$this->session->userdata('user_id'),
                     'job_number' => $job_number,
                     'lot' => $lot,

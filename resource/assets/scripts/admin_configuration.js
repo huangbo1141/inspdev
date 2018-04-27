@@ -22,6 +22,40 @@ function submit_data() {
         return false;
     }
     
+    var twilio_sid = $('#twilio_sid').val();
+    if (twilio_sid=='') {
+        showAlert("Please Enter Sid");
+        return false;
+    }
+    
+    
+    var twilio_token = $('#twilio_token').val();
+    if (twilio_token=='') {
+        showAlert("Please Enter Token");
+        return false;
+    }
+    
+    
+    var twilio_phone1 = $('#twilio_phone1').val();
+    if (twilio_phone1=='') {
+        showAlert("Please Enter PhoneNumber");
+        return false;
+    }
+    
+    
+    var twilio_reply_text = $('#twilio_reply_text').val();
+    if (twilio_reply_text=='') {
+        showAlert("Please Enter Reply Text");
+        return false;
+    }
+    
+    
+    var twilio_send_text = $('#twilio_send_text').val();
+    if (twilio_send_text=='') {
+        showAlert("Please Enter Send Text");
+        return false;
+    }
+    
     showLoading();
 
     $.ajax({
@@ -30,6 +64,11 @@ function submit_data() {
         data: {
             report_keep_day: report_keep_day,
             reinspection_allowed:reinspection_allowed,
+            twilio_sid:twilio_sid,
+            twilio_token:twilio_token,
+            twilio_phone1:twilio_phone1,
+            twilio_reply_text:twilio_reply_text,
+            twilio_send_text:twilio_send_text,
         },
         dataType: 'json',
         success: function (data) {

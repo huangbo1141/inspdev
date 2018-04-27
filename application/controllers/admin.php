@@ -37,6 +37,19 @@ class Admin extends CI_Controller {
         } else {
             $page_data['reinspection_allowed'] = 5;
         }
+        
+        $other_rows = array();
+        $config_rows = $this->utility_model->get_list__by_sql("select * from sys_config");
+        foreach($config_rows as $row){
+            $code = $row['code'];
+            $value = $row['value'];
+            if($code == 'reinspection_allowed' || $code == 'report_keep_day' || $code == 'report_template'){
+                continue;
+            }
+            
+            $other_rows[] = $row;
+        }
+        $page_data['other_rows'] = $other_rows;
 
         $this->load->view('admin_configuration', $page_data);
     }
@@ -91,6 +104,111 @@ class Admin extends CI_Controller {
                     }
                 } else {
                     if ($this->utility_model->insert('sys_config', array('code'=>'reinspection_allowed', 'value'=>$reinspection_allowed))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $twilio_sid = $this->input->get_post('twilio_sid');
+            if ($twilio_sid=="") {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'twilio_sid'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$twilio_sid), array('code'=>'twilio_sid'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'twilio_sid', 'value'=>$twilio_sid))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $twilio_token = $this->input->get_post('twilio_token');
+            if ($twilio_token=="" ) {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'twilio_token'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$twilio_token), array('code'=>'twilio_token'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'twilio_token', 'value'=>$twilio_token))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $twilio_phone1 = $this->input->get_post('twilio_phone1');
+            if ($twilio_phone1=="" ) {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'twilio_phone1'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$twilio_phone1), array('code'=>'twilio_phone1'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'twilio_phone1', 'value'=>$twilio_phone1))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $twilio_reply_text = $this->input->get_post('twilio_reply_text');
+            if ($twilio_reply_text=="" ) {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'twilio_reply_text'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$twilio_reply_text), array('code'=>'twilio_reply_text'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'twilio_reply_text', 'value'=>$twilio_reply_text))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $twilio_send_text = $this->input->get_post('twilio_send_text');
+            if ($twilio_send_text=="" ) {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'twilio_send_text'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$twilio_send_text), array('code'=>'twilio_send_text'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'twilio_send_text', 'value'=>$twilio_send_text))) {
                         $res['message'] = "Success";
                         $res['code'] = 0;
                     } else {

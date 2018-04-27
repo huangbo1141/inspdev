@@ -490,7 +490,7 @@ function check_job_number() {
                         $("#reinspection").val('0');
 
                         if (data.pass!=null && data.pass>0) {
-                            showAlert("It have already Passed Inspection!");
+                            showAlert("Inspection Already Requested.!");
 
                             need_updated = "";
                             not_completed = true;
