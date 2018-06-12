@@ -74,8 +74,29 @@
                                 </div>
                             </div>
 
+                            
+                            <h3 >
+                                Twilio
+                            </h3>
+                            <hr>
                             <?php
                             foreach ($other_rows as $row) {
+                                ?>
+                                <div class="row margin-bottom-10 form-group">
+                                    <label class="control-label col-md-3" for="<?php echo $row['code']?>"><?php echo $row['label']?></label>
+                                    <div class="col-md-5">
+                                        <input type="text" placeholder="" id="<?php echo $row['code']?>" name="<?php echo $row['code']?>" class="form-control"  value="<?php echo $row['value']?>">
+                                    </div>
+                                </div>
+                                <?php
+                            }
+                            ?>
+                            <h3 >
+                                Checklist
+                            </h3>
+                            <hr>
+                            <?php
+                            foreach ($checklist_rows as $row) {
                                 ?>
                                 <div class="row margin-bottom-10 form-group">
                                     <label class="control-label col-md-3" for="<?php echo $row['code']?>"><?php echo $row['label']?></label>

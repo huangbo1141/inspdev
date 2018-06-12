@@ -128,7 +128,9 @@ function check_job_number() {
                         $("#community").val(data.inspection.community==null?"":data.inspection.community);
                         $("#address").val(data.inspection.address==null?"":data.inspection.address);
                         $("#city").val(data.inspection.city==null?"":data.inspection.city);
-                        
+                    }
+                    if(data.building != null) {
+                        $("#address").val(data.building.address==null?"":data.building.address);
                     }
                 } else {
                     $("#field_manager").html("");
@@ -172,9 +174,6 @@ jQuery(document).ready(function () {
                 validators: {
                     notEmpty: {
                         message: 'Enter the Job Number'
-                    },
-                    integer: {
-                        message: 'Enter the Number',
                     },
                     greaterThan: {
                         value: 1,

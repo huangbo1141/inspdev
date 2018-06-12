@@ -38,18 +38,24 @@ class Admin extends CI_Controller {
             $page_data['reinspection_allowed'] = 5;
         }
         
+        $twilio_term = "twilio";
+        $checklist_term = "checklist";
+        
         $other_rows = array();
+        $checklist_rows = array();
         $config_rows = $this->utility_model->get_list__by_sql("select * from sys_config");
         foreach($config_rows as $row){
             $code = $row['code'];
             $value = $row['value'];
-            if($code == 'reinspection_allowed' || $code == 'report_keep_day' || $code == 'report_template'){
-                continue;
+            if(substr($code,0, strlen($twilio_term)) === $twilio_term){
+                $other_rows[] = $row;
+            }else  if(substr($code,0, strlen($checklist_term)) === $checklist_term){
+                $checklist_rows[] = $row;
             }
             
-            $other_rows[] = $row;
         }
         $page_data['other_rows'] = $other_rows;
+        $page_data['checklist_rows'] = $checklist_rows;
 
         $this->load->view('admin_configuration', $page_data);
     }
@@ -209,6 +215,27 @@ class Admin extends CI_Controller {
                     }
                 } else {
                     if ($this->utility_model->insert('sys_config', array('code'=>'twilio_send_text', 'value'=>$twilio_send_text))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                }
+            }
+            
+            $checklist_online_link = $this->input->get_post('checklist_online_link');
+            if ($checklist_online_link=="" ) {
+                $res['message'] = "Please Enter Re-Inspections Allowed!";
+            } else {
+                if ($this->utility_model->get('sys_config', array('code'=>'checklist_online_link'))) {
+                    if ($this->utility_model->update('sys_config', array('value'=>$checklist_online_link), array('code'=>'checklist_online_link'))) {
+                        $res['message'] = "Success";
+                        $res['code'] = 0;
+                    } else {
+                        $res['message'] = "Failed to Update";
+                    }
+                } else {
+                    if ($this->utility_model->insert('sys_config', array('code'=>'checklist_online_link', 'value'=>$checklist_online_link))) {
                         $res['message'] = "Success";
                         $res['code'] = 0;
                     } else {

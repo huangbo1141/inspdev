@@ -105,7 +105,7 @@ jQuery(document).ready(function() {
       "url": "load_list",
       "type": "POST",
       data: {
-        type: '3',
+        type: '3_4',
       }
     },
     //        'searching' : false,
@@ -157,7 +157,7 @@ jQuery(document).ready(function() {
         "render": function(data, type, row, meta) {
           var d = "";
 
-          if (row.type == '3') {
+          if (row.type == '3' || row.type == '4') {
             if (row.result_duct_leakage == '1') {
               d += '<span class="label label-success">';
             }
@@ -219,7 +219,7 @@ jQuery(document).ready(function() {
         "data": "qn",
         "render": function(data, type, row, meta) {
           var d = "";
-          if (row.type == '3') {
+          if (row.type == '3' || row.type == '4') {
             if (!isNaN(data)) {
               d += toCommaNumber(parseFloat(data).toFixed(3));
             }
@@ -231,7 +231,7 @@ jQuery(document).ready(function() {
         "data": "ach50",
         "render": function(data, type, row, meta) {
           var d = "";
-          if (row.type == '3') {
+          if (row.type == '3' || row.type == '4') {
             if (!isNaN(data)) {
               d += toCommaNumber(parseFloat(data).toFixed(2));
             }
@@ -271,7 +271,7 @@ jQuery(document).ready(function() {
             data += '<li><a href="javascript:edit(\'' + row.id + '\')"><i class="fa fa-edit"></i> Edit</a></li>';
           }
 
-          if (row.type == '3') {
+          if (row.type == '3' || row.type == '4') {
             data += '<li><a href="javascript:generate(\'duct\', \'' + row.id + '\')"><i class="fa fa-file-pdf-o"></i> Generate Report(Duct Leakage)</a></li>';
             data += '<li><a href="javascript:generate(\'envelop\', \'' + row.id + '\')"><i class="fa fa-file-pdf-o"></i> Generate Report(Envelope Leakage)</a></li>';
           } else {

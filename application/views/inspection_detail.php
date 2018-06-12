@@ -192,7 +192,7 @@
                                                             if ($inspection['latitude'] == '-1' && $inspection['longitude'] == '-1' && $inspection['accuracy'] == '-1') {
                                                             } else {
                                                             ?>
-                                                            <img class="img-responsive for-preview google-map" data-src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=15&scale=false&size=750x750&maptype=roadmap&format=jpg&visual_refresh=true"  src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map">
+                                                            <img class="img-responsive for-preview google-map" data-src="https://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=15&scale=false&size=750x750&maptype=roadmap&format=jpg&visual_refresh=true"  src="https://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map">
                                                             <?php
                                                             }
                                                             ?>
@@ -351,7 +351,30 @@
                                         <div class="portlet-body" style="display: none;">
                                             <ul style="font-size: 15px; line-height: 32px; margin-bottom: 0;">
                                                 <?php foreach ($comments as $row) { ?>
-                                                <li><?php echo $row['comment_name']; ?></li>
+                                                <li>
+                                                    <?php 
+                                                        if ($inspection['type'] == '1' && $row['no'] == '13'){
+                                                            echo "<span>Failed drainage plane inspection ONLY for missing windows. Proceed to Lath on areas not affected by missing windows. </span>"
+                                                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use online link for Special Window Inspection</span>"
+                                                                    . "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style=' color: red;' href='$checklist_online_link'>$checklist_online_link</a>";
+                                                            
+                                                        }else if ($inspection['type'] == '1' && $row['no'] == '14'){
+                                                            echo "<span>Failed drainage plane inspection for items other than missing windows. All non-window failures must be corrected and reinspected prior to proceeding to Lath.</span></span>"
+                                                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use regular inspection request on the web portal to schedule reinspection.</span>";
+                                                                    
+                                                            
+                                                        }else if ($inspection['type'] == '2' && $row['no'] == '11'){
+                                                            echo "<span>Failed lath inspection ONLY on the basis of missing windows. OK to proceed to Lath on areas not affected by missing windows.</span></span>"
+                                                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use online link for Special Window Inspection</span>"
+                                                                    . "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style=' color: red;    ' href='$checklist_online_link'>$checklist_online_link</a>";
+                                                        }else if ($inspection['type'] == '2' && $row['no'] == '12'){
+                                                            echo "<span>Failed lath inspection on the basis of items other than missing windows. All non-window related items must be corrected and reinspected prior to proceeding to stucco. </span></span>"
+                                                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use regular inspection request on the web portal to schedule reinspection.</span>";
+                                                        }else{
+                                                            echo $row['comment_name'];
+                                                        }
+                                                         
+                                                    ?></li>
                                                 <?php } ?>
                                             </ul>
                                         </div>

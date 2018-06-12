@@ -241,13 +241,15 @@ class Api extends CI_Controller {
                             if ($job === false) {
                                 $response['status'] = $this->status[3];
                             } else {
-                                $schedule = $this->utility_model->get__by_sql("select a.*, u.id as manager_id from ins_building a "
+                                $sql_t1 = "select a.*, u.id as manager_id from ins_building a "
                                         . " left join ins_admin u on concat(u.first_name, ' ', u.last_name)=a.field_manager and u.kind=2 "
                                         . " where replace(a.job_number,'-','')=replace('$job','-','') "
-                                        . " order by a.updated_at desc limit 1");
+                                        . " order by a.updated_at desc limit 1";
+                                $schedule = $this->utility_model->get__by_sql($sql_t1);
                                 if ($schedule) {
                                     $result_data['is_schedule'] = 1;
                                     $result_data['schedule'] = $schedule;
+                                    $result_data['schedule_sql'] = $sql_t1;
                                 } else {
                                     $result_data['is_schedule'] = 0;
                                 }
@@ -271,7 +273,7 @@ class Api extends CI_Controller {
                                 $result_data['is_exist'] = 0;
                                 $sql = " select "
                                         . " a.id, a.user_id, a.type, a.job_number, a.community, a.lot, a.address as addr, a.start_date as date, a.end_date as date_l, a.initials as init, a.region, a.field_manager as fm, "
-                                        . " a.latitude, a.longitude, a.accuracy, a.house_ready as ready, a.overall_comments as overall, a.image_front_building, a.image_signature, "
+                                        . " a.latitude, a.longitude, a.accuracy, a.house_ready as ready, a.overall_comments as overall, a.image_front_building,a.image_right_building,a.image_left_building,a.image_back_building,a.image_front_building_2, a.image_signature, "
                                         . " a.is_first, a.is_initials, "
                                         . " a.result_code as result, "
                                         . " a.city, a.area, a.volume, a.qn, a.wall_area as w_area, a.ceiling_area as c_area, a.design_location as des_loc, "
@@ -308,10 +310,11 @@ class Api extends CI_Controller {
                                     $inspection['is_exist'] = $inspection['is_first'] == '1' ? "0" : "1";
 
                                     if (isset($inspection['image_front_building']) && $inspection['image_front_building'] != "") {
-                                        $inspection['front'] = array(
-                                            'mode' => 2,
-                                            'img' => $inspection['image_front_building'],
-                                        );
+//                                        $inspection['front'] = array(
+//                                            'mode' => 2,
+//                                            'img' => $inspection['image_front_building'],
+//                                        );
+                                        $inspection['front'] = "";
                                     } else {
                                         $inspection['front'] = "";
                                     }
@@ -323,6 +326,43 @@ class Api extends CI_Controller {
                                         );
                                     } else {
                                         $inspection['sign'] = "";
+                                    }
+
+                                    if (isset($inspection['image_right_building']) && $inspection['image_right_building'] != "") {
+                                        $inspection['right'] = array(
+                                            'mode' => 2,
+                                            'img' => $inspection['image_right_building'],
+                                        );
+                                    } else {
+                                        $inspection['right'] = "";
+                                    }
+
+                                    if (isset($inspection['image_left_building']) && $inspection['image_left_building'] != "") {
+                                        $inspection['left'] = array(
+                                            'mode' => 2,
+                                            'img' => $inspection['image_left_building'],
+                                        );
+                                    } else {
+                                        $inspection['left'] = "";
+                                    }
+
+                                    if (isset($inspection['image_back_building']) && $inspection['image_back_building'] != "") {
+                                        $inspection['back'] = array(
+                                            'mode' => 2,
+                                            'img' => $inspection['image_back_building'],
+                                        );
+                                    } else {
+                                        $inspection['back'] = "";
+                                    }
+
+
+                                    if (isset($inspection['image_front_building_2']) && $inspection['image_front_building_2'] != "") {
+                                        $inspection['front2'] = array(
+                                            'mode' => 2,
+                                            'img' => $inspection['image_front_building_2'],
+                                        );
+                                    } else {
+                                        $inspection['front2'] = "";
                                     }
 
                                     $inspection['ex1'] = "";
@@ -535,7 +575,12 @@ class Api extends CI_Controller {
                     }
                 }
             } elseif ($kind == 'wci' || $kind == 'pulte_duct') {
-                $type = 3;
+                if ($kind == 'wci') {
+                    $type = 3;
+                } else {
+                    $type = 4;
+                }
+
                 $user_id = $this->input->get_post('user_id');
 
                 if ($user_id === false) {
@@ -782,21 +827,27 @@ class Api extends CI_Controller {
             if ($user_id !== false && $inspection_id !== false) {
                 $user_id = $this->utility_model->decode($user_id);
                 $inspection_id = $this->utility_model->decode($inspection_id);
+//                $user_id= 2;
+//                $inspection_id = 14977;
 
                 $inspection = $this->utility_model->get('ins_inspection', array('user_id' => $user_id, 'id' => $inspection_id));
                 if ($inspection) {
                     $report = $this->send_report($user_id, $inspection_id);
                     if ($report === false) {
                         $response['status'] = $this->status[1];
+                        $response['flow'] = 4;
                     } else {
                         //                        $result_data['email'] = $report;
                         $response['status'] = $this->status[0];
+                        $response['flow'] = 3;
                     }
                 } else {
                     $response['status'] = $this->status[3];
+                    $response['flow'] = 2;
                 }
             } else {
                 $response['status'] = $this->status[3];
+                $response['flow'] = 1;
             }
         } elseif ($method == 'community') {
             if ($param == 'check') {
@@ -875,6 +926,14 @@ class Api extends CI_Controller {
                 } else {
                     $result_data['rows'] = array();
                 }
+
+                $rows = $this->utility_model->get_list__by_sql("select * from sys_config");
+                if ($rows) {
+                    $result_data['sys_config'] = $rows;
+                } else {
+                    $result_data['sys_config'] = array();
+                }
+
                 $response['status'] = $this->status[0];
             } else {
                 $response['status'] = $this->status[3];
@@ -915,7 +974,7 @@ class Api extends CI_Controller {
                 } else {
                     $region = $this->utility_model->decode($region);
 
-                    $user = $this->utility_model->get_list__by_sql(" select a.* from ins_admin a where a.kind=2 and a.status=1 and a.id in ( select manager_id from ins_admin_region where region='$region' ) ");
+                    $user = $this->utility_model->get_list__by_sql(" select a.* from ins_admin a where a.kind=2 and a.status=1 and a.id in ( select manager_id from ins_admin_region where region='$region' || region = '0' ) ");
                     if ($user) {
                         $result_data['user'] = $user;
                     } else {
@@ -1066,7 +1125,15 @@ class Api extends CI_Controller {
             $msg['tmp_name'] = $_FILES;
             $msg['$new_name'] = $new_name;
             if (move_uploaded_file($_FILES['file']['tmp_name'], $new_name)) {
-                $msg['url'] = base_url() . $new_name;
+                $url = base_url() . $new_name;
+                // http://inspdev.e3bldg.com/resource/upload/pulte_duct/manometer/20180505073952_9a0d81b0-b377-43c9-8fbb-06c2bc6561b9.jpg
+                $query = "http://";
+                if (substr($url, 0, strlen($query)) === $query) {
+                    $url = "https://" . substr($url, strlen($query));
+                }
+                //echo $url;
+
+                $msg['url'] = $url;
                 $msg['path'] = $fname;
                 $msg['code'] = 0;
                 $msg['message'] = "Success!";
@@ -1077,6 +1144,11 @@ class Api extends CI_Controller {
     }
 
     public function export($kind = '', $method = '') {
+
+        $table_order = $this->input->get_post('table_order');
+        $data_order = $this->input->get_post('data_order');
+
+
         if ($kind == 'inspection') {
             ini_set('memory_limit', '512M');
 
@@ -1113,6 +1185,7 @@ class Api extends CI_Controller {
             }
         }
 
+
         if ($kind == 'statistics') {
             if ($method == 'inspection') {
                 if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
@@ -1134,36 +1207,48 @@ class Api extends CI_Controller {
                     $end_date = $this->input->get_post('end_date');
                     $status = $this->input->get_post('status');
                     $type = $this->input->get_post('type');
+                    $param_order = array();
+                    $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "a.result_code", "a.house_ready");
 
-                    if ($region === false) {
+                    if (gettype($table_order) == 'string') {
+                        $tmp_pieces = explode( ",",$table_order);
+                        if (is_array($tmp_pieces) && count($tmp_pieces) == 2) {
+                            //9,desc
+                            $sCol = $tmp_pieces[0];
+                            $sdir = $tmp_pieces[1];
+                            $param_order = array('cols' => $cols, 'index' => $sCol, 'dir' => $sdir);
+                        }
+                    }
+                    if ($region === false || $region == null || $region == "null") {
                         $region = "";
                     }
-                    if ($community === false) {
+                    if ($community === false || $community == null || $community == "null") {
                         $community = "";
                     }
-                    if ($start_date === false) {
+                    if ($start_date === false || $start_date == null) {
                         $start_date = "";
                     }
-                    if ($end_date === false) {
+                    if ($end_date === false || $end_date == null) {
                         $end_date = "";
                     }
-                    if ($status === false) {
+                    if ($status === false || $status == null) {
                         $status = "";
                     }
-                    if ($type === false) {
+                    if ($type === false || $type == null) {
                         $type = "";
                     }
 
                     if ($file_format == "pdf") {
                         $this->m_pdf->initialize();
-                        $html = $this->get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, false, intval($description) === 1);
+                        // te function get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, $is_array = false, $include_description = true , $table_order = array()) {
+                        $html = $this->get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, false, intval($description) === 1, $param_order);
 
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
 
                     if ($file_format == "csv") {
-                        $data = $this->get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, true, intval($description) === 1);
+                        $data = $this->get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, true, intval($description) === 1, $param_order);
                         array_to_csv($data, "report.csv");
                     }
                 }
@@ -1190,36 +1275,49 @@ class Api extends CI_Controller {
                     $status = $this->input->get_post('status');
                     $type = $this->input->get_post('type');
 
-                    if ($region === false) {
+                    $param_order = array();
+                    $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "q.epo_number", "g.inspection_count", "a.result_code");
+
+                    if (gettype($table_order) == 'string') {
+                        $tmp_pieces = explode( ",",$table_order);
+                        if (is_array($tmp_pieces) && count($tmp_pieces) == 2) {
+                            //9,desc
+                            $sCol = $tmp_pieces[0];
+                            $sdir = $tmp_pieces[1];
+                            $param_order = array('cols' => $cols, 'index' => $sCol, 'dir' => $sdir);
+                        }
+                    }
+                    
+                    if ($region === false || $region == null || $region == "null") { 
                         $region = "";
                     }
-                    if ($community === false) {
+                    if ($community === false || $community == null || $community == "null") { 
                         $community = "";
                     }
-                    if ($start_date === false) {
+                    if ($start_date === false || $start_date == null || $start_date == "null") { 
                         $start_date = "";
                     }
-                    if ($end_date === false) {
+                    if ($end_date === false || $end_date == null || $end_date == "null") { 
                         $end_date = "";
                     }
-                    if ($status === false) {
+                    if ($status === false || $status == null || $status == "null") { 
                         $status = "";
                     }
-                    if ($type === false) {
+                    if ($type === false || $type == null || $type == "null") { 
                         $type = "";
                     }
 
                     if ($file_format == "pdf") {
                         $this->m_pdf->initialize();
 
-                        $html = $this->get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, false, intval($description) === 1);
+                        $html = $this->get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, false, intval($description) === 1,$param_order);
 
                         $this->m_pdf->pdf->WriteHTML($html);
                         $this->m_pdf->pdf->Output("report.pdf", "D");
                     }
 
                     if ($file_format == "csv") {
-                        $data = $this->get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, true, intval($description) === 1);
+                        $data = $this->get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, true, intval($description) === 1,$param_order);
                         array_to_csv($data, "report.csv");
                     }
                 }
@@ -1241,24 +1339,26 @@ class Api extends CI_Controller {
                     $status = $this->input->get_post('status');
                     $type = $this->input->get_post('type');
 
-                    if ($region === false) {
+                    
+                    if ($region === false || $region == null || $region == "null") { 
                         $region = "";
                     }
-                    if ($community === false) {
+                    if ($community === false || $community == null || $community == "null") { 
                         $community = "";
                     }
-                    if ($start_date === false) {
+                    if ($start_date === false || $start_date == null || $start_date == "null") { 
                         $start_date = "";
                     }
-                    if ($end_date === false) {
+                    if ($end_date === false || $end_date == null || $end_date == "null") { 
                         $end_date = "";
                     }
-                    if ($status === false) {
+                    if ($status === false || $status == null || $status == "null") { 
                         $status = "";
                     }
-                    if ($type === false) {
+                    if ($type === false || $type == null || $type == "null") { 
                         $type = "";
                     }
+                    
 
                     if ($file_format == "pdf") {
                         $this->m_pdf->initialize();
@@ -1289,17 +1389,24 @@ class Api extends CI_Controller {
                     $start_date = $this->input->get_post('start_date');
                     $end_date = $this->input->get_post('end_date');
                     $type = $this->input->get_post('type');
-
-                    if ($region === false) {
+                    $community = $this->input->get_post('community');
+                    
+                    if ($region === false || $region == null || $region == "null") {
                         $region = "";
                     }
-                    if ($start_date === false) {
+                    if ($community === false || $community == null || $community == "null") {
+                        $community = "";
+                    }
+                    if ($start_date === false || $start_date == null) {
                         $start_date = "";
                     }
-                    if ($end_date === false) {
+                    if ($end_date === false || $end_date == null) {
                         $end_date = "";
                     }
-                    if ($type === false) {
+                    if ($status === false || $status == null) {
+                        $status = "";
+                    }
+                    if ($type === false || $type == null) {
                         $type = "";
                     }
 
@@ -2158,7 +2265,7 @@ class Api extends CI_Controller {
             $inspection = $this->utility_model->get('ins_inspection', array('user_id' => $user_id, 'id' => $inspection_id));
         }
 
-        if ($inspection['type'] == 3) {
+        if ($inspection['type'] == 3 || $inspection['type'] == 4) {
             $sender = array();
             $user = $this->utility_model->get('ins_user', array('id' => $inspection['user_id']));
 
@@ -2225,7 +2332,7 @@ class Api extends CI_Controller {
                         . "     Address    :  " . $inspection['address'] . "<br>" . "<br>"
                         . "     Duct Leakage Test     :  " . $result_duct_leakage['name'] . "<br>"
                         . "     Envelope Leakage Test  :  " . $result_envelop_leakage['name'] . "<br>" . "<br>"
-                        . "Duct and Envelope Leakage Inspection was completed by " . $user['first_name'] . " " . $user['last_name'] . ", on " . $complete_date . "<br>" . "<br>"
+                        //. "Duct and Envelope Leakage Inspection was completed by " . $user['first_name'] . " " . $user['last_name'] . ", on " . $complete_date . "<br>" . "<br>"
                         . "<br>"
                         . '<a href="' . base_url() . $file1 . '">' . "Duct Leakage Report" . '</a>' . "<br>"
                         . '<a href="' . base_url() . $file2 . '">' . "Envelope Leakage Report" . '</a>' . "<br>"
@@ -2246,7 +2353,7 @@ class Api extends CI_Controller {
                         . "     Address    :  " . $inspection['address'] . "<br>" . "<br>"
                         . "     Duct Leakage Test     :  " . $result_duct_leakage['name'] . "<br>"
                         . "     Envelope Leakage Test  :  " . $result_envelop_leakage['name'] . "<br>" . "<br>"
-                        . "Duct and Envelope Leakage Inspection was completed by " . $user['first_name'] . " " . $user['last_name'] . ", on " . $complete_date . "<br>" . "<br>"
+                        //. "Duct and Envelope Leakage Inspection was completed by " . $user['first_name'] . " " . $user['last_name'] . ", on " . $complete_date . "<br>" . "<br>"
                         . "<br>"
                         . '<a href="' . base_url() . $file1 . '">' . "Duct Leakage Report" . '</a>' . "<br>"
                         . '<a href="' . base_url() . $file2 . '">' . "Envelope Leakage Report" . '</a>' . "<br>"
@@ -2553,6 +2660,15 @@ class Api extends CI_Controller {
             $inspection_comment_list_code = "lth_comment";
         }
 
+        $config_rows = $this->utility_model->get_list__by_sql("select * from sys_config");
+        $checklist_online_link = "www.google.com";
+        foreach ($config_rows as $row) {
+            $code = $row['code'];
+            $value = $row['value'];
+            if ($code == 'checklist_online_link') {
+                $checklist_online_link = $value;
+            }
+        }
         $comment_list = $this->utility_model->get_list__by_sql(" select a.*, c.name as comment_name from ins_inspection_comment a left join ins_code c on c.kind='$inspection_comment_list_code' and c.code=a.no where a.inspection_id='$inspection_id' order by a.no asc ");
         if (count($comment_list) > 0) {
             $html_body .= "<div class='row'><table class='checklist' border='1'>";
@@ -2562,9 +2678,33 @@ class Api extends CI_Controller {
 
             $html_body .= "<tbody>";
             foreach ($comment_list as $row) {
-                $html_body .= "<tr><td>";
-                $html_body .= $row['comment_name'];
-                $html_body .= "</td></tr>";
+                if ($inspection_comment_list_code == 'drg_comment' && $row['no'] == '13') {
+                    $html_body .= "<tr><td>";
+                    $html_body .= "<span>Failed drainage plane inspection ONLY for missing windows. Proceed to Lath on areas not affected by missing windows. </span>"
+                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use online link for Special Window Inspection</span>"
+                            . "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style=' color: red;    ' href='$checklist_online_link'>$checklist_online_link</a>";
+                    $html_body .= "</td></tr>";
+                } else if ($inspection_comment_list_code == 'drg_comment' && $row['no'] == '14') {
+                    $html_body .= "<tr><td>";
+                    $html_body .= "<span>Failed drainage plane inspection for items other than missing windows. All non-window failures must be corrected and reinspected prior to proceeding to Lath.</span></span>"
+                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use regular inspection request on the web portal to schedule reinspection.</span>";
+                    $html_body .= "</td></tr>";
+                } else if ($inspection_comment_list_code == 'lth_comment' && $row['no'] == '11') {
+                    $html_body .= "<tr><td>";
+                    $html_body .= "<span>Failed lath inspection ONLY on the basis of missing windows. OK to proceed to Lath on areas not affected by missing windows.</span></span>"
+                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use online link for Special Window Inspection</span>"
+                            . "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style=' color: red;    ' href='$checklist_online_link'>$checklist_online_link</a>";
+                    $html_body .= "</td></tr>";
+                } else if ($inspection_comment_list_code == 'lth_comment' && $row['no'] == '12') {
+                    $html_body .= "<tr><td>";
+                    $html_body .= "<span>Failed lath inspection on the basis of items other than missing windows. All non-window related items must be corrected and reinspected prior to proceeding to stucco. </span></span>"
+                            . "&nbsp;&nbsp;<span style='color: #306DBD;'>*Use regular inspection request on the web portal to schedule reinspection.</span>";
+                    $html_body .= "</td></tr>";
+                } else {
+                    $html_body .= "<tr><td>";
+                    $html_body .= $row['comment_name'];
+                    $html_body .= "</td></tr>";
+                }
             }
             $html_body .= "</tbody>";
             $html_body .= "</table></div>";
@@ -2573,7 +2713,13 @@ class Api extends CI_Controller {
         $header_style = "background: #ddd; font-size:18px; padding: 10px 2px;";
         $body_style = "background: #f8f8f8;";
 
-        if ($inspection['house_ready'] == '1') {
+        $requested_id = $inspection['requested_id'];
+        $inspection_requested = $this->utility_model->get('ins_inspection_requested', array('id' => $requested_id));
+
+        // okok
+        if ($inspection['house_ready'] == '1' || ($inspection_requested && $inspection_requested['reinspection'] != 0)) {
+            $reinspection = $inspection_requested['reinspection'];
+
             $html_body .= "<div class='row'><table class='checklist'><tr><td class='location' style='" . $header_style . "'>Location</td><td class='item' style='" . $header_style . " text-align:center;'>Item</td><td class='status' style='" . $header_style . "'>Status</td></tr>";
 
             $k = $inspection['type'] == 1 ? 'drg' : 'lth';
@@ -2884,7 +3030,7 @@ class Api extends CI_Controller {
         return "";
     }
 
-    private function get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, $is_array = false, $include_description = true) {
+    private function get_report_data__for_statistics_inspection($region, $community, $start_date, $end_date, $status, $type, $is_array = false, $include_description = true, $table_order = array()) {
         $reports = array();
 
         $table = " select  a.*, "
@@ -2915,19 +3061,53 @@ class Api extends CI_Controller {
         }
 
         if ($region != "") {
-            if ($common_sql != "") {
-                $common_sql .= " and ";
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region in ($param) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.region='$region' ";
         }
 
         if ($community != "") {
-            if ($common_sql != "") {
-                $common_sql .= " and ";
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community in ($param) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.community='$community' ";
         }
 
         if ($status != "") {
@@ -2951,6 +3131,30 @@ class Api extends CI_Controller {
 
         if ($common_sql != "") {
             $sql .= " and " . $common_sql;
+        }
+
+        //array('cols' => $cols, 'index'=>$sCol,'dir'=>$sdir);
+        $order_by_part ="";
+        if (count($table_order) == 3) {
+            $cols = $table_order['cols'];
+            $index = $table_order['index'];
+            $sdir = $table_order['dir'];
+            if ($index < 0 && $index > count($cols) - 1) {
+                if (count($cols) < 8) {
+                    $index = 7;
+                } else {
+                    $index = count($cols) - 1;
+                }
+            }
+            $dir = "asc";
+            $colName = $cols[$index];
+            if ($sdir && strlen($sdir) > 0) {
+                if ($sdir != "asc") {
+                    $dir = "desc";
+                }
+            }
+
+            $order_by_part = " order by " . $colName . " " . $dir . " ";
         }
 
         $count_sql = " select count(*) from ( " . $sql . " ) t ";
@@ -2979,7 +3183,7 @@ class Api extends CI_Controller {
             }
         }
 
-        $count_sql = " select count(*) from ( " . $sql . " and a.house_ready=0 ) t ";
+        $count_sql = " select count(*) from ( " . $sql . " and IfNull(a.house_ready,0) = 0 ) t ";
         $house_not_ready = $this->datatable_model->get_count($count_sql);
         if ($count_text != "") {
             $count_text .= ", ";
@@ -3081,7 +3285,12 @@ class Api extends CI_Controller {
             $sql .= " and " . $common_sql;
         }
 
-        $sql .= " order by a.start_date ";
+        if(strlen($order_by_part)>0){
+            $sql .= $order_by_part;
+        }else{
+            $sql .= " order by a.start_date ";    
+        }
+        
 
         if ($include_description) {
             array_push($reports, array(
@@ -3202,7 +3411,7 @@ class Api extends CI_Controller {
         }
     }
 
-    private function get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, $is_array = false, $include_description = true) {
+    private function get_report_data__for_statistics_re_inspection($region, $community, $start_date, $end_date, $status, $type, $is_array = false, $include_description = true ,$table_order = array()) {
         $reports = array();
 
         $table = " ins_region r, ins_code c1, ins_code c2,  "
@@ -3239,19 +3448,53 @@ class Api extends CI_Controller {
         }
 
         if ($region != "") {
-            if ($common_sql != "") {
-                $common_sql .= " and ";
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region in ($param) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.region='$region' ";
         }
 
         if ($community != "") {
-            if ($common_sql != "") {
-                $common_sql .= " and ";
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community in ($param) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.community='$community' ";
         }
 
         if ($status != "") {
@@ -3280,6 +3523,29 @@ class Api extends CI_Controller {
 
         if ($common_sql != "") {
             $sql .= " and " . $common_sql;
+        }
+        
+        $order_by_part ="";
+        if (count($table_order) == 3) {
+            $cols = $table_order['cols'];
+            $index = $table_order['index'];
+            $sdir = $table_order['dir'];
+            if ($index < 0 && $index > count($cols) - 1) {
+                if (count($cols) < 8) {
+                    $index = 7;
+                } else {
+                    $index = count($cols) - 1;
+                }
+            }
+            $dir = "asc";
+            $colName = $cols[$index];
+            if ($sdir && strlen($sdir) > 0) {
+                if ($sdir != "asc") {
+                    $dir = "desc";
+                }
+            }
+
+            $order_by_part = " order by " . $colName . " " . $dir . " ";
         }
 
         $count_sql = " select count(*) from ( " . $sql . " ) ttt ";
@@ -3407,7 +3673,12 @@ class Api extends CI_Controller {
             $sql .= " and " . $common_sql;
         }
 
-        $sql .= " order by g.inspection_count desc ";
+        if(strlen($order_by_part)>0){
+            $sql .= $order_by_part;
+        }else{
+            $sql .= " order by g.inspection_count desc ";
+        }
+        
 
         if ($include_description) {
             array_push($reports, array(
@@ -3572,19 +3843,53 @@ class Api extends CI_Controller {
         }
 
         if ($region != "") {
-            if ($common_sql != "") {
-                $common_sql .= " and ";
+            $param = $region;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.region in ($param) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.region='$region' ";
         }
 
         if ($community != "") {
-            if ($common_sql != "") {
-                $common_sql .= " and ";
+            $param = $community;
+            if (gettype($param) == 'string') {
+                if ($common_sql != "") {
+                    $common_sql .= " and ";
+                }
+                $common_sql .= " a.community in ($param) ";
+            } else if (gettype($param) == 'array') {
+                $ids_str = "";
+                foreach ($param as $id) {
+                    $ids_str = $ids_str . $id . ",";
+                }
+                if (strlen($ids_str) > 0) {
+                    $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                    $ids_str = "(" . $ids_str . ")";
+                }
+                if (strlen($ids_str) > 0) {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in $ids_str ";
+                }
             }
-
-            $common_sql .= " a.community='$community' ";
         }
 
         if ($status != "") {
@@ -4260,6 +4565,9 @@ class Api extends CI_Controller {
         $table_data = array();
 
         foreach ($data as $row) {
+            if($row['status'] !=1 || $row['testflag']!=0 ){
+                continue;
+            }
             $region_name = "";
             $sql = " select r.region from ins_admin_region a, ins_region r where a.manager_id='" . $row['id'] . "' and a.region=r.id ";
             $regions = $this->utility_model->get_list__by_sql($sql);
@@ -4292,7 +4600,7 @@ class Api extends CI_Controller {
                 $row['fail'] = 0;
                 $row['reinspection'] = 0;
             } else {
-                $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' and a.house_ready='0' ";
+                $sql = " select count(*) from ins_inspection a where a.field_manager='" . $row['id'] . "' and IfNull(a.house_ready,0) = '0' ";
                 if ($common_sql != "") {
                     $sql .= " and " . $common_sql;
                 }
@@ -4531,7 +4839,7 @@ class Api extends CI_Controller {
                 $row['fail'] = 0;
                 $row['reinspection'] = 0;
             } else {
-                $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' and a.house_ready='0' ";
+                $sql = " select count(*) from ins_inspection a where a.user_id='" . $row['id'] . "' and IfNull(a.house_ready,0)='0' ";
                 if ($common_sql != "") {
                     $sql .= " and " . $common_sql;
                 }
@@ -4710,13 +5018,34 @@ class Api extends CI_Controller {
         }
     }
 
-    public function testFunc($param1, $param2) {
+    public function testFunc() {
+        $param1 = '4';
         switch ($param1) {
             case '1':
                 echo $this->get_report_html__for_duct_leakage($param2);
                 break;
             case '2':
                 echo $this->get_report_html__for_envelop_leakage($param2);
+                break;
+            case '3':
+                $this->m_twilio->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
+                $this->m_twilio->initialize();
+            case '4':
+                $user_id = '2';
+                $inspection_id = '14977';
+                $origin['user_id'] = $user_id;
+                $origin['inspection_id'] = $inspection_id;
+                $user_id = $this->utility_model->encode($user_id);
+                $inspection_id = $this->utility_model->encode($inspection_id);
+
+                $data = array();
+                $encoded['user_id'] = $user_id;
+                $encoded['inspection_id'] = $inspection_id;
+                $data['origin'] = $origin;
+                $data['encoded'] = $encoded;
+                var_dump($data);
+                //                $user_id= 2;
+//                $inspection_id = 14977;
                 break;
             default:
                 # code...
@@ -6288,40 +6617,143 @@ class Api extends CI_Controller {
         $job_id = $_REQUEST['job_id'];
 
         $list_numbers = array();
+        $sqls = array();
 
         $sql = "select * from ins_inspection_requested where id = $job_id";
         $inspection = $this->utility_model->get__by_sql($sql);
+        $sqls[] = $sql;
         if ($inspection) {
             $manager_id = $inspection['manager_id'];
             $sql = "select * from ins_admin where id = $manager_id";
             $manager1 = $this->utility_model->get__by_sql($sql);
+            $sqls[] = $sql;
 
             if ($manager1) {
                 $list_numbers[] = $manager1['cell_phone'];
             }
 
-            $job_number= $inspection['job_number'];
-            $sql = "select * from ins_building where job_number = '$job_number'";
+            $job_number = $inspection['job_number'];
+            $sql = "select * from ins_building where "
+                    . " replace(job_number,'-','') like '%" . str_replace('-', '', $job_number) . "%'";
+//            $sql = "select * from ins_building where job_number = '$job_number'";
+
+            $sqls[] = $sql;
             $row = $this->utility_model->get__by_sql($sql);
             if ($row) {
                 $field_manager = $row['field_manager'];
-                
+
                 $sql = "SELECT * FROM `ins_admin` WHERE concat(first_name,' ',last_name) = '$field_manager'";
+                $sqls[] = $sql;
                 $row_admin = $this->utility_model->get__by_sql($sql);
-                if($row_admin){
+                if ($row_admin) {
                     $list_numbers[] = $row_admin['cell_phone'];
                 }
             }
         }
 
+//        $this->m_twilio->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
+//        $this->m_twilio->initialize();
+//        $printmode = $this->input->get("printmode");
+//        if (is_string($printmode) && $printmode == "1") {
+//            $ret = array();
+//            $ret['numbers'] = $list_numbers;
+//            $ret['sql'] = $sqls;
+//            print_r(json_encode($ret));
+//        } else if (is_string($printmode) && $printmode == "2") {
+//            $ret = array();
+//            $ret['numbers'] = $list_numbers;
+//            $ret['sql'] = $sqls;
+//            $ret['step2'] = 'pass';
+//            $ret_wci = $this->m_twilio->wci->start($list_numbers, $inspection);
+//            $ret['ret_wci'] = $ret_wci;
+//            print_r(json_encode($ret));
+//        } else {
+//
+//            $ret = $this->m_twilio->wci->start($list_numbers, $inspection);
+//            print_r(json_encode($ret));
+//        }
 
+        $list_numbers = array_unique($list_numbers);
 
-        //$ip = $this->get_client_ip();
+        $ret = array();
+        $ret['list_numbers_raw'] = $list_numbers;
+        $real_num = array();
+        foreach ($list_numbers as $number1) {
+            if (strlen($number1) > 8) {
+                $real_num[] = $number1;
+            }
+        }
+        $ret['list_numbers'] = $real_num;
+        $ret['inspection'] = $inspection;
+
+        return $ret;
+    }
+
+    public function send_sms_from_android2() {
         $this->m_twilio->setDbInfo(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
         $this->m_twilio->initialize();
-//        $this->m_twilio->ipaddr = $ip;
 
-        $ret = $this->m_twilio->wci->start($list_numbers);
+        $sid = $_REQUEST['sid'];
+        $token = $_REQUEST['token'];
+        $number1 = $_REQUEST['to'];
+        $number2 = $_REQUEST['from'];
+        $text = $_REQUEST['text'];
+
+
+        $input_param = array('sid' => $sid
+            , 'token' => $token
+            , 'to' => $number1
+            , 'from' => $number2
+            , 'text' => $text
+        );
+        $ret = $this->m_twilio->wci->testSms($input_param);
+
+        print_r(json_encode($ret));
+    }
+
+    public function send_sms_from_android3() {
+        $ret = $this->send_sms_from_android();
+
+        $sid = 'ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+        $token = 'your_auth_token';
+        $twilio_phone1 = '15017122661';
+        $text = 'default send text';
+
+        $sql = "select * from sys_config where code = 'twilio_sid'";
+        $message = $this->utility_model->get__by_sql($sql);
+        if ($message) {
+            $sid = $message['value'];
+            $ret['sid'] = $sid;
+        }
+
+        $sql = "select * from sys_config where code = 'twilio_token'";
+        $message = $this->utility_model->get__by_sql($sql);
+        if ($message) {
+            $token = $message['value'];
+            $ret['token'] = $token;
+        }
+
+        $sql = "select * from sys_config where code = 'twilio_phone1'";
+        $message = $this->utility_model->get__by_sql($sql);
+        if ($message) {
+            $twilio_phone1 = $message['value'];
+            $ret['from'] = $twilio_phone1;
+        }
+
+        $sql = "select * from sys_config where code = 'twilio_send_text'";
+        $message = $this->utility_model->get__by_sql($sql);
+        if ($message) {
+            $text = $message['value'];
+        }
+
+        $inspection = $ret['inspection'];
+        // modify text
+        $text = $text . "\nJob Number: " . $inspection['job_number'];
+        $text = $text . "\nLot: " . $inspection['lot'];
+        $text = $text . "\nAddress: " . $inspection['address'];
+
+
+        $ret['text'] = $text;
 
         print_r(json_encode($ret));
     }

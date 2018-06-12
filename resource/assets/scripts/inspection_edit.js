@@ -56,11 +56,7 @@ function update_inspection() {
         recipient_email[index] = $(row).attr('data-email');
     });
     
-    
-    $.ajax({
-        type: "POST",
-        url: 'update',
-        data: { 
+    var data = { 
             inspection_id: $("#inspection_id").val() ,
             
             field_manager: $("#field_manager").val(),
@@ -69,14 +65,28 @@ function update_inspection() {
             address: address,
             initials: initials,
 //            field_manager: field_manager,
-            front_picture: front_picture,
+//            front_picture: front_picture,
             end_date: start_date,
             comment: overall_comment,
             result_code: result_code,
             exception: exception_images,
             email: recipient_email,
             job_number: job_number,
-        },
+        };
+    if(front_picture!=undefined && front_picture.length>0){
+        data.front_picture = front_picture;
+    }else{
+        var front_image_origin = $("#front_image_origin").attr('src');
+        if(front_image_origin!=undefined && front_image_origin.length>0){
+            data.front_picture = front_image_origin;    
+        }
+    }
+    
+    
+    $.ajax({
+        type: "POST",
+        url: 'update',
+        data: data,
         dataType: 'json',
         success: function (data) {
             hideLoading();
@@ -231,7 +241,7 @@ jQuery(document).ready(function () {
                     + '';
                 
                 $("#exception_images").append(html);
-                $("#front_image").attr('src', data.result.url);
+//                $("#front_image").attr('src', data.result.url);
                 
                 refresh_exception_image();
             } else {

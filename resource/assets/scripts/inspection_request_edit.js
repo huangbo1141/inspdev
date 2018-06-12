@@ -494,7 +494,7 @@ function check_job_number() {
             $("#epo_number").val('');
 
             if (data.pass != null && data.pass > 0) {
-              showAlert("Inspection Already Requested.");
+              showAlert("This Job Number has already Passed this type of Inspection.");
 
               need_updated = "";
               not_completed = true;

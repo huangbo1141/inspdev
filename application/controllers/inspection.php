@@ -120,6 +120,9 @@ class Inspection extends CI_Controller {
         } elseif ($type == '3') {
             $table .= " and ( a.type=3 )";
             $cols = array("a.type", "a.job_number", "a.address", "a.start_date", "u.first_name", "u.email", "a.result_code", "a.qn", "a.ach50", "a.house_ready");
+        } elseif ($type == '3_4') {
+            $table .= " and ( a.type=3 or a.type = 4)";
+            $cols = array("a.type", "a.job_number", "a.address", "a.start_date", "u.first_name", "u.email", "a.result_code", "a.qn", "a.ach50", "a.house_ready");
         } else {
             $cols = array("a.type", "a.job_number", "a.address", "a.start_date", "u.first_name", "u.email", "r.region", "a.result_code", "a.house_ready");
         }
@@ -611,6 +614,7 @@ class Inspection extends CI_Controller {
         return $date;
     }
 
+    // inspection request
     public function update_inspection_requested() {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed!";
@@ -822,19 +826,160 @@ class Inspection extends CI_Controller {
                     }
 
                     if ($inspection_requsted_id != "") {
-                        if ($model_home == "1") {
-                            
+//                        if ($model_home == "1") {
+//                            
+//                        } else {
+                        //                            $manager = $this->utility_model->get('ins_admin', array('id'=>isset($data['manager_id']) ? $data['manager_id'] : $this->session->userdata('user_id')));
+                        $manager = $this->utility_model->get('ins_admin', array('id' => $this->session->userdata('user_id')));
+                        $today = mdate('%Y/%n/%j', strtotime($date_requested));
+                        $r_today = mdate('%Y/%n/%j', time());
+                        //                $today = mdate('%Y/%n/%j', $ttt);
+
+                        $new_jn = substr($job_number, 0, 8) . substr($job_number, 9, 2);
+                        $c = $this->utility_model->get_count('ins_building', array('job_number' => $new_jn));
+
+                        if ($c == 0) {
+                            $mail_subject = "";
+                            if ($category == "1") {
+                                $mail_subject .= "Drainage Plane ";
+                            }
+                            if ($category == "2") {
+                                $mail_subject .= "Lath ";
+                            }
+
+                            $mail_subject .= "Inspection Request Submitted for " . $today . " with Job Number " . $job_number . " Not in Database";
+                            $mail_body = "Inspection requesdt with ID(" . $inspection_requsted_id . ") was submitted by " . $manager['first_name'] . " " . $manager['last_name'] . " (" . $manager['email'] . ") on " . $r_today . ".\n";
+                            $mail_body .= "The inspection was requested for this day: " . $today . "\n";
+                            $mail_body .= "The Job number entered " . $job_number . " was not found in the Database.";
+
+                            if ($community_name != "" || $lot != "" || $address != "") {
+                                $mail_body .= "These were the details entered: \n";
+                                if ($community_name != "") {
+                                    $mail_body .= "     Community Name: " . $community_name . "\n";
+                                }
+
+                                if ($lot != "") {
+                                    $mail_body .= "     LOT: " . $lot . "\n";
+                                }
+
+                                if ($address != "") {
+                                    $mail_body .= "     Address: " . $address . "\n";
+                                }
+                            }
+
+                            $mail_body .= "\n"
+                                    . " Best Regards," . "\n"
+                                    . " The Inspections Team" . "\n";
+
+
+                            $sender = array();
+                            $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
+                            if ($emails) {
+                                foreach ($emails as $row) {
+                                    array_push($sender, $row);
+                                }
+                            }
+
+                            $emails = $this->utility_model->get_list('sys_recipient_email', array('status' => '1'));
+                            if ($emails) {
+                                foreach ($emails as $row) {
+                                    array_push($sender, $row);
+                                }
+                            }
+
+                            if (count($sender) > 0) {
+                                $this->send_mail($mail_subject, $mail_body, $sender, false);
+                            }
+
+                            unset($sender);
+                            $sender = array();
+                            if ($manager['kind'] == 2 && $manager['allow_email'] == 1) {
+                                array_push($sender, $manager);
+                            }
+
+                            $mail_subject = "";
+                            if ($category == "1") {
+                                $mail_subject .= "Drainage Plane ";
+                            }
+                            if ($category == "2") {
+                                $mail_subject .= "Lath ";
+                            }
+
+                            $mail_subject .= "Inspection Request Successfully Submitted";
+                            $mail_body = "Inspection request successfully submitted on " . $r_today . "\n";
+                            $mail_body .= "The inspection was requested for this day: " . $today . "\n";
+
+                            $mail_body .= "\n";
+                            $mail_body .= "  Job number entered: " . $job_number . "\n";
+
+                            if ($community_name != "" || $lot != "" || $address != "") {
+                                if ($community_name != "") {
+                                    $mail_body .= "  Community Name: " . $community_name . "\n";
+                                }
+
+                                if ($lot != "") {
+                                    $mail_body .= "  LOT: " . $lot . "\n";
+                                }
+
+                                if ($address != "") {
+                                    $mail_body .= "  Address: " . $address . "\n";
+                                }
+                            }
+
+                            $mail_body .= "\n"
+                                    . " Best Regards," . "\n"
+                                    . " The Inspections Team" . "\n";
+
+                            if (count($sender) > 0) {
+                                $this->send_mail($mail_subject, $mail_body, $sender, false);
+                            }
+
+                            if ($community_name != "" && $address != "") {
+                                $this->utility_model->insert('ins_building', array(
+                                    'job_number' => $new_jn,
+                                    'community' => $community_name,
+                                    'address' => $address,
+                                    'builder' => 1, // Pulte
+                                    'created_at' => $t,
+                                    'updated_at' => $t
+                                ));
+
+                                $ppp = $this->utility_model->get('ins_community', array('community_id' => substr($new_jn, 0, 4)));
+                                if ($ppp) {
+                                    $this->utility_model->update('ins_community', array(
+                                        'community_name' => $community_name,
+                                        'region' => $region != "" ? $region : 0,
+                                        'builder' => 1,
+                                        'updated_at' => $t
+                                            ), array('id' => $ppp['id']));
+                                } else {
+                                    $this->utility_model->insert('ins_community', array(
+                                        'community_id' => substr($new_jn, 0, 4),
+                                        'community_name' => $community_name,
+                                        'region' => $region != "" ? $region : 0,
+                                        'builder' => 1,
+                                        'created_at' => $t,
+                                        'updated_at' => $t
+                                    ));
+                                }
+                            }
                         } else {
-                            //                            $manager = $this->utility_model->get('ins_admin', array('id'=>isset($data['manager_id']) ? $data['manager_id'] : $this->session->userdata('user_id')));
-                            $manager = $this->utility_model->get('ins_admin', array('id' => $this->session->userdata('user_id')));
-                            $today = mdate('%Y/%n/%j', strtotime($date_requested));
-                            $r_today = mdate('%Y/%n/%j', time());
-                            //                $today = mdate('%Y/%n/%j', $ttt);
+                            if ($kind == "edit") {
+                                $sender = array();
+                                $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
+                                if ($emails) {
+                                    foreach ($emails as $row) {
+                                        array_push($sender, $row);
+                                    }
+                                }
 
-                            $new_jn = substr($job_number, 0, 8) . substr($job_number, 9, 2);
-                            $c = $this->utility_model->get_count('ins_building', array('job_number' => $new_jn));
+                                $emails = $this->utility_model->get_list('sys_recipient_email', array('status' => '1'));
+                                if ($emails) {
+                                    foreach ($emails as $row) {
+                                        array_push($sender, $row);
+                                    }
+                                }
 
-                            if ($c == 0) {
                                 $mail_subject = "";
                                 if ($category == "1") {
                                     $mail_subject .= "Drainage Plane ";
@@ -843,13 +988,13 @@ class Inspection extends CI_Controller {
                                     $mail_subject .= "Lath ";
                                 }
 
-                                $mail_subject .= "Inspection Request Submitted for " . $today . " with Job Number " . $job_number . " Not in Database";
-                                $mail_body = "Inspection requesdt with ID(" . $inspection_requsted_id . ") was submitted by " . $manager['first_name'] . " " . $manager['last_name'] . " (" . $manager['email'] . ") on " . $r_today . ".\n";
+                                $mail_subject .= "Inspection Request Submitted with updated Job Number " . $job_number . " information";
+                                $mail_body = "Inspection request with ID(" . $inspection_requsted_id . ") was submitted by " . $manager['first_name'] . " " . $manager['last_name'] . " (" . $manager['email'] . ") on " . $r_today . ".\n";
                                 $mail_body .= "The inspection was requested for this day: " . $today . "\n";
-                                $mail_body .= "The Job number entered " . $job_number . " was not found in the Database.";
+                                $mail_body .= "The Job Number entered: " . $job_number . "\n";
 
                                 if ($community_name != "" || $lot != "" || $address != "") {
-                                    $mail_body .= "These were the details entered: \n";
+                                    $mail_body .= "These were the UPDATED details entered: \n";
                                     if ($community_name != "") {
                                         $mail_body .= "     Community Name: " . $community_name . "\n";
                                     }
@@ -867,25 +1012,10 @@ class Inspection extends CI_Controller {
                                         . " Best Regards," . "\n"
                                         . " The Inspections Team" . "\n";
 
-
-                                $sender = array();
-                                $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
-                                if ($emails) {
-                                    foreach ($emails as $row) {
-                                        array_push($sender, $row);
-                                    }
-                                }
-
-                                $emails = $this->utility_model->get_list('sys_recipient_email', array('status' => '1'));
-                                if ($emails) {
-                                    foreach ($emails as $row) {
-                                        array_push($sender, $row);
-                                    }
-                                }
-
                                 if (count($sender) > 0) {
                                     $this->send_mail($mail_subject, $mail_body, $sender, false);
                                 }
+
 
                                 unset($sender);
                                 $sender = array();
@@ -901,7 +1031,7 @@ class Inspection extends CI_Controller {
                                     $mail_subject .= "Lath ";
                                 }
 
-                                $mail_subject .= "Inspection Request Successfully Submitted";
+                                $mail_subject .= "Inspection Request Successfully submitted";
                                 $mail_body = "Inspection request successfully submitted on " . $r_today . "\n";
                                 $mail_body .= "The inspection was requested for this day: " . $today . "\n";
 
@@ -929,229 +1059,103 @@ class Inspection extends CI_Controller {
                                 if (count($sender) > 0) {
                                     $this->send_mail($mail_subject, $mail_body, $sender, false);
                                 }
-
-                                if ($community_name != "" && $address != "") {
-                                    $this->utility_model->insert('ins_building', array(
-                                        'job_number' => $new_jn,
-                                        'community' => $community_name,
-                                        'address' => $address,
-                                        'builder' => 1, // Pulte
-                                        'created_at' => $t,
-                                        'updated_at' => $t
-                                    ));
-
-                                    $ppp = $this->utility_model->get('ins_community', array('community_id' => substr($new_jn, 0, 4)));
-                                    if ($ppp) {
-                                        $this->utility_model->update('ins_community', array(
-                                            'community_name' => $community_name,
-                                            'region' => $region != "" ? $region : 0,
-                                            'builder' => 1,
-                                            'updated_at' => $t
-                                                ), array('id' => $ppp['id']));
-                                    } else {
-                                        $this->utility_model->insert('ins_community', array(
-                                            'community_id' => substr($new_jn, 0, 4),
-                                            'community_name' => $community_name,
-                                            'region' => $region != "" ? $region : 0,
-                                            'builder' => 1,
-                                            'created_at' => $t,
-                                            'updated_at' => $t
-                                        ));
+                            } else {
+                                $sender = array();
+                                $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
+                                if ($emails) {
+                                    foreach ($emails as $row) {
+                                        array_push($sender, $row);
                                     }
                                 }
-                            } else {
-                                if ($kind == "edit") {
-                                    $sender = array();
-                                    $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
-                                    if ($emails) {
-                                        foreach ($emails as $row) {
-                                            array_push($sender, $row);
-                                        }
+
+                                $emails = $this->utility_model->get_list('sys_recipient_email', array('status' => '1'));
+                                if ($emails) {
+                                    foreach ($emails as $row) {
+                                        array_push($sender, $row);
+                                    }
+                                }
+
+                                $mail_subject = "";
+                                if ($category == "1") {
+                                    $mail_subject .= "Drainage Plane ";
+                                }
+                                if ($category == "2") {
+                                    $mail_subject .= "Lath ";
+                                }
+
+                                $mail_subject .= "Inspection Request Submitted for Job Number " . $job_number . "";
+                                $mail_body = "Inspection request with ID(" . $inspection_requsted_id . ") was submitted by " . $manager['first_name'] . " " . $manager['last_name'] . " (" . $manager['email'] . ") on " . $r_today . ".\n";
+                                $mail_body .= "The inspection was requested for this day: " . $today . "\n";
+                                $mail_body .= "The Job Number entered: " . $job_number . "\n";
+
+                                if ($community_name != "" || $lot != "" || $address != "") {
+                                    $mail_body .= "These were the UPDATED details entered: \n";
+                                    if ($community_name != "") {
+                                        $mail_body .= "     Community Name: " . $community_name . "\n";
                                     }
 
-                                    $emails = $this->utility_model->get_list('sys_recipient_email', array('status' => '1'));
-                                    if ($emails) {
-                                        foreach ($emails as $row) {
-                                            array_push($sender, $row);
-                                        }
+                                    if ($lot != "") {
+                                        $mail_body .= "     LOT: " . $lot . "\n";
                                     }
 
-                                    $mail_subject = "";
-                                    if ($category == "1") {
-                                        $mail_subject .= "Drainage Plane ";
+                                    if ($address != "") {
+                                        $mail_body .= "     Address: " . $address . "\n";
                                     }
-                                    if ($category == "2") {
-                                        $mail_subject .= "Lath ";
-                                    }
+                                }
 
-                                    $mail_subject .= "Inspection Request Submitted with updated Job Number " . $job_number . " information";
-                                    $mail_body = "Inspection request with ID(" . $inspection_requsted_id . ") was submitted by " . $manager['first_name'] . " " . $manager['last_name'] . " (" . $manager['email'] . ") on " . $r_today . ".\n";
-                                    $mail_body .= "The inspection was requested for this day: " . $today . "\n";
-                                    $mail_body .= "The Job Number entered: " . $job_number . "\n";
+                                $mail_body .= "\n"
+                                        . " Best Regards," . "\n"
+                                        . " The Inspections Team" . "\n";
 
-                                    if ($community_name != "" || $lot != "" || $address != "") {
-                                        $mail_body .= "These were the UPDATED details entered: \n";
-                                        if ($community_name != "") {
-                                            $mail_body .= "     Community Name: " . $community_name . "\n";
-                                        }
+                                if (count($sender) > 0) {
+                                    $this->send_mail($mail_subject, $mail_body, $sender, false);
+                                }
 
-                                        if ($lot != "") {
-                                            $mail_body .= "     LOT: " . $lot . "\n";
-                                        }
+                                unset($sender);
+                                $sender = array();
+                                if ($manager['kind'] == 2 && $manager['allow_email'] == 1) {
+                                    array_push($sender, $manager);
+                                }
 
-                                        if ($address != "") {
-                                            $mail_body .= "     Address: " . $address . "\n";
-                                        }
-                                    }
+                                $mail_subject = "";
+                                if ($category == "1") {
+                                    $mail_subject .= "Drainage Plane ";
+                                }
+                                if ($category == "2") {
+                                    $mail_subject .= "Lath ";
+                                }
 
-                                    $mail_body .= "\n"
-                                            . " Best Regards," . "\n"
-                                            . " The Inspections Team" . "\n";
+                                $mail_subject .= "Inspection Request Successfully submitted";
+                                $mail_body = "Inspection request successfully submitted on " . $r_today . "\n";
+                                $mail_body .= "The inspection was requested for this day: " . $today . "\n";
 
-                                    if (count($sender) > 0) {
-                                        $this->send_mail($mail_subject, $mail_body, $sender, false);
-                                    }
+                                $mail_body .= "\n";
+                                $mail_body .= "  Job number entered: " . $job_number . "\n";
 
-
-                                    unset($sender);
-                                    $sender = array();
-                                    if ($manager['kind'] == 2 && $manager['allow_email'] == 1) {
-                                        array_push($sender, $manager);
+                                if ($community_name != "" || $lot != "" || $address != "") {
+                                    if ($community_name != "") {
+                                        $mail_body .= "  Community Name: " . $community_name . "\n";
                                     }
 
-                                    $mail_subject = "";
-                                    if ($category == "1") {
-                                        $mail_subject .= "Drainage Plane ";
-                                    }
-                                    if ($category == "2") {
-                                        $mail_subject .= "Lath ";
+                                    if ($lot != "") {
+                                        $mail_body .= "  LOT: " . $lot . "\n";
                                     }
 
-                                    $mail_subject .= "Inspection Request Successfully submitted";
-                                    $mail_body = "Inspection request successfully submitted on " . $r_today . "\n";
-                                    $mail_body .= "The inspection was requested for this day: " . $today . "\n";
-
-                                    $mail_body .= "\n";
-                                    $mail_body .= "  Job number entered: " . $job_number . "\n";
-
-                                    if ($community_name != "" || $lot != "" || $address != "") {
-                                        if ($community_name != "") {
-                                            $mail_body .= "  Community Name: " . $community_name . "\n";
-                                        }
-
-                                        if ($lot != "") {
-                                            $mail_body .= "  LOT: " . $lot . "\n";
-                                        }
-
-                                        if ($address != "") {
-                                            $mail_body .= "  Address: " . $address . "\n";
-                                        }
+                                    if ($address != "") {
+                                        $mail_body .= "  Address: " . $address . "\n";
                                     }
+                                }
 
-                                    $mail_body .= "\n"
-                                            . " Best Regards," . "\n"
-                                            . " The Inspections Team" . "\n";
+                                $mail_body .= "\n"
+                                        . " Best Regards," . "\n"
+                                        . " The Inspections Team" . "\n";
 
-                                    if (count($sender) > 0) {
-                                        $this->send_mail($mail_subject, $mail_body, $sender, false);
-                                    }
-                                } else {
-                                    $sender = array();
-                                    $emails = $this->utility_model->get_list('ins_admin', array('kind' => 1, 'allow_email' => 1));
-                                    if ($emails) {
-                                        foreach ($emails as $row) {
-                                            array_push($sender, $row);
-                                        }
-                                    }
-
-                                    $emails = $this->utility_model->get_list('sys_recipient_email', array('status' => '1'));
-                                    if ($emails) {
-                                        foreach ($emails as $row) {
-                                            array_push($sender, $row);
-                                        }
-                                    }
-
-                                    $mail_subject = "";
-                                    if ($category == "1") {
-                                        $mail_subject .= "Drainage Plane ";
-                                    }
-                                    if ($category == "2") {
-                                        $mail_subject .= "Lath ";
-                                    }
-
-                                    $mail_subject .= "Inspection Request Submitted for Job Number " . $job_number . "";
-                                    $mail_body = "Inspection request with ID(" . $inspection_requsted_id . ") was submitted by " . $manager['first_name'] . " " . $manager['last_name'] . " (" . $manager['email'] . ") on " . $r_today . ".\n";
-                                    $mail_body .= "The inspection was requested for this day: " . $today . "\n";
-                                    $mail_body .= "The Job Number entered: " . $job_number . "\n";
-
-                                    if ($community_name != "" || $lot != "" || $address != "") {
-                                        $mail_body .= "These were the UPDATED details entered: \n";
-                                        if ($community_name != "") {
-                                            $mail_body .= "     Community Name: " . $community_name . "\n";
-                                        }
-
-                                        if ($lot != "") {
-                                            $mail_body .= "     LOT: " . $lot . "\n";
-                                        }
-
-                                        if ($address != "") {
-                                            $mail_body .= "     Address: " . $address . "\n";
-                                        }
-                                    }
-
-                                    $mail_body .= "\n"
-                                            . " Best Regards," . "\n"
-                                            . " The Inspections Team" . "\n";
-
-                                    if (count($sender) > 0) {
-                                        $this->send_mail($mail_subject, $mail_body, $sender, false);
-                                    }
-
-                                    unset($sender);
-                                    $sender = array();
-                                    if ($manager['kind'] == 2 && $manager['allow_email'] == 1) {
-                                        array_push($sender, $manager);
-                                    }
-
-                                    $mail_subject = "";
-                                    if ($category == "1") {
-                                        $mail_subject .= "Drainage Plane ";
-                                    }
-                                    if ($category == "2") {
-                                        $mail_subject .= "Lath ";
-                                    }
-
-                                    $mail_subject .= "Inspection Request Successfully submitted";
-                                    $mail_body = "Inspection request successfully submitted on " . $r_today . "\n";
-                                    $mail_body .= "The inspection was requested for this day: " . $today . "\n";
-
-                                    $mail_body .= "\n";
-                                    $mail_body .= "  Job number entered: " . $job_number . "\n";
-
-                                    if ($community_name != "" || $lot != "" || $address != "") {
-                                        if ($community_name != "") {
-                                            $mail_body .= "  Community Name: " . $community_name . "\n";
-                                        }
-
-                                        if ($lot != "") {
-                                            $mail_body .= "  LOT: " . $lot . "\n";
-                                        }
-
-                                        if ($address != "") {
-                                            $mail_body .= "  Address: " . $address . "\n";
-                                        }
-                                    }
-
-                                    $mail_body .= "\n"
-                                            . " Best Regards," . "\n"
-                                            . " The Inspections Team" . "\n";
-
-                                    if (count($sender) > 0) {
-                                        $this->send_mail($mail_subject, $mail_body, $sender, false);
-                                    }
+                                if (count($sender) > 0) {
+                                    $this->send_mail($mail_subject, $mail_body, $sender, false);
                                 }
                             }
                         }
+
 
                         $res['err_code'] = 0;
                         $res['err_msg'] = "Successfully Requested!";
@@ -1159,7 +1163,7 @@ class Inspection extends CI_Controller {
                         $res['err_msg'] = "Failed to request!";
                     }
                 } else {
-                    $res['err_msg'] = "Already Existed in Requested Inspections!";
+                    $res['err_msg'] = "Inspection Already Requested!";
                 }
             }
         }
@@ -1424,7 +1428,7 @@ ORDER BY g.inspection_count DESC"
 
                 if ($community && $community['reinspection'] == '1') {
                     $res['err_code'] = 1;
-                    $res['err_msg'] = "Your scheduling limit has been reached.\nPlease contact the E3 Building Sciences Office."; 
+                    $res['err_msg'] = "Your scheduling limit has been reached.\nPlease contact the E3 Building Sciences Office.";
                 }
             }
         }
@@ -1595,7 +1599,7 @@ ORDER BY g.inspection_count DESC"
         $page_data['inspection'] = $inspection;
 
         $inspection_type = intval($inspection['type']);
-        if ($inspection_type == 3) {
+        if ($inspection_type == 3 || $inspection_type == 4) {
             $unit = $this->utility_model->get_list__by_order('ins_unit', array('inspection_id' => $inspection_id), array(array('name' => 'no', 'order' => 'asc')));
             if ($unit) {
                 $page_data['unit'] = $unit;
@@ -1634,6 +1638,20 @@ ORDER BY g.inspection_count DESC"
             }
 
             $page_data['locations'] = $locations;
+
+            $config_rows = $this->utility_model->get_list__by_sql("select * from sys_config");
+            $checklist_online_link = "www.google.com";
+            foreach ($config_rows as $row) {
+                $code = $row['code'];
+                $value = $row['value'];
+                if ($code == 'checklist_online_link') {
+                    $checklist_online_link = $value;
+                }
+            }
+
+            $page_data['checklist_online_link'] = $checklist_online_link;
+
+            $page_data['locations'] = $locations;
         }
 
         $this->load->view($page_view, $page_data);
@@ -1670,7 +1688,7 @@ ORDER BY g.inspection_count DESC"
         $inspection_type = intval($inspection['type']);
 
         $page_data['inspection'] = $inspection;
-        if ($inspection_type == 3) {
+        if ($inspection_type == 3 || $inspection_type == 4) {
             $unit = array();
 
             array_push($unit, $this->get_unit($inspection_id, 1));
@@ -2468,16 +2486,16 @@ ORDER BY g.inspection_count DESC"
         $res = array('err_code' => -1);
         $res['err_msg'] = "Failed!";
         $fm_result['has'] = 0;
-        
+
         if ($this->session->userdata('user_id')) {
             $job_number = $this->input->get_post('job_number');
             $order_id = $this->input->get_post('order_id');
             $job_pin = str_replace("-", "", $job_number);
-            $sql = "select * from ins_inspection where job_pin = $job_pin order by id desc limit 1";
+            $sql = "select * from ins_inspection where job_pin = '$job_pin' order by id desc limit 1";
             $inspection = $this->utility_model->get__by_sql($sql);
             if ($inspection) {
                 $region = $inspection['region'];
-                $sql = "select * from ins_admin where (region = 0 || region = $region) and builder = 1";
+                $sql = "select * from ins_admin where (region = 0 || region = '$region') and builder = 1";
                 $fms = $this->utility_model->get_list__by_sql($sql);
                 if ($fms) {
                     $fm_result['list'] = $fms;
@@ -2493,9 +2511,16 @@ ORDER BY g.inspection_count DESC"
                 
             }
             $res['order_id'] = $order_id;
+
+            $sql = "select * from ins_building where job_pin = '$job_pin' order by created_at desc limit 1";
+            $building = $this->utility_model->get__by_sql($sql);
+            if ($building) {
+                $res['building'] = $building;
+            }
         }
         print_r(json_encode($res));
     }
+
     public function check_job_number_for_pulte_duct() {
         //hgc
         $res = array('err_code' => -1);
@@ -2510,7 +2535,7 @@ ORDER BY g.inspection_count DESC"
             } else {
                 $res['exist_ins_inspection'] = 0;
             }
-            
+
             $sql = "select region from ins_building where job_pin = $job_pin";
             $tmp_row = $this->utility_model->get__by_sql($sql);
             if ($tmp_row) {
@@ -2533,6 +2558,12 @@ ORDER BY g.inspection_count DESC"
             $date_requested = $this->input->get_post('date_requested');
             $job_number = $this->input->get_post('job_number');
             $lot = $this->input->get_post('lot');
+
+            $tmp_category = $this->input->get_post('category');
+            if ($tmp_category == false) {
+                $tmp_category = 3;
+            }
+
 
             $community = $this->input->get_post('community');
             $address = $this->input->get_post('address');
@@ -2582,8 +2613,11 @@ ORDER BY g.inspection_count DESC"
             if ($need_check_fm && $user) {
                 $res['err_msg'] = "Already Exist Email Address!";
             } else {
-                $is_already_exist = false;
-                $rrr = $this->utility_model->get('ins_inspection_requested', array('category' => 3, 'job_number' => $job_number, 'status' => 0));
+                $is_already_exist = false;  // hgc ff
+//                $rrr = $this->utility_model->get('ins_inspection_requested', array('category' => $tmp_category, 'job_number' => $job_number, 'status' => 0));
+                $sql = "select * from ins_inspection_requested where category = $tmp_category and replace(job_number,'-','') = '"
+                        . str_replace('-', '', $job_number) . "' and status = 0";
+                $rrr = $this->utility_model->get__by_sql($sql);
                 if ($rrr) {
                     $is_already_exist = true;
                 }
@@ -2591,22 +2625,24 @@ ORDER BY g.inspection_count DESC"
                 if (!$is_already_exist) {
                     $t = mdate('%Y%m%d%H%i%s', time());
 
-                    $field_manager_id = "";
+                    $field_manager_id = "0";
                     //$field_manager_name = "";
                     $this->utility_model->start();
 
                     $fm = array('kind' => 2, 'email' => $field_manager, 'address' => $address, 'password' => 'wci', 'builder' => 2, 'updated_at' => $t);
                     if ($manager_id == "") {
+
+                        if ($tmp_category == 3) {
+                            if ($this->utility_model->insert('ins_admin', $fm)) {
+                                $field_manager_id = $this->utility_model->new_id();
+                                $this->utility_model->update('ins_admin', array('first_name' => $first_name), array('last_name' => $last_name), array('id' => $field_manager_id));
+
+                                //$field_manager_name = "" . $field_manager_id . " WCI";
+                            }
+                        }
                         $fm['created_at'] = $t;
                         $fm['first_name'] = $first_name;
                         $fm['last_name'] = $last_name;
-
-                        if ($this->utility_model->insert('ins_admin', $fm)) {
-                            $field_manager_id = $this->utility_model->new_id();
-                            $this->utility_model->update('ins_admin', array('first_name' => $first_name), array('last_name' => $last_name), array('id' => $field_manager_id));
-
-                            //$field_manager_name = "" . $field_manager_id . " WCI";
-                        }
                     } else {
                         if ($this->utility_model->update('ins_admin', $fm, array('id' => $manager_id))) {
                             $field_manager_id = $manager_id;
@@ -2614,18 +2650,19 @@ ORDER BY g.inspection_count DESC"
                         }
                     }
 
-                    if ($field_manager_id != "" && $field_manager_name != "") {
-                        $building = $this->utility_model->get('ins_building', array('job_number' => $job_number));
-                        if ($building) {
-                            $this->utility_model->update('ins_building', array('community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'updated_at' => $t), array('job_number' => $job_number));
-                        } else {
-                            $this->utility_model->insert('ins_building', array('job_number' => $job_number, 'community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'created_at' => $t, 'updated_at' => $t));
+                    if (($field_manager_id != "" && $field_manager_name != "") || $tmp_category == 4) {
+
+                        if (($field_manager_id != "" && $field_manager_name != "")) {
+                            $building = $this->utility_model->get('ins_building', array('job_number' => $job_number));
+                            if ($building) {
+                                $this->utility_model->update('ins_building', array('community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'updated_at' => $t), array('job_number' => $job_number));
+                            } else {
+                                $this->utility_model->insert('ins_building', array('job_number' => $job_number, 'community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'created_at' => $t, 'updated_at' => $t));
+                            }
                         }
 
-                        $tmp_category = $this->input->get_post('category');
-                        if ($tmp_category == false) {
-                            $tmp_category = 3;
-                        }
+
+
 
 
                         $data = array(
@@ -2688,7 +2725,7 @@ ORDER BY g.inspection_count DESC"
                         $res['err_msg'] = "Failed to request!";
                     }
                 } else {
-                    $res['err_msg'] = "Already Existed in Requested Inspections!";
+                    $res['err_msg'] = "Inspection Already Requested!";
                 }
             }
         } else {

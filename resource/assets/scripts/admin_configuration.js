@@ -56,6 +56,12 @@ function submit_data() {
         return false;
     }
     
+    var checklist_online_link = $('#checklist_online_link').val();
+    if (checklist_online_link=='') {
+        showAlert("Please Enter Embeded Link for CheckList");
+        return false;
+    }
+    
     showLoading();
 
     $.ajax({
@@ -69,6 +75,7 @@ function submit_data() {
             twilio_phone1:twilio_phone1,
             twilio_reply_text:twilio_reply_text,
             twilio_send_text:twilio_send_text,
+            checklist_online_link:checklist_online_link,
         },
         dataType: 'json',
         success: function (data) {

@@ -83,6 +83,7 @@
                                     <option value="1">Drainage Plane Inspection</option>
                                     <option value="2">Lath Inspection</option>
                                     <option value="3">WCI Duct Leakage Inspection</option>
+                                    <option value="4">Pulte Duct Leakage Inspection</option>
                                 </select>
                             </div>
                         </div>

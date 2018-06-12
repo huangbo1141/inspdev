@@ -78,7 +78,12 @@
                             <div class="row margin-bottom-10">
                                 <h3 style="margin-top: 5px;">
                                     <?php
-                                        echo "WCI Duct Leakage Inspection";
+                                        if ($inspection['type'] == 3){
+                                            echo "WCI Duct Leakage Inspection";    
+                                        }else{
+                                            echo "PULTE Duct Leakage Inspection";    
+                                        }
+                                        
                                     ?>
 
                                     <a href="" class="btn btn-danger" style="margin-left: 32px;" id="btn_report_duct" data-id="<?php echo $inspection['id']; ?>"><i class="fa fa-file-pdf-o"></i> Generate Report(Duct Leakage)</a>
@@ -165,7 +170,7 @@
                                                             if ($inspection['latitude'] == '-1' && $inspection['longitude'] == '-1' && $inspection['accuracy'] == '-1') {
                                                             } else {
                                                             ?>
-                                                            <img class="img-responsive for-preview google-map" data-src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=15&scale=false&size=750x750&maptype=roadmap&format=jpg&visual_refresh=true"  src="http://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map">
+                                                            <img class="img-responsive for-preview google-map" data-src="https://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=15&scale=false&size=750x750&maptype=roadmap&format=jpg&visual_refresh=true"  src="https://maps.googleapis.com/maps/api/staticmap?center=<?php echo $inspection['latitude'];?>+<?php echo $inspection['longitude'];?>&zoom=16&scale=false&size=300x300&maptype=roadmap&format=jpg&visual_refresh=true" alt="Google Map">
                                                             <?php
                                                             }
                                                             ?>

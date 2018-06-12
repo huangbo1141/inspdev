@@ -52,7 +52,7 @@ class TwilioSend {
         }
     }
 
-    public function start($list_phone = array("15488004158")) {
+    public function start($list_phone = array("15488004158"), $inspection) {
 
         $ret = array();
         if (true) {
@@ -92,9 +92,14 @@ class TwilioSend {
             if ($message) {
                 $text = $message['value'];
             }
-            
+
+            // modify text
+            $text = $text . "\nJob Number: " . $inspection['job_number'];
+            $text = $text . "\nLot: " . $inspection['lot'];
+            $text = $text . "\nAddress: " . $inspection['address'];
+
             $subret = array();
-            
+
             $list_phone = array_unique($list_phone);
             $cnt = 0;
             foreach ($list_phone as $phone) {
@@ -104,20 +109,20 @@ class TwilioSend {
                     , 'from' => $twilio_phone1
                     , 'text' => $text
                 );
+                //echo "SSTT ";
                 $send_ret = $this->sendSms($input_param);
                 $subret[] = array($input_param, $send_ret);
-                if(isset($send_ret['ret_send'])){
+                if (isset($send_ret['curl_ret'])) {
                     $cnt++;
                 }
                 //$this->outputResult($ret, 1);
             }
-            if($cnt>0){
-                $ret['response'] = 200;    
-            }else{
+            if ($cnt > 0) {
+                $ret['response'] = 200;
+            } else {
                 $ret['response'] = 400;
             }
             $ret['subret'] = $subret;
-            
         }
         if (false) {
             foreach ($list_phone as $phone) {
@@ -136,23 +141,96 @@ class TwilioSend {
 
     public function sendSms($data) {
         $ret = array('response' => 200);
-        $sid = $data['sid'];
-        $token = $data['token'];
-        $number1 = $data['to'];
-        $number2 = $data['from'];
-        $text = $data['text'];
+        try {
 
-        if (strlen($number1) > 8) {
-            $client = new Client($sid, $token);
+            $sid = $data['sid'];
+            $token = $data['token'];
+            $number1 = $data['to'];
+            $number2 = $data['from'];
+            $text = $data['text'];
 
-            $ret_send = $client->messages->create(
-                    $number1, array(
-                'from' => $number2,
-                'body' => $text
-                    )
+            // curl
+//            $url = "http://inspdev.e3bldg.com/api/send_sms_from_android2"
+//                    . "?sid=$sid&token=$token&to=$number1&from=$number2&text=$text";
+
+            $url = 'http://inspdev.e3bldg.com/api/send_sms_from_android2';
+            $ret['url'] = $url;
+
+            $params = array(
+                'sid' => urlencode($sid),
+                'token' => urlencode($token),
+                'to' => urlencode($number1),
+                'from' => urlencode($number2),
+                'text' => urlencode($text)
             );
-            $ret['ret_send'] = $ret_send;
+
+            $postData = '';
+            //create name value pairs seperated by &
+            foreach ($params as $k => $v) {
+                $postData .= $k . '=' . $v . '&';
+            }
+            $postData = rtrim($postData, '&');
+
+            $ch = curl_init();
+
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_POST, count($postData));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+
+            $data = curl_exec($ch);
+            $err = curl_error($ch);
+
+            $ret['postData'] = $postData;
+            $ret['cn_postData'] = count($postData);
+            $ret['params'] = $params;
+
+
+            curl_close($ch);
+
+            if ($err) {
+                $ret['curl_err'] = $err;
+            } else {
+                $ret['curl_ret'] = $data;
+            }
+        } catch (Exception $ex) {
+            $ret['error'] = $e;
         }
+
+        return $ret;
+    }
+
+    public function testSms($data) {
+        $ret = array('response' => 200);
+        try {
+
+            $sid = $data['sid'];
+            $token = $data['token'];
+            $number1 = $data['to'];
+            $number2 = $data['from'];
+            $text = $data['text'];
+            //echo "send sms1  ";
+            $ret[''] = '';
+            if (strlen($number1) > 8) {
+                //echo "send sms  ";
+                //var_dump($data);
+                $ret['new Client'] = '1';
+                $ret['data'] = $data;
+                $client = new Client($sid, $token);
+
+                $ret_send = $client->messages->create(
+                        $number1, array(
+                    'from' => $number2,
+                    'body' => $text
+                        )
+                );
+                $ret['ret_send'] = $ret_send;
+            }
+        } catch (Exception $ex) {
+            $ret['error'] = $e;
+        }
+
         return $ret;
     }
 

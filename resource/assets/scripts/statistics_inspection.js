@@ -303,11 +303,27 @@ jQuery(document).ready(function () {
         }
         
         if ($(this).hasClass('btn-primary')) {
-            $.fileDownload($("#basePath").val()+"api/export/statistics/inspection?desc=0&file_format="+export_type+"&region="+$("#region").val()+"&community="+$("#community").val()+"&start_date="+$("#start_date").val()+"&end_date="+$("#end_date").val()+"&status=" + $("#status").val() + "&type="+$("#inspection_type").val());
+            $.fileDownload($("#basePath").val()+"api/export/statistics/inspection?desc=0&file_format="+export_type
+                    +"&region="+$("#region").val()
+                    +"&community="+$("#community").val()
+                    +"&start_date="+$("#start_date").val()
+                    +"&end_date="+$("#end_date").val()
+                    +"&status=" + $("#status").val() 
+                    + "&type="+$("#inspection_type").val()
+                    + "&table_order="+$('#table_content').dataTable().api().order()
+                    );
         }
         
         if ($(this).hasClass('btn-danger')) {
-            $.fileDownload($("#basePath").val()+"api/export/statistics/inspection?desc=1&file_format="+export_type+"&region="+$("#region").val()+"&community="+$("#community").val()+"&start_date="+$("#start_date").val()+"&end_date="+$("#end_date").val()+"&status=" + $("#status").val() + "&type="+$("#inspection_type").val());
+            $.fileDownload($("#basePath").val()+"api/export/statistics/inspection?desc=1&file_format="+export_type
+                    +"&region="+$("#region").val()
+                    +"&community="+$("#community").val()
+                    +"&start_date="+$("#start_date").val()
+                    +"&end_date="+$("#end_date").val()
+                    +"&status=" + $("#status").val() 
+                    + "&type="+$("#inspection_type").val()
+                    + "&table_order="+$('#table_content').dataTable().api().order()
+                    );
         }
     });
 

@@ -197,7 +197,7 @@ class Statistics extends CI_Controller {
 
         if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col < 0 || $col > 8) {
+            if ($col < 0 || $col > count($cols)-1) {
                 $col = 7;
             }
         }
@@ -290,7 +290,7 @@ class Statistics extends CI_Controller {
     }
 
     public function load_re_inspection() {
-        $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "a.epo_number", "g.inspection_count", "a.result_code");
+        $cols = array("a.type", "a.region", "a.community", "a.job_number", "a.address", "u.first_name", "a.overall_comments", "a.start_date", "requested_epo_number", "g.inspection_count", "a.result_code");
         $table = " ins_region r, ins_code c1, ins_code c2,  "
                 . " ( SELECT p1.inspection_id, p2.* "
                 . "   FROM "
@@ -413,8 +413,8 @@ class Statistics extends CI_Controller {
         $sCol = "";
         $sdir = "";
 
-        $sCol = $this->input->get_post("order");
-        foreach ($sCol as $row) {
+        $sCols = $this->input->get_post("order");
+        foreach ($sCols as $row) {
             foreach ($row as $key => $value) {
                 if ($key == 'column')
                     $sCol = $value;
@@ -446,11 +446,11 @@ class Statistics extends CI_Controller {
 
         if ($sCol !== false && strlen($sCol) > 0) {
             $col = intval($sCol);
-            if ($col < 0 || $col > 10) {
+            if ($col < 0 || $col >= count($cols)) {
                 $col = 9;
             }
         }
-
+        $dir = "asc";
         if ($sdir && strlen($sdir) > 0) {
             if ($sdir != "asc") {
                 $dir = "desc";
@@ -766,12 +766,13 @@ class Statistics extends CI_Controller {
             }
 
             if ($region !== false && $region != "") {
+
                 $param = $region;
                 if (gettype($param) == 'string') {
                     if ($common_sql != "") {
                         $common_sql .= " and ";
                     }
-                    $common_sql .= " a.region='$param' ";
+                    $common_sql .= " a.region in ($param) ";
                 } else if (gettype($param) == 'array') {
                     $ids_str = "";
                     foreach ($param as $id) {
@@ -796,7 +797,7 @@ class Statistics extends CI_Controller {
                     if ($common_sql != "") {
                         $common_sql .= " and ";
                     }
-                    $common_sql .= " a.community='$param' ";
+                    $common_sql .= " a.community in ($param) ";
                 } else if (gettype($param) == 'array') {
                     $ids_str = "";
                     foreach ($param as $id) {
@@ -1043,19 +1044,54 @@ class Statistics extends CI_Controller {
             }
 
             if ($region !== false && $region != "") {
-                if ($common_sql != "") {
-                    $common_sql .= " and ";
-                }
 
-                $common_sql .= " a.region='$region' ";
+                $param = $region;
+                if (gettype($param) == 'string') {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in ($param) ";
+                } else if (gettype($param) == 'array') {
+                    $ids_str = "";
+                    foreach ($param as $id) {
+                        $ids_str = $ids_str . $id . ",";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                        $ids_str = "(" . $ids_str . ")";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        if ($common_sql != "") {
+                            $common_sql .= " and ";
+                        }
+                        $common_sql .= " a.region in $ids_str ";
+                    }
+                }
             }
 
             if ($community !== false && $community != "") {
-                if ($common_sql != "") {
-                    $common_sql .= " and ";
+                $param = $community;
+                if (gettype($param) == 'string') {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in ($param) ";
+                } else if (gettype($param) == 'array') {
+                    $ids_str = "";
+                    foreach ($param as $id) {
+                        $ids_str = $ids_str . $id . ",";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                        $ids_str = "(" . $ids_str . ")";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        if ($common_sql != "") {
+                            $common_sql .= " and ";
+                        }
+                        $common_sql .= " a.community in $ids_str ";
+                    }
                 }
-
-                $common_sql .= " a.community='$community' ";
             }
 
             if ($status !== false && $status != "") {
@@ -1111,7 +1147,7 @@ class Statistics extends CI_Controller {
                 }
             }
 
-            $count_sql = " select count(*) from ( " . $sql . " and a.house_ready=0 ) t ";
+            $count_sql = " select count(*) from ( " . $sql . " and IFNULL(a.house_ready, 0) = 0 ) t ";
             $house_not_ready = $this->datatable_model->get_count($count_sql);
             if ($count_text != "") {
                 $count_text .= ", ";
@@ -1153,19 +1189,54 @@ class Statistics extends CI_Controller {
             }
 
             if ($region !== false && $region != "") {
-                if ($common_sql != "") {
-                    $common_sql .= " and ";
-                }
 
-                $common_sql .= " a.region='$region' ";
+                $param = $region;
+                if (gettype($param) == 'string') {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.region in ($param) ";
+                } else if (gettype($param) == 'array') {
+                    $ids_str = "";
+                    foreach ($param as $id) {
+                        $ids_str = $ids_str . $id . ",";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                        $ids_str = "(" . $ids_str . ")";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        if ($common_sql != "") {
+                            $common_sql .= " and ";
+                        }
+                        $common_sql .= " a.region in $ids_str ";
+                    }
+                }
             }
 
             if ($community !== false && $community != "") {
-                if ($common_sql != "") {
-                    $common_sql .= " and ";
+                $param = $community;
+                if (gettype($param) == 'string') {
+                    if ($common_sql != "") {
+                        $common_sql .= " and ";
+                    }
+                    $common_sql .= " a.community in ($param) ";
+                } else if (gettype($param) == 'array') {
+                    $ids_str = "";
+                    foreach ($param as $id) {
+                        $ids_str = $ids_str . $id . ",";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        $ids_str = substr($ids_str, 0, strlen($ids_str) - 1);
+                        $ids_str = "(" . $ids_str . ")";
+                    }
+                    if (strlen($ids_str) > 0) {
+                        if ($common_sql != "") {
+                            $common_sql .= " and ";
+                        }
+                        $common_sql .= " a.community in $ids_str ";
+                    }
                 }
-
-                $common_sql .= " a.community='$community' ";
             }
 
             if ($status !== false && $status != "") {
@@ -1238,7 +1309,7 @@ class Statistics extends CI_Controller {
                 }
             }
 
-            $count_sql = " select count(*) from ( " . $sql . " and a.house_ready=0 ) t ";
+            $count_sql = " select count(*) from ( " . $sql . " and IFNull(a.house_ready,0)=0 ) t ";
             $house_not_ready = $this->datatable_model->get_count($count_sql);
             if ($count_text != "") {
                 $count_text .= ", ";
@@ -1662,7 +1733,7 @@ class Statistics extends CI_Controller {
                 }
             }
         }
-        
+
         if ($community !== false && $community != "") {
             $param = $community;
             if (gettype($param) == 'string') {

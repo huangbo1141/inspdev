@@ -146,7 +146,7 @@
                                                         if ($inspection['image_front_building'] == '') {
                                                             echo "<label class='label label-warning'>No Image</label>";
                                                         } else {
-                                                            echo "<img src='" . $inspection['image_front_building'] . "' class='for-preview' style='max-width: 250px;'>";
+                                                            echo "<img src='" . $inspection['image_front_building'] . "' id='front_image_origin' class='for-preview' style='max-width: 250px;'>";
                                                         }
                                                         ?>
                                                     </div>

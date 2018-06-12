@@ -50,10 +50,10 @@ jQuery(document).ready(function () {
         update('add', '');
     });
 
-    $(document).on('change', '.chk_reinspection', function() {
+    $(document).on('change', '.chk_reinspection', function () {
         // Does some stuff and logs the event to the console
-    
-        
+
+
         var id = $(this)[0].value;
 
         var checked = $(this)[0].checked;
@@ -63,7 +63,7 @@ jQuery(document).ready(function () {
             url: 'updateReInspection',
             data: {
                 community_id: id,
-                reinspection:checked?1:0
+                reinspection: checked ? 1 : 0
             },
             dataType: 'json',
             success: function (data) {
@@ -82,27 +82,72 @@ jQuery(document).ready(function () {
         });
     });
 
-    $('#table_content').dataTable({
-        "processing": true,
-        "serverSide": true,
-        "responsive": true,
-        "ajax": {
-            "url": "load",
-            "type": "POST"
+    var columns = [
+        {
+            "data": "community_id",
         },
-//        'searching' : false,
-        "order": [[0, "asc"]],
-        "columnDefs": [
-            {
-                "targets": [-1],
-                "orderable": false
-            },
-            {
-                "targets": "_all",
-                "searchable": false
+        {
+            "data": "community_name",
+        },
+        {
+            "data": "city",
+        },
+        {
+            "data": "reinspection",
+            "render": function (data, type, row, meta) {
+                var data = "";
+                var checked = "";
+                if (row.reinspection == '1') {
+                    checked = "checked";
+                }
+
+                if ($("#user_permission").val() == '0' || $("#user_permission").val() == '4') {
+                    data += '<div class="btn-group">    <input type="checkbox" value="' + row.community_id + '" disabled ' + checked + '></div>';
+                } else {
+                    data += '<div class="btn-group">    <input type="checkbox"  class="chk_reinspection" value="' + row.community_id + '" ' + checked + '></div>';
+                }
+
+                return data;
             }
-        ],
-        "columns": [
+        },
+        {
+            "data": "region_name",
+        },
+        {
+            "data": "builder_name",
+        },
+        {
+            "data": "additional",
+            "render": function (data, type, row, meta) {
+                var data = "";
+
+                if ($("#user_permission").val() == '0' || $("#user_permission").val() == '4') {
+
+                } else {
+                    data += '<div class="btn-group"> ' +
+                            '<button type="button" class="btn default dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="1000" data-close-others="true"> Action<i class="fa fa-angle-down"></i> </button>' +
+                            '<ul class="dropdown-menu bottom-up pull-right" role="menu">' +
+                            '<li class="divider"></li>';
+
+                    if ($("#user_permission").val() == '1') {
+                        data += '<li><a href="javascript:update(\'edit\', \'' + row.id + '\')"><i class="fa fa-edit"></i> Edit</a></li>';
+                        data += '<li><a href="javascript:update(\'delete\', \'' + row.id + '\')"><i class="fa fa-trash-o"></i> Delete</a></li>';
+                    } else {
+                        data += '<li><a href="javascript:update(\'edit\', \'' + row.id + '\')"><i class="fa fa-search"></i> View</a></li>';
+                    }
+
+                    data += '<li class="divider"></li>';
+                    data += '</ul>' +
+                            '</div>' +
+                            '';
+                }
+
+                return data;
+            }
+        }
+    ];
+    if ($("#user_permission").val() != '1') {
+        columns = [
             {
                 "data": "community_id",
             },
@@ -111,24 +156,6 @@ jQuery(document).ready(function () {
             },
             {
                 "data": "city",
-            },
-            {
-                "data": "reinspection",
-                "render": function (data, type, row, meta) {
-                    var data = "";
-                    var checked = "";
-                    if(row.reinspection == '1'){
-                        checked = "checked";
-                    }
-
-                    if ($("#user_permission").val() == '0' || $("#user_permission").val() == '4') {
-                        data += '<div class="btn-group">    <input type="checkbox" value="'+row.community_id+'" disabled '+checked+'></div>';
-                    } else {
-                        data += '<div class="btn-group">    <input type="checkbox"  class="chk_reinspection" value="'+row.community_id+'" '+checked+'></div>';
-                    }
-
-                    return data;
-                }
             },
             {
                 "data": "region_name",
@@ -165,7 +192,30 @@ jQuery(document).ready(function () {
                     return data;
                 }
             }
-        ]
+        ];
+    }
+
+    $('#table_content').dataTable({
+        "processing": true,
+        "serverSide": true,
+        "responsive": true,
+        "ajax": {
+            "url": "load",
+            "type": "POST"
+        },
+//        'searching' : false,
+        "order": [[0, "asc"]],
+        "columnDefs": [
+            {
+                "targets": [-1],
+                "orderable": false
+            },
+            {
+                "targets": "_all",
+                "searchable": false
+            }
+        ],
+        "columns": columns
     });
 
     $('#table_content').on('draw.dt', function () {
