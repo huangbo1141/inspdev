@@ -154,6 +154,9 @@
 <form id="form_move_wci" action="<?php echo $basePath;?>inspection/duct_leakage_inspection.html" method="post">
     <input type="hidden" name="id" id="detail_id2" value="">
 </form>
+<form id="form_move_wci_pulte" action="<?php echo $basePath;?>inspection/duct_leakage_inspection_pulte.html" method="post">
+    <input type="hidden" name="id" id="detail_id4" value="">
+</form>
 
 <div id="unit_dialog" class="bootbox modal fade modal-overflow" tabindex="-1" role="dialog" aria-hidden="false">
     <div class="modal-dialog">

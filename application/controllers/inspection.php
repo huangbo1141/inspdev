@@ -2011,6 +2011,82 @@ ORDER BY g.inspection_count DESC"
         $this->load->view('inspection_pending_building', $page_data);
     }
 
+    public function check_db($mode = false) {
+        if (!$this->session->userdata('user_id')) {
+            redirect(base_url() . "user/login.html");
+            exit(1);
+        }
+        if ($mode == false) {
+            $mode = $this->input->get('mode');
+        }
+        if (is_string($mode)) {
+            switch ($mode) {
+                case 'ins_flag_email_report':
+                    $list_email = array();
+                    $list_model = $this->utility_model->get_list('ins_admin', array());
+                    foreach ($list_model as $model) {
+                        $list_email[] = $model['email'];
+                    }
+
+                    $list_model = $this->utility_model->get_list('sys_recipient_email', array());
+                    foreach ($list_model as $model) {
+                        $list_email[] = $model['email'];
+                    }
+
+                    $list_model = $this->utility_model->get_list('ins_inspection_requested', array());
+                    foreach ($list_model as $inspection_requested) {
+                        if (isset($inspection_requested['document_person']) && $inspection_requested['document_person'] != "") {
+                            $emails = explode(",", $inspection_requested['document_person']);
+                            if (is_array($emails)) {
+                                foreach ($emails as $row) {
+                                    $addr = trim($row);
+                                    if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
+                                        $list_email[] = $addr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    $list_email = array_unique($list_email);
+
+                    $list_model = $this->utility_model->get_list('ins_flag_email_report', array());
+                    $list_already_exist = array();
+                    foreach ($list_model as $model) {
+                        $list_already_exist[] = $model['email'];
+                    }
+
+                    $list_to_add = array();
+                    foreach ($list_email as $email) {
+                        if (!in_array($email, $list_already_exist)) {
+                            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                                $list_to_add[] = $email;
+                            }
+                        }
+                    }
+
+//                    echo "<pre>";
+//                    print_r($list_to_add);
+//                    echo "</pre>";
+
+                    $result = array();
+                    foreach ($list_to_add as $email) {
+                        if ($this->utility_model->insert('ins_flag_email_report', array('email' => $email))) {
+                            $result[] = array($email, "success");
+                        } else {
+                            $result[] = array($email, "fail");
+                        }
+                    }
+                    echo "<pre>";
+                    print_r($result);
+                    echo "</pre>";
+
+                    break;
+            }
+        }
+    }
+
     public function check_db_job_pin() {
         if (!$this->session->userdata('user_id')) {
             redirect(base_url() . "user/login.html");
@@ -2491,9 +2567,20 @@ ORDER BY g.inspection_count DESC"
             $job_number = $this->input->get_post('job_number');
             $order_id = $this->input->get_post('order_id');
             $job_pin = str_replace("-", "", $job_number);
-            $sql = "select * from ins_inspection where job_pin = '$job_pin' order by id desc limit 1";
-            $inspection = $this->utility_model->get__by_sql($sql);
-            if ($inspection) {
+            $sql = "select a.*,b.status,b.document_person from ins_inspection as a join ins_inspection_requested as b"
+                    . " on a.requested_id = b.id "
+                    . " where a.job_pin = '$job_pin' order by a.id desc";
+            $inspection_list = $this->utility_model->get_list__by_sql($sql);
+
+            if (is_array($inspection_list) && count($inspection_list) > 0) {
+                $inspection = $inspection_list[0];
+                foreach ($inspection_list as $i_val) {
+                    if ($i_val['status'] == 2 && $i_val['category'] == 4) {
+                        // completed one
+                        $inspection = $i_val;
+                        break;
+                    }
+                }
                 $region = $inspection['region'];
                 $sql = "select * from ins_admin where (region = 0 || region = '$region') and builder = 1";
                 $fms = $this->utility_model->get_list__by_sql($sql);
@@ -2512,7 +2599,11 @@ ORDER BY g.inspection_count DESC"
             }
             $res['order_id'] = $order_id;
 
-            $sql = "select * from ins_building where job_pin = '$job_pin' order by created_at desc limit 1";
+            $sql = "select *,a.address as address from  ins_building a  left join ins_community c on c.community_id=substr(a.job_number, 1, 4)  "
+                    . "left join ins_building_unit t on a.job_number=t.job_number  where a.job_pin = '$job_pin'";
+
+//            $sql = "select * from ins_building where job_pin = '$job_pin' order by created_at desc limit 1";
+            $res['$sql'] = $sql;
             $building = $this->utility_model->get__by_sql($sql);
             if ($building) {
                 $res['building'] = $building;
@@ -2735,6 +2826,192 @@ ORDER BY g.inspection_count DESC"
         print_r(json_encode($res));
     }
 
+    public function update_duct_leakage_inspection_requested_pulte() {
+        $res = array('err_code' => 1);
+        $res['err_msg'] = "Failed to request!";
+
+        if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
+            $id = $this->input->get_post('id');
+            $manager_id = $this->input->get_post('manager_id');
+
+            $date_requested = $this->input->get_post('date_requested');
+            $permit_number = $this->input->get_post('permit_number');
+            $job_number = $this->input->get_post('job_number');
+            $lot = $this->input->get_post('lot');
+
+            $tmp_category = $this->input->get_post('category');
+            if ($tmp_category == false) {
+                $tmp_category = 3;
+            }
+
+
+            $community = $this->input->get_post('community');
+            $address = $this->input->get_post('address');
+            $city = $this->input->get_post('city');
+            $area = $this->input->get_post('area');
+            $volume = $this->input->get_post('volume');
+            $wall_area = $this->input->get_post('wall_area');
+            $ceiling_area = $this->input->get_post('ceiling_area');
+            $design_location = $this->input->get_post('design_location');
+
+            $field_manager_name = $this->input->get_post('field_manager');
+            $first_name = "";
+            $last_name = "";
+            $pieces = explode(" ", $field_manager_name);
+            if (is_array($pieces)) {
+                if (count($pieces) >= 2) {
+                    $first_name = $pieces[0];
+                    $last_name = $pieces[1];
+                } elseif (count($pieces) == 1) {
+                    $first_name = $pieces[0];
+                }
+            }
+            $field_manager = "";
+            $qn = $this->input->get_post('qn');
+
+            $document_person = $this->input->get_post('document_person');
+            if ($document_person === false) {
+                $document_person = "";
+            }
+
+            $need_check_fm = true;
+            if ($manager_id != "") {
+                $fm = $this->utility_model->get('ins_admin', array('id' => $manager_id, 'kind' => 2));
+                if ($fm && isset($fm['email']) && $fm['email'] == $field_manager) {
+                    $need_check_fm = false;
+                } else {
+                    $manager_id = "";
+                }
+            }
+            $user = null;
+            if (strlen($field_manager) == 0) {
+                $user = null;
+            } else {
+                $user = $this->utility_model->get('ins_admin', array('email' => $field_manager));
+            }
+
+            if ($need_check_fm && $user) {
+                $res['err_msg'] = "Already Exist Email Address!";
+            } else {
+                $is_already_exist = false;  // hgc ff
+//                $rrr = $this->utility_model->get('ins_inspection_requested', array('category' => $tmp_category, 'job_number' => $job_number, 'status' => 0));
+                $sql = "select * from ins_inspection_requested where category = $tmp_category and replace(job_number,'-','') = '"
+                        . str_replace('-', '', $job_number) . "' and status = 0";
+                $rrr = $this->utility_model->get__by_sql($sql);
+                if ($rrr) {
+                    $is_already_exist = true;
+                }
+
+                if (!$is_already_exist) {
+                    $t = mdate('%Y%m%d%H%i%s', time());
+
+                    $field_manager_id = "0";
+                    //$field_manager_name = "";
+                    $this->utility_model->start();
+
+                    $fm = array('kind' => 2, 'email' => $field_manager, 'address' => $address, 'password' => 'wci', 'builder' => 2, 'updated_at' => $t);
+                    if ($manager_id == "") {
+
+                        if ($tmp_category == 3) {
+                            if ($this->utility_model->insert('ins_admin', $fm)) {
+                                $field_manager_id = $this->utility_model->new_id();
+                                $this->utility_model->update('ins_admin', array('first_name' => $first_name), array('last_name' => $last_name), array('id' => $field_manager_id));
+
+                                //$field_manager_name = "" . $field_manager_id . " WCI";
+                            }
+                        }
+                        $fm['created_at'] = $t;
+                        $fm['first_name'] = $first_name;
+                        $fm['last_name'] = $last_name;
+                    } else {
+                        if ($this->utility_model->update('ins_admin', $fm, array('id' => $manager_id))) {
+                            $field_manager_id = $manager_id;
+                            //$field_manager_name = "" . $field_manager_id . " WCI";
+                        }
+                    }
+
+                    if (($field_manager_id != "" && $field_manager_name != "") || $tmp_category == 4) {
+
+                        if (($field_manager_id != "" && $field_manager_name != "")) {
+                            $building = $this->utility_model->get('ins_building', array('job_number' => $job_number));
+                            if ($building) {
+                                $this->utility_model->update('ins_building', array('community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'updated_at' => $t), array('job_number' => $job_number));
+                            } else {
+                                $this->utility_model->insert('ins_building', array('job_number' => $job_number, 'community' => $community, 'address' => $address, 'field_manager' => $field_manager_name, 'builder' => 2, 'created_at' => $t, 'updated_at' => $t));
+                            }
+                        }
+
+                        $data = array(
+                            'category' => $tmp_category,
+                            'manager_id' => $field_manager_id, //$this->session->userdata('user_id'),
+                            'job_number' => $job_number,
+                            'lot' => $lot,
+                            'requested_at' => $date_requested,
+                            'permit_number' => $permit_number,
+                            'time_stamp' => $t,
+                            'ip_address' => $this->get_client_ip(),
+                            'community_name' => $community,
+                            'address' => $address,
+                            'city' => $city,
+                            'area' => $area,
+                            'volume' => $volume,
+                            'qn' => $qn,
+                            'wall_area' => $wall_area,
+                            'ceiling_area' => $ceiling_area,
+                            'design_location' => $design_location,
+                            'document_person' => $document_person
+                        );
+
+                        if ($id == "") {
+                            if ($this->utility_model->insert('ins_inspection_requested', $data)) {
+                                $this->utility_model->complete();
+
+                                $res['err_msg'] = "Successfully Requested!";
+                                $res['err_code'] = 0;
+                            }
+                        } else {
+                            if ($this->utility_model->update('ins_inspection_requested', $data, array('id' => $id))) {
+                                $this->utility_model->complete();
+
+                                $res['err_msg'] = "Successfully Requested!";
+                                $res['err_code'] = 0;
+                            }
+                        }
+
+                        if ($res['err_code'] == 0) {
+                            $recipients = array();
+
+                            $fm = $this->utility_model->get('ins_admin', array('id' => $field_manager_id, 'allow_email' => 1));
+                            if ($fm) {
+                                array_push($recipients, array('email' => $fm['email']));
+                            }
+
+                            if ($document_person != "") {
+                                $emails = explode(",", $document_person);
+                                if (is_array($emails)) {
+                                    foreach ($emails as $row) {
+                                        $addr = trim($row);
+                                        if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
+                                            array_push($recipients, array('email' => $addr));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $res['err_msg'] = "Failed to request!";
+                    }
+                } else {
+                    $res['err_msg'] = "Inspection Already Requested!";
+                }
+            }
+        } else {
+            $res['err_msg'] = "You have no permission!";
+        }
+
+        print_r(json_encode($res));
+    }
+
     public function update_duct_leakage_inspection_requested2() {
         $res = array('err_code' => 1);
         $res['err_msg'] = "Failed to request!";
@@ -2776,6 +3053,79 @@ ORDER BY g.inspection_count DESC"
                     'job_number' => $job_number,
                     'lot' => $lot,
                     'requested_at' => $date_requested,
+                    'time_stamp' => $t,
+                    'ip_address' => $this->get_client_ip(),
+                    'community_name' => $community,
+                    'address' => $address,
+                    'city' => $city,
+                    'area' => $area,
+                    'volume' => $volume,
+                    'qn' => $qn,
+                    'wall_area' => $wall_area,
+                    'ceiling_area' => $ceiling_area,
+                    'design_location' => $design_location,
+                    'document_person' => $document_person
+                );
+
+                if ($this->utility_model->update('ins_inspection_requested', $data, array('id' => $id))) {
+                    $this->utility_model->complete();
+
+                    $res['err_msg'] = "Successfully Requested!";
+                    $res['err_code'] = 0;
+                } else {
+                    $res['err_msg'] = "Failed to request!";
+                }
+            }
+        } else {
+            $res['err_msg'] = "You have no permission!";
+        }
+
+        print_r(json_encode($res));
+    }
+
+    public function update_duct_leakage_inspection_requested2_pulte() {
+        $res = array('err_code' => 1);
+        $res['err_msg'] = "Failed to request!";
+        $t = mdate('%Y%m%d%H%i%s', time());
+
+        if ($this->session->userdata('user_id') && $this->session->userdata('permission') == 1) {
+            $id = $this->input->get_post('id');
+            $manager_id = $this->input->get_post('manager_id');
+
+            $date_requested = $this->input->get_post('date_requested');
+            $permit_number = $this->input->get_post('permit_number');
+            $job_number = $this->input->get_post('job_number');
+            $lot = $this->input->get_post('lot');
+
+            $community = $this->input->get_post('community');
+            $address = $this->input->get_post('address');
+            $city = $this->input->get_post('city');
+            $area = $this->input->get_post('area');
+            $volume = $this->input->get_post('volume');
+            $wall_area = $this->input->get_post('wall_area');
+            $ceiling_area = $this->input->get_post('ceiling_area');
+            $design_location = $this->input->get_post('design_location');
+
+            $field_manager_name = $this->input->get_post('field_manager');
+            $qn = $this->input->get_post('qn');
+
+            $document_person = $this->input->get_post('document_person');
+            if ($document_person === false) {
+                $document_person = "";
+            }
+            if (is_string($id) && strlen($id) > 0) {
+                $this->utility_model->start();
+                $tmp_category = $this->input->get_post('category');
+                if ($tmp_category == false) {
+                    $tmp_category = 3;
+                }
+                $data = array(
+                    'category' => $tmp_category,
+                    'manager_id' => $manager_id, //$this->session->userdata('user_id'),
+                    'job_number' => $job_number,
+                    'lot' => $lot,
+                    'requested_at' => $date_requested,
+                    'permit_number' => $permit_number,
                     'time_stamp' => $t,
                     'ip_address' => $this->get_client_ip(),
                     'community_name' => $community,

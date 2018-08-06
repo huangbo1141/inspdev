@@ -66,6 +66,13 @@
                                 </div>
 
                                 <div class="row margin-bottom-10 form-group">
+                                    <label class="control-label col-md-3" for="job_number">Permit Number :</label>
+                                    <div class="col-md-5">
+                                        <input type="text" placeholder="" id="permit_number" name="permit_number" class="form-control" value="<?php echo $inspection['permit_number']; ?>">
+                                    </div>
+                                </div>
+                                
+                                <div class="row margin-bottom-10 form-group">
                                     <label class="control-label col-md-3" for="job_number">Job Number :</label>
                                     <div class="col-md-5">
                                         <input type="text" placeholder="" id="job_number" name="job_number" class="form-control" value="<?php echo $inspection['job_number']; ?>">

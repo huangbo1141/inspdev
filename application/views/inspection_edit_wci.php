@@ -77,7 +77,16 @@
 
                             <div class="row margin-bottom-10">
                                 <h3 style="margin-top: 5px;" class="inspection-type">
-                                    WCI Duct Leakage Inspection
+                                    
+                                    <?php
+                                        if ($inspection['type'] == 3){
+                                            echo "WCI Duct Leakage Inspection";    
+                                        }else{
+                                            echo "PULTE Duct Leakage Inspection";    
+                                        }
+                                        
+                                    ?>
+
                                     <span class="sub-title"></span>
                                 </h3>
                             </div>

@@ -116,6 +116,9 @@
         <form id="form_move_edit" action="<?php echo $basePath;?>inspection/edit.html" method="post">
             <input type="hidden" name="inspection_id" id="detail_id2" value="">
         </form>
+<!--        <form id="form_move_edit" action="<?php echo $basePath;?>inspection/edit.html" method="post">
+            <input type="hidden" name="inspection_id" id="detail_id2" value="">
+        </form>-->
         
         <script>
             jQuery(document).ready(function () {

@@ -139,7 +139,7 @@ function init_table() {
                 "render": function (data, type, row, meta) {
                     var d = "";
                     
-                    if (row.category=='3') {
+                    if ( row.category=='3' || row.category=='4' ) {
                         d += row.city_duct;
                     }
 

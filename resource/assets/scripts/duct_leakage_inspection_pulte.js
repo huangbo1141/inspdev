@@ -23,9 +23,12 @@ function check_job_number_for_pulte_duct() {
             if (data.exist_ins_inspection == 1) {
                 submit_data();
 //                showAlert("submit_data");
+            } else if (data.exist_ins_building == 1) {
+                submit_data();
+//                showAlert("submit_data");
             } else {
                 showAlert("Building not in Database");
-                
+
             }
         },
         error: function () {
@@ -46,6 +49,7 @@ function submit_data() {
         manager_id: field_manager_id,
 
         date_requested: $("#date_requested").val(),
+        permit_number: $("#permit_number").val(),
         job_number: $("#job_number").val(),
         lot: $("#lot").val(),
 
@@ -65,11 +69,11 @@ function submit_data() {
         category: 4
     }
     var req_id = $("#requested_id").val();
-    var fname = "update_duct_leakage_inspection_requested";
+    var fname = "update_duct_leakage_inspection_requested_pulte";
     if (req_id.length > 0) {
-        fname = "update_duct_leakage_inspection_requested2";
+        fname = "update_duct_leakage_inspection_requested2_pulte";
     } else {
-        fname = "update_duct_leakage_inspection_requested";
+        fname = "update_duct_leakage_inspection_requested_pulte";
     }
 
     // return;
@@ -114,6 +118,21 @@ function check_job_number() {
             dataType: 'json',
             success: function (data) {
 
+                hideLoading();
+
+
+                if (data.inspection != null) {
+                    $("#lot").val(data.inspection.lot == null ? "" : data.inspection.lot);
+                    $("#community").val(data.inspection.community == null ? "" : data.inspection.community);
+                    $("#address").val(data.inspection.address == null ? "" : data.inspection.address);
+                    $("#city").val(data.inspection.city == null ? "" : data.inspection.city);
+                }
+                if (data.building != null) {
+                    $("#community").val(data.building.community_name == null ? "" : data.building.community_name);
+                    $("#address").val(data.building.address == null ? "" : data.building.address);
+                    $("#city").val(data.building.city == null ? "" : data.building.city);
+                }
+
                 if (data.err_code == 0) {
                     $("#field_manager").html("");
                     $("#field_manager").append('<option value="0">NONE</option>');
@@ -123,22 +142,32 @@ function check_job_number() {
                             $("#field_manager").append('<option ' + (data.fm.manager_id == row.id ? "selected" : "") + ' value="' + row.id + '">' + row.first_name + ' ' + row.last_name + '</option>');
                         });
                     }
-                    if(data.inspection != null){
-                        $("#lot").val(data.inspection.lot==null?"":data.inspection.lot);
-                        $("#community").val(data.inspection.community==null?"":data.inspection.community);
-                        $("#address").val(data.inspection.address==null?"":data.inspection.address);
-                        $("#city").val(data.inspection.city==null?"":data.inspection.city);
+
+                    if (data.inspection.status == 2 && data.inspection.type == 4) {
+                        //
+                        showAlert("Job Number Completed before.");
+                        $("#lot").val(data.inspection.lot == null ? "" : data.inspection.lot);
+//                        $("#community").val(data.inspection.community == null ? "" : data.inspection.community);
+                        $("#address").val(data.inspection.address == null ? "" : data.inspection.address);
+                        $("#city").val(data.inspection.city == null ? "" : data.inspection.city);
+                        $("#permit_number").val(data.inspection.permit_number == null ? "" : data.inspection.permit_number);
+                        $("#area").val(data.inspection.area == null ? "" : data.inspection.area);
+                        $("#ceiling_area").val(data.inspection.ceiling_area == null ? "" : data.inspection.ceiling_area);
+                        $("#design_location").val(data.inspection.design_location == null ? "" : data.inspection.design_location);
+                        $("#volume").val(data.inspection.volume == null ? "" : data.inspection.volume);
+                        $("#wall_area").val(data.inspection.wall_area == null ? "" : data.inspection.wall_area);
+                        $("#qn").val(data.inspection.qn == null ? "" : data.inspection.qn);
+                        $("#document_person").val(data.inspection.document_person == null ? "" : data.inspection.document_person);
                     }
-                    if(data.building != null) {
-                        $("#address").val(data.building.address==null?"":data.building.address);
-                    }
+
+
                 } else {
                     $("#field_manager").html("");
                     $("#field_manager").append('<option value="0">NONE</option>');
                     showAlert("Job Number Not Found");
                 }
 
-                hideLoading();
+
             },
             error: function () {
 
@@ -170,15 +199,22 @@ jQuery(document).ready(function () {
                     },
                 }
             },
+            permit_number: {
+                validators: {
+                    notEmpty: {
+                        message: 'Enter the Permit Number'
+                    },
+                }
+            },
             job_number: {
                 validators: {
                     notEmpty: {
                         message: 'Enter the Job Number'
                     },
-                    greaterThan: {
-                        value: 1,
-                        message: 'Enter the Number greater than 1',
-                    }
+//                    greaterThan: {
+//                        value: 1,
+//                        message: 'Enter the Number greater than 1',
+//                    }
                 }
             },
             lot: {

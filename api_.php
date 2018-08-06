@@ -2322,20 +2322,20 @@ class Api extends CI_Controller {
                 }
             }
 
-            $file1 = $this->make_pdf_for_duct_leakage($inspection_id);
-            $file2 = $this->make_pdf_for_envelop_leakage($inspection_id);
+//            $file1 = $this->make_pdf_for_duct_leakage($inspection_id);
+//            $file2 = $this->make_pdf_for_envelop_leakage($inspection_id);
 
-            if($inspection['type'] == 4){
+            if ($inspection['type'] == 4) {
                 //
-                $list_model = $this->utility_model->get_list('ins_flag_email_report', array('pulte_duct'=>0));
+                $list_model = $this->utility_model->get_list('ins_flag_email_report', array('pulte_duct' => 0));
                 $list_exception = array();
-                foreach($list_model as $model){
+                foreach ($list_model as $model) {
                     $list_exception[] = $model['email'];
                 }
 
                 $list_tmp = array();
-                foreach($sender as $row){
-                    if(!in_array($row['email'], $list_exception)){
+                foreach ($sender as $row) {
+                    if (!in_array($row['email'], $list_exception)) {
                         $list_tmp[] = $row['email'];
                     }
                 }
@@ -5107,13 +5107,17 @@ class Api extends CI_Controller {
         if ($inspection['type'] == 3) {
             $settings['s_width_25'] = 32;
             $settings['s_width_50'] = 36;
+            
+            $settings['s_col_1'] = 9;
+            $settings['s_col_2'] = 31;
+            $settings['s_col_3'] = 60;
         } else {
+            $settings['s_width_25'] = 25;
+            $settings['s_width_50'] = 50;
             
-            $settings['s_width_25'] = 32;
-            $settings['s_width_50'] = 36;
-            
-//            $settings['s_width_25'] = 25;
-//            $settings['s_width_50'] = 50;
+            $settings['s_col_1'] = 12.5;
+            $settings['s_col_2'] = 25;
+            $settings['s_col_3'] = 62.5;
         }
         $html_head .= '<style type="text/css">'
                 . ' body { font-family: Arial, sans-serif; padding: 0; margin: 0; } '
@@ -5131,9 +5135,9 @@ class Api extends CI_Controller {
                 . '.test-result { font-size: 16.42px; border: 1px solid #000; border-collapse: collapse; }'
                 . '.test-result td { border: 1px solid #000; vertical-align: top; padding: 16px 8px 8px; }'
                 . '.test-result td span.text-underline { padding: 0 4px; }'
-                . '.test-result td.result-line { text-align: center; width: 9%; }'
-                . '.test-result td.result-system { text-align: left; width: 31%; padding-left: 16px; }'
-                . '.test-result td.result-leakage { text-align: center; width: 60%; }'
+                . '.test-result td.result-line { text-align: center; width: '.$settings['s_col_1'].'%; }'
+                . '.test-result td.result-system { text-align: left; width: '.$settings['s_col_2'].'%; padding-left: 16px; }'
+                . '.test-result td.result-leakage { text-align: center; width: '.$settings['s_col_3'].'%; }'
                 . '.width-25-percent { width: ' . $settings['s_width_25'] . '%; }'
                 . '.width-40-percent { width: 42%; }'
                 . '.width-50-percent { width: ' . $settings['s_width_50'] . '%; }'
@@ -5145,8 +5149,6 @@ class Api extends CI_Controller {
                 . 'td.footer-small-padding { padding: 8px 12px 8px 8px; vertical-align: top; }'
                 . '.footer-value { font-size: 13.72px; font-weight: bold; padding: 10px 0; }'
                 . '.footer .width-60-percent { border: 1px solid #000; }'
-                . '.mybox tr  { line-height: 8px; }'
-                . '.mybox td  { padding-left: 2px; font-size: 15px;}'
                 . '</style>';
         $html_head .= '</head>';
 
@@ -5164,59 +5166,55 @@ class Api extends CI_Controller {
                         . '<tr>'
                         . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
                         . '</tr>';
-                $settings['qn_out'] = '(Qn,Out)';
-                $settings['msg1'] = 'Total House Duct System Leakage';
-                $settings['msg4'] = 'Duct tightness shall be verified by testing to Section 803 of the RESNET Standards by an energy rater certified in accordance with Section 553.99, Florida Statutes.';
-                $settings['msg5'] = 'I certify the tested duct leakage to outside, Qn, is not greater than the proposed duct leakage Qn specified on Form R405-2014.';
-                $settings['msg6'] = 'FORM R405-2014 Duct Leakage Test Report Performance Method';
             } else {
                 $builder = "Pulte";
-                $settings['html_1'] = '<div class="row">
+                $temp_1 = '<div class="row">
     <table class="width-full" style="border-collapse: collapse;">
-        <tbody><tr><td style="width:23%;">&nbsp;</td>
-                <td  style="width:20%;   padding-top: 20px;">
-                    <table class="width-full mybox" style="   border: 1px solid #000;"><tbody>
-                    
-                            <tr><td style="width: 55%;">
-                            <table>
-                                <tr><td>Required Duct Leakage from</td></tr>
-                                <tr><td>FORMR405-2017</td></tr>
-                            </table>
-                            </td>
-                            <td style="width: 45%; padding-top:10px">
-                                <span class="text-underline">&nbsp; ' . $this->show_decimal($inspection['qn_out'], 3) . ' &nbsp;</span> 
-                                    <span style="position: relative;    top: -15px;" class="text-value">(Q<span class="font-bold">n</span>,out)</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <tbody>
+            <tr>
+                <td class="width-25-percent">&nbsp;</td>
+                <td class="width-50-percent"><table class="test-result width-full">
+                        <tbody>
+                            <tr><td colspan="3">Required Duct Leakage from</td></tr>
+                            <tr><td colspan="2">FORMR405-2017</td><td colspan="1"><span class="text-underline">&nbsp; 0.000 &nbsp;</span> <span class="font-bold">(Qn,Out)</span></td></tr>
+                            
+                        </tbody></table></td><td class="width-25-percent">&nbsp;
                 </td>
-                <td style="width:23%;">&nbsp;</td>
             </tr>
         </tbody>
-    </table></div>';
+    </table>
+</div>';
 
-                $settings['html_2'] = '<table class="width-full" style="border-collapse: collapse;"><tbody><tr><td style="  "><table class="width-full" style="    border: 0px solid #000;    "><tbody>
-                    <tr><td style="width: 100%;text-align: center;">*Tested Qn (Out) must be less than or equal to the required Qn (Out)</td></tr></tbody></table></td></tr></tbody></table>';
+
+                $temp_1 .= '<div class="row">'
+                        . '<table class="width-full" style="border-collapse: collapse;">'
+                        . '<tbody><tr>'
+                        . '<td class="width-25-percent">&nbsp;</td>'
+                        . '<td class="width-50-percent" style="    padding-top: 20px;">'
+                        . '<table class="width-full" style="    border: 1px solid #000;    padding-bottom: 10px;    padding-top: 10px;">'
+                        . '<tbody>'
+                        . '<tr><td colspan=1>Required Duct Leakage from</td><td colspan=2>&nbsp;&nbsp;</td></tr>'
+                        . '<tr><td colspan=1>FORMR405-2017</td>'
+                        . '<td colspan=2><span class="text-underline">&nbsp; ' . $this->show_decimal($inspection['qn_out'], 3) . ' &nbsp;</span> <span class="font-bold">(Qn,Out)</span></td>'
+                        . '</tr>'
+                        . '</tbody>'
+                        . '</table></td>'
+                        . '<td class="width-25-percent">&nbsp;</td></tr>'
+                        . '</tbody>'
+                        . '</table></div>';
+
+                $settings['html_1'] = '<tr><td colspan="4">Required Duct Leakage from</td><td colspan="4">&nbsp;&nbsp;</td></tr>
+<tr><td colspan="4">FORMR405-2017</td><td colspan="4"><span class="text-underline">&nbsp; 0.000 &nbsp;</span> <span class="font-bold">(Qn,Out)</span></td></tr>
+<tr><td colspan="8" style="font-size: 18px;text-align: center;font-weight: 600;border-left: 1px solid #fff;border-right: 1px solid #fff;">Duct Leakage Test Results</td></tr>';
+
+                $settings['html_2'] = '<table class="width-full" style="border-collapse: collapse;"><tbody><tr><td class="width-25-percent">&nbsp;</td><td class="width-50-percent" style="    padding-top: 20px;"><table class="width-full" style="    border: 0px solid #000;    padding-bottom: 10px;    padding-top: 10px;"><tbody>
+                    <tr><td style="width: 100%;text-align: center;">*Tested Qn (Out) must be less than or equal to the required Qn (Out)</td></tr></tbody></table></td><td class="width-25-percent">&nbsp;</td></tr></tbody></table>';
                 $settings['html_3'] = '';
-                $settings['qn_out'] = '(Qn,out)*';
-                $settings['msg1'] = 'Tested Total House Duct System Leakage';
-                $settings['msg4'] = 'Duct tightness shall be verified by
-testing to ANSI/RESNET/ICC 380 by
-either individuals as defined in Section
-553.993(5) or (7), Florida Statutes, or
-individuals licensed as set forth in
-Section 489.105(3)(f),
-(g), or (i), Florida Statutes.';
-                $settings['msg5'] = 'I certify the tested duct leakage to outside, Qn,
-is less than or equal to the proposed duct
-leakage Qn specified on FORM R405-2017.';
-                $settings['msg6'] = 'FORM R405-2017 Duct Leakage Test Report Performance Method';
             }
 
 
 
-            $html_body .= '<h2 class="font-light" style="font-size: 13px;">'.$settings['msg6'].'</h2>';
+            $html_body .= '<h2 class="font-light" style="font-size: 13px;">FORM R405-2014 Duct Leakage Test Report Performance Method</h2>';
             $html_body .= '<h1 class="title text-center">FLORIDA ENERGY EFFICIENCY CODE FOR BUILDING CONSTRUCTION</h1>';
             $html_body .= '<h1 class="sub-title text-center font-light" style="margin-top: 3px; padding:0 140px;">Form R405 Duct Leakage Test Report Performance Method</h1>';
 
@@ -5225,7 +5223,7 @@ leakage Qn specified on FORM R405-2017.';
             $html_body .= '<table class="performance-method width-full" style="">';
             $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: <span class="text-value">' . $builder . '</td></tr>';
             $html_body .= '<tr><td>Street: <span class="text-value">' . $inspection['address'] . '</span></td><td>Permit Office: </td></tr>';
-            $html_body .= '<tr><td>City, State, Zip: <span class="text-value">' . $inspection['city'] . '</span></td><td>Permit Number: <span class="text-value">'. $inspection['permit_number'].'</span></td></tr>';
+            $html_body .= '<tr><td>City, State, Zip: <span class="text-value">' . $inspection['city'] . '</span></td><td>Permit Number: <span class="text-value">' . $inspection['permit_number'] . '</span></td></tr>';
             $html_body .= '<tr><td>Design Location: <span class="text-value">' . $inspection['design_location'] . '</span></td><td>Jurisidiction: </td></tr>';
             $html_body .= '<tr><td>&nbsp;</td><td>Duct Test Time: Post Construction</td></tr>';
             $html_body .= '</table>';
@@ -5237,25 +5235,28 @@ leakage Qn specified on FORM R405-2017.';
             $cfm25_system_4 = $this->cfm25($inspection_id, 4);
             $cfm25_system = $cfm25_system_1 + $cfm25_system_2 + $cfm25_system_3 + $cfm25_system_4;
 
-            $html_body .= $settings['html_1'];
-            $html_body .= '<h2 class="sub-title text-center">Duct Leakage Test Results</h2>';
+//            $html_body .= $settings['html_1'];
+//            $html_body .= '<h2 class="sub-title text-center">Duct Leakage Test Results</h2>';
+            
+            $html_body .= '<div class="row" style="height: 16px;"></div>';
             $html_body .= '<div class="row">';
             $html_body .= '<table class="width-full" style="border-collapse: collapse;"><tr><td class="width-25-percent">&nbsp;</td>';
             $html_body .= '<td class="width-50-percent">'
                     . '<table class="test-result width-full">'
-                    . '<tr><td colspan="3" style="padding-top: 20px; font-size: 18px;">CFM25 Duct Leakage Test Values</td></tr>'
-                    . '<tr><td class="result-line">Line</td><td class="result-system">System</td><td class="result-leakage">Outside Duct Leakage</td></tr>'
-                    . '<tr><td class="result-line">1</td><td class="result-system">System 1</td><td class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_1, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
-                    . '<tr><td class="result-line">2</td><td class="result-system">System 2</td><td class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_2, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
-                    . '<tr><td class="result-line">3</td><td class="result-system">System 3</td><td class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_3, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
-                    . '<tr><td class="result-line">4</td><td class="result-system">System 4</td><td class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_4, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
+                    . $settings['html_1']
+                    . '<tr><td colspan="8" style="padding-top: 20px; font-size: 18px;">CFM25 Duct Leakage Test Values</td></tr>'
+                    . '<tr><td colspan="1" class="result-line">Line</td><td colspan="2" class="result-system">System</td><td <td colspan="5" class="result-leakage">Outside Duct Leakage</td></tr>'
+                    . '<tr><td colspan="1" class="result-line">1</td><td <td colspan="2" class="result-system">System 1</td><td colspan="5" class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_1, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
+                    . '<tr><td colspan="1" class="result-line">2</td><td <td colspan="2" class="result-system">System 2</td><td colspan="5" class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_2, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
+                    . '<tr><td colspan="1" class="result-line">3</td><td <td colspan="2" class="result-system">System 3</td><td colspan="5" class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_3, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
+                    . '<tr><td colspan="1" class="result-line">4</td><td <td colspan="2" class="result-system">System 4</td><td colspan="5" class="result-leakage"><span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system_4, 1) . ' &nbsp;&nbsp;&nbsp;</span> cfm25(Out)</td></tr>'
                     . '<tr>'
-                    . '<td class="result-line">5</td><td class="result-system font-bold">'.$settings['msg1'].'</td>'
-                    . '<td class="result-leakage-total" style="padding-bottom: 96px; line-height: 28px;">'
+                    . '<td colspan="1" class="result-line">5</td><td colspan="2" class="result-system font-bold">Total House Duct System Leakage</td>'
+                    . '<td colspan="5" class="result-leakage-total" style="padding-bottom: 96px; line-height: 28px;">'
                     . 'Sum lines 1-4 <span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($cfm25_system, 1) . ' &nbsp;&nbsp;&nbsp;</span> <br>'
                     . 'Divide by &nbsp;&nbsp;&nbsp; <span class="text-underline">&nbsp;&nbsp;&nbsp; ' . $this->show_decimal($inspection['area'], 0) . ' &nbsp;&nbsp;&nbsp;</span> <br>'
                     . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (Total Conditioned Floor Area) <br>'
-                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = &nbsp; <span class="text-underline">&nbsp; ' . $this->show_decimal($inspection['qn_out'], 3) . ' &nbsp;</span> <span class="font-bold">'.$settings['qn_out'].'</span>'
+                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = &nbsp; <span class="text-underline">&nbsp; ' . $this->show_decimal($inspection['qn_out'], 3) . ' &nbsp;</span> <span class="font-bold">(Qn,Out)</span>'
                     . '</td>'
                     . '</tr>'
                     . '</table>'
@@ -5272,7 +5273,7 @@ leakage Qn specified on FORM R405-2017.';
 
             $html_body .= '<td class="width-40-percent footer-padding">';
             $html_body .= '<br><br>';
-            $html_body .= '<h2 class="footer-description">'.$settings['msg5'].'</h2>';
+            $html_body .= '<h2 class="footer-description">I certify the tested duct leakage to outside, Qn, is not greater than the proposed duct leakage Qn specified on Form R405-2014.</h2>';
 
             $html_body .= '<table class="">'
                     . '<tr>'
@@ -5290,7 +5291,7 @@ leakage Qn specified on FORM R405-2017.';
             $html_body .= '<td class="width-60-percent footer-small-padding">';
             $html_body .= '<table class="width-full">'
                     . '<tr>'
-                    . '<td style="vertical-align: middle;"><h2 class="footer-description" style="padding-right: 16px; padding-top: 8px;">'.$settings['msg4'].'</h2></td>'
+                    . '<td style="vertical-align: middle;"><h2 class="footer-description" style="padding-right: 16px; padding-top: 8px;">Duct tightness shall be verified by testing to Section 803 of the RESNET Standards by an energy rater certified in accordance with Section 553.99, Florida Statutes.</h2></td>'
                     . '<td style="padding-left:12px;"><img src="' . $this->image_url_change(base_url()) . 'resource/upload/wci.png" alt="" style="width: 164px; margin-top: 4px;"></td>'
                     . '</tr>'
                     . '</table>';
@@ -5308,6 +5309,9 @@ leakage Qn specified on FORM R405-2017.';
         $html .= $html_head . $html_body;
         $html .= '</html>';
 
+        $fp = fopen('./key1.html', 'w');
+        fwrite($fp, serialize($html));
+        fclose($fp);
         return $html;
     }
 
@@ -5331,7 +5335,7 @@ leakage Qn specified on FORM R405-2017.';
             $settings['s_width_30'] = 50;
             $settings['s_width_70'] = 50;
         }
-        
+
         $html .= '<html>';
         $html_head .= '<head>';
         $html_head .= '<style type="text/css">'
@@ -5357,8 +5361,8 @@ leakage Qn specified on FORM R405-2017.';
                 . '.width-40-percent { width: 42%; }'
                 . '.width-50-percent { width: 36%; }'
                 . '.width-60-percent { width: 58%; }'
-                . '.width-30-percent { width: '.$settings['s_width_30'].'%; }'
-                . '.width-70-percent { width: '.$settings['s_width_70'].'%; }'
+                . '.width-30-percent { width: ' . $settings['s_width_30'] . '%; }'
+                . '.width-70-percent { width: ' . $settings['s_width_70'] . '%; }'
                 . '.inline-container>div { display: inline-block; }'
                 . '.img-responsive { max-width: 100%; }'
                 . '.footer-description { font-size: 12.92px; font-weight: 100; margin-top: 8px; margin-bottom: 32px; }'
@@ -5400,82 +5404,34 @@ leakage Qn specified on FORM R405-2017.';
                         . '<tr>'
                         . '<td style="vertical-align:bottom;"><span class="footer-value">Florida Rater ID: 791</span></td>'
                         . '</tr>';
-                $settings['padding1'] = '';
-                
-                $settings['html_4'] = '<div class="row" style="height: 24px;"></div>';
-                
-                $settings['msg2'] = 'Where required by the code official, testing shall be conducted by an approved third party. A written report of the results of the test shall be signed by the third party conducting the test and provided to the code official.';
-                $settings['msg3'] = 'The building or dwelling unit shall be tested and verified as having an air leakage rate of not exceeding 5 air changes per hour in Climate Zones 1 and 2, 3 air changes per hour in Climate Zones 3 through 8. Testing shall be conducted with a blower door at a pressure of 0.2 inches w.g. (50 Pascals). Where required by the code official, testing shall be conducted by an approved third party. A written report of the results of the test shall be signed by the party conducting the test and provided to the code official. Testing shall be performed at any time after creation of all penetrations of the building thermal envelope.';
-                $settings['msg7'] = '';
-                $settings['msg8'] = 'Prescriptive and Performance Method';
             } else {
                 $builder = "Pulte";
-                
-                
-                $html_1 = '<table class="width-full" style="border: 0px solid #000;padding-bottom: 10px;padding-top: 0px;">
-    <tbody><tr>
-            <td style="width: 60%;">
-                Required                ACH(50)                from</td>
-            <td style="width: 40%;"></td>
-        </tr>
-        <tr>
-            <td>FORM R405-2017 :</td>
-            <td><span class="text-underline" style=" ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$this->show_decimal($inspection['ach50'], 2).'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <div class="row" style="height: 16px;"> </div>
-            </td>
-        </tr>
-        <tr >
-            <td style="    padding-top: 30px;    padding-bottom:5px;">Tested ACH(50) * :</td>
-            <td><span class="text-underline" style=" ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$this->show_decimal($inspection['ach50'], 2).'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
-        </tr>
-        <tr>
-            <td colspan="2"><div class="row" style="height: 16px;">      </div>
-            </td>
-        </tr>
+                $html_1 = '<table class="width-full" style="border: 0px solid #000;padding-bottom: 10px;padding-top: 10px;"><tbody><tr><td style="width: 45%;">Required
+ ACH(50)
+ from</td><td style="width: 55%;"></td></tr>
+<tr><td>FORM R405-2017 :</td><td><span class="text-underline" style="
+">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $this->show_decimal($inspection['ach50'], 2) . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr><tr><td colspan="2"><div class="row" style="height: 16px;"></div></td></tr>
+<tr><td>Tested ACH(50) * :</td><td><span class="text-underline" style="
+">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $this->show_decimal($inspection['ach50'], 2) . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr><tr><td colspan="2"><div class="row" style="height: 16px;"></div></td></tr>
 
-        <tr>
-            <td colspan="2">*Tested leakage must be less than or equal to the required ACH(50) shown on Form R405-2017 forthis building. If the tested ACH(50) is less than 3 the building must have a mechanical ventilation system</td>
-        </tr>
-    </tbody>
-</table>';
+<tr><td colspan="2">*Tested leakage must be less than or equal to the required ACH(50) shown on Form R405-2017 forthis building. If the tested ACH(50) is less
+ than 3 the building must have a mechanical ventilation system</td>
+</tr></tbody></table>';
                 $settings['html_1'] = $html_1;
 
                 $settings['html_2'] = '<table class="width-full" style="border-collapse: collapse;"><tbody><tr><td class="width-25-percent">&nbsp;</td><td class="width-50-percent" style="    padding-top: 20px;"><table class="width-full" style="    border: 0px solid #000;    padding-bottom: 10px;    padding-top: 10px;"><tbody>
                     <tr><td style="width: 100%;text-align: center;">*Tested Qn (Out) must be less than or equal to the required Qn (Out)</td></tr></tbody></table></td><td class="width-25-percent">&nbsp;</td></tr></tbody></table>';
                 $settings['html_3'] = '';
-                $settings['padding1'] = 'padding-left:30px; ';
-                $settings['html_4'] = '';
-                
-                $settings['msg2'] = 'Testing shall be conducted by either
-individuals as defined in Section
-553.993(5) or (7), Florida Statutes or
-individuals licensed as set forth in
-Section 489.105(3)(f), (g), or (i) or an
-approved third party. A written report of
-the results of the test shall be signed
-by the third party conducting the test
-and provided to the code official.';
-                $settings['msg3'] = 'The building or dwelling unit shall be tested and verified as having an air leakage rate of not exceeding 7 air changes per hour
-in Climate Zones 1 and 2 ... Testing shall be conducted with a blower door at a pressure of 0.2 inches w.g. (50 Pascals). Testing shall be conducted by
-either individuals as defined in Section 553.993(5) or (7), Florida Statutes or individuals licensed as set forth in Section 489.105(3)(f), (g), or (i) or an
-approved third party. A written report of the results of the test shall be signed by the party conducting the test and provided to the code official. Testing
-shall be performed at any time after creation of all penetrations of the building thermal envelope. ';
-                $settings['msg7'] = 'FORM R405-2017 Envelope Leakage Test Report Performance';
-                $settings['msg8'] = 'Performance Method';
             }
 
-            $html_body .= '<h2 class="font-light" style="font-size: 13px;">'.$settings['msg7'].'</h2>';
             $html_body .= '<h1 class="title text-center">FLORIDA ENERGY EFFICIENCY CODE FOR BUILDING CONSTRUCTION</h1>';
-            $html_body .= '<h1 class="sub-title text-center font-light" style="margin-top: 3px; padding:0 100px;">Envelope Leakage Test Report<br>'.$settings['msg8'].'</h1>';
+            $html_body .= '<h1 class="sub-title text-center font-light" style="margin-top: 3px; padding:0 100px;">Envelope Leakage Test Report<br>Prescriptive and Performance Method</h1>';
 
             $html_body .= '<div class="row" style="padding: 0 2px;">';
             $html_body .= '<table class="performance-method width-full" style="">';
             $html_body .= '<tr><td style="width: 55%;">Project Name: <span class="text-value">' . $inspection['community'] . '</span></td><td style="width: 45%;">Builder Name: <span class="text-value">' . $builder . '</td></tr>';
             $html_body .= '<tr><td>Street: <span class="text-value">' . $inspection['address'] . '</span></td><td>Permit Office: </td></tr>';
-            $html_body .= '<tr><td>City, State, Zip: <span class="text-value">' . $inspection['city'] . '</span></td><td>Permit Number: <span class="text-value">'. $inspection['permit_number'].'</span></td></tr>';
+            $html_body .= '<tr><td>City, State, Zip: <span class="text-value">' . $inspection['city'] . '</span></td><td>Permit Number: <span class="text-value">' . $inspection['permit_number'] . '</span></td></tr>';
             $html_body .= '<tr><td>Design Location: <span class="text-value">' . $inspection['design_location'] . '</span></td><td>Jurisidiction: </td></tr>';
             $html_body .= '<tr><td>Cond. Floor Area: <span class="text-value">' . $this->show_decimal($inspection['area'], 0) . ' sq.ft</span></td><td>Cond. Volume: <span class="text-value">' . $this->show_decimal($inspection['volume'], 0) . ' cu.ft</span></td></tr>';
             $html_body .= '</table>';
@@ -5516,8 +5472,8 @@ shall be performed at any time after creation of all penetrations of the buildin
             $html_body .= '</div>';
             $html_body .= '</td>';
 
-            $html_body .= '<td class="width-30-percent" style="vertical-align:top; '.$settings['padding1'].'">';
-            $html_body .= '<h2 class="part-title" style="'.$settings['padding1'].'">Leakage Characteristics</h2>';
+            $html_body .= '<td class="width-30-percent" style="vertical-align:top;">';
+            $html_body .= '<h2 class="part-title">Leakage Characteristics</h2>';
             // html1
             $html_body .= $settings['html_1'];
             $html_body .= '</td>';
@@ -5526,11 +5482,11 @@ shall be performed at any time after creation of all penetrations of the buildin
             $html_body .= '</div>';
 
 
-            $html_body .= $settings['html_4'];
+            $html_body .= '<div class="row" style="height: 24px;"></div>';
             $html_body .= '<div class="row" style="padding: 0 12px;">';
             $html_body .= '<h3 style="font-size: 12.24px; font-weight: 100; margin: 4px 0 2px; line-height: 14px;">';
             $html_body .= '<span class="font-bold">R402.4.1.2.Testing.</span>&nbsp;';
-            $html_body .= $settings['msg3'];
+            $html_body .= 'The building or dwelling unit shall be tested and verified as having an air leakage rate of not exceeding 5 air changes per hour in Climate Zones 1 and 2, 3 air changes per hour in Climate Zones 3 through 8. Testing shall be conducted with a blower door at a pressure of 0.2 inches w.g. (50 Pascals). Where required by the code official, testing shall be conducted by an approved third party. A written report of the results of the test shall be signed by the party conducting the test and provided to the code official. Testing shall be performed at any time after creation of all penetrations of the building thermal envelope.';
             $html_body .= '</h3>';
             $html_body .= '<div style="padding: 0 24px;">';
             $html_body .= '<h3 style="font-size: 12.0px; font-weight: 100; margin: 2px 0;">During testing:</h3>';
@@ -5569,7 +5525,7 @@ shall be performed at any time after creation of all penetrations of the buildin
             $html_body .= '<td class="width-60-percent footer-small-padding">';
             $html_body .= '<table class="width-full">'
                     . '<tr>'
-                    . '<td style="vertical-align: middle;"><h2 class="footer-description" style="padding-right: 16px; padding-top: 8px;">'.$settings['msg2'].'</h2></td>'
+                    . '<td style="vertical-align: middle;"><h2 class="footer-description" style="padding-right: 16px; padding-top: 8px;">Where required by the code official, testing shall be conducted by an approved third party. A written report of the results of the test shall be signed by the third party conducting the test and provided to the code official.</h2></td>'
                     . '<td style="padding-left:12px;"><img src="' . $this->image_url_change(base_url()) . 'resource/upload/wci.png" alt="" style="width: 164px; margin-top: 4px;"></td>'
                     . '</tr>'
                     . '</table>';
